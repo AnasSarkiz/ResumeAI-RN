@@ -30,7 +30,7 @@ const prompts = [
 
 export default function ResumeEditorScreen() {
   const { id } = useLocalSearchParams();
-  const { currentResume, updateResume, loading } = useResume();
+  const { currentResume, updateResume, loading, loadResume } = useResume();
   const { isPro } = useSubscription();
   const [activeSection, setActiveSection] = useState<ResumeSection>('experience');
   const [selectedText, setSelectedText] = useState('');
@@ -271,6 +271,4 @@ export default function ResumeEditorScreen() {
   );
 }
 
-function loadResume(id: string) {
-  throw new Error('Function not implemented.');
-}
+// loadResume is provided by useResume()

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter} from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
 import { ResumeSectionCard } from '../../components/ResumeSectionCard';
@@ -12,9 +12,13 @@ export default function HomeScreen() {
   const { resumes, loading, loadResumes, createResume } = useResume();
   const { isPro } = useSubscription();
 
+  const router = useRouter();
+
   useEffect(() => {
     if (user) {
       loadResumes(user.id);
+      console.log('user', user);
+      
     }
   }, [user]);
 
@@ -67,14 +71,12 @@ export default function HomeScreen() {
             data={resumes}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <Link href={`/resume/editor?id=${item.id}`} asChild>
-                <TouchableOpacity>
+                <TouchableOpacity className='py-2'>
                   <View className="relative">
-                    <ResumeSectionCard title={item.title} active={false} onPress={() => {}} />
+                    <ResumeSectionCard title={item.title} active={false} onPress={() => {router.push(`/resume/editor?id=${item.id}`)}} />
                     {!isPro && <SubscriptionLock />}
                   </View>
                 </TouchableOpacity>
-              </Link>
             )}
             className="mb-4"
           />

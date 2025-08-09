@@ -12,11 +12,10 @@ import {
 import { Resume, CoverLetter } from '../types/resume';
 
 export const saveResume = async (resume: Resume): Promise<Resume> => {
-  if (!resume.id) {
-    throw new Error('resume.id is required');
-  }
-  await setDoc(doc(db, 'resumes', resume.id), resume);
-  return resume;
+  const id = resume.id && resume.id.trim().length > 0 ? resume.id : doc(collection(db, 'resumes')).id;
+  const toSave: Resume = { ...resume, id };
+  await setDoc(doc(db, 'resumes', id), toSave);
+  return toSave;
 };
 
 export const getResumeById = async (resumeId: string): Promise<Resume> => {

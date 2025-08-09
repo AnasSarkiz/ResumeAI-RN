@@ -6,7 +6,7 @@ export const SubscriptionLock: React.FC<{ isVisible?: boolean }> = ({ isVisible 
   const router = useRouter();
   if (!isVisible) return null;
   return (
-    <View className="absolute inset-0 items-center justify-center rounded-lg border bg-black bg-opacity-50">
+    <View className="absolute inset-0 items-center justify-center rounded-lg border bg-black opacity-80">
       <TouchableOpacity
         onPress={() => router.push('(main)/subscribe')}
         className="rounded-full bg-blue-500 px-4 py-2">

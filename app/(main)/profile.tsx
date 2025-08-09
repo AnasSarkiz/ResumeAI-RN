@@ -1,29 +1,45 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useSubscription } from '../../context/SubscriptionContext';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const { isPro, refreshSubscriptionStatus } = useSubscription();
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      router.replace('/(auth)/welcome');
-    } catch (error) {
-      Alert.alert('Logout Failed', 'Unable to logout. Please try again.');
-    }
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      {
+        text: 'Cancel',
+      },
+      {
+        text: 'Logout',
+        onPress: async () => {
+          try {
+            await logout();
+            router.replace('/(auth)/welcome');
+          } catch (error) {
+            Alert.alert('Logout Failed', 'Unable to logout. Please try again.');
+          }
+        },
+        style: "destructive"
+      },
+    ]);
   };
 
   return (
     <View className="flex-1 bg-gray-50 p-4">
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
       <View className="mb-4 rounded-lg bg-white p-6">
         <View className="mb-6 items-center">
           <View className="mb-3 h-20 w-20 items-center justify-center rounded-full bg-blue-100">
             <Text className="text-3xl font-bold text-blue-500">
-              {user?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
+              {(user?.name?.charAt(0) ?? user?.email?.charAt(0)?.toUpperCase() ?? '?')}
             </Text>
           </View>
           <Text className="text-xl font-bold text-gray-800">{user?.name}</Text>
@@ -56,6 +72,7 @@ export default function ProfileScreen() {
           <Text className="text-center font-medium text-red-500">Log Out</Text>
         </TouchableOpacity>
       </View>
+      )}
     </View>
   );
 }

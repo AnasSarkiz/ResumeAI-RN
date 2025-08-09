@@ -18,7 +18,7 @@ export const ResumeSectionCard: React.FC<ResumeSectionCardProps> = ({
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`mb-2 rounded-lg border p-4 ${active ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
+      className={`my-2 rounded-lg border p-4 ${active ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
       <View className="flex-row items-center">
         {icon && (
           <View className="mr-3">
