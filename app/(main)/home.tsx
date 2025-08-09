@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react
 import { Link } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
-import {ResumeSectionCard} from '../../components/ResumeSectionCard';
+import { ResumeSectionCard } from '../../components/ResumeSectionCard';
 import { SubscriptionLock } from '../../components/SubscriptionLock';
 import { useSubscription } from '../../context/SubscriptionContext';
 
@@ -20,10 +20,12 @@ export default function HomeScreen() {
 
   const handleCreateResume = async () => {
     if (!isPro && resumes.length >= 1) {
-      alert('Limit Reached \n Free users can only create 1 resume. Upgrade to Pro for unlimited resumes.');
+      alert(
+        'Limit Reached \n Free users can only create 1 resume. Upgrade to Pro for unlimited resumes.'
+      );
       return;
     }
-    
+
     try {
       await createResume(user?.id || '', `My Resume ${resumes.length + 1}`);
     } catch (error) {
@@ -33,12 +35,12 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-gray-50 p-4">
-      <View className="flex-row justify-between items-center mb-6">
+      <View className="mb-6 flex-row items-center justify-between">
         <Text className="text-2xl font-bold text-gray-800">My Resumes</Text>
         <Link href="/(main)/profile" asChild>
           <TouchableOpacity>
-            <View className="w-8 h-8 bg-blue-500 rounded-full items-center justify-center">
-              <Text className="text-white font-medium">
+            <View className="h-8 w-8 items-center justify-center rounded-full bg-blue-500">
+              <Text className="font-medium text-white">
                 {user?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || 'U'}
               </Text>
             </View>
@@ -52,12 +54,11 @@ export default function HomeScreen() {
         </View>
       ) : resumes.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-gray-500 mb-4">No resumes yet</Text>
+          <Text className="mb-4 text-gray-500">No resumes yet</Text>
           <TouchableOpacity
             onPress={handleCreateResume}
-            className="bg-blue-500 py-2 px-6 rounded-full"
-          >
-            <Text className="text-white font-medium">Create First Resume</Text>
+            className="rounded-full bg-blue-500 px-6 py-2">
+            <Text className="font-medium text-white">Create First Resume</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -69,11 +70,7 @@ export default function HomeScreen() {
               <Link href={`/resume/editor?id=${item.id}`} asChild>
                 <TouchableOpacity>
                   <View className="relative">
-                    <ResumeSectionCard 
-                      title={item.title} 
-                      active={false}
-                      onPress={() => {}}
-                    />
+                    <ResumeSectionCard title={item.title} active={false} onPress={() => {}} />
                     {!isPro && <SubscriptionLock />}
                   </View>
                 </TouchableOpacity>
@@ -81,12 +78,11 @@ export default function HomeScreen() {
             )}
             className="mb-4"
           />
-          
+
           <TouchableOpacity
             onPress={handleCreateResume}
-            className="border-2 border-dashed border-blue-500 py-3 rounded-lg items-center"
-          >
-            <Text className="text-blue-500 font-medium">+ New Resume</Text>
+            className="items-center rounded-lg border-2 border-dashed border-blue-500 py-3">
+            <Text className="font-medium text-blue-500">+ New Resume</Text>
           </TouchableOpacity>
         </>
       )}

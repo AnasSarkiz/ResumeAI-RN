@@ -31,45 +31,61 @@ export const exportResumeToPDF = async (resume: Resume): Promise<string> => {
             ${resume.website ? `| Website: ${resume.website}` : ''}
           </div>
           
-          ${resume.summary ? `
+          ${
+            resume.summary
+              ? `
             <div class="section">
               <h2 class="section-title">Summary</h2>
               <p>${resume.summary}</p>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
           
           <div class="section">
             <h2 class="section-title">Experience</h2>
-            ${resume.experience.map(exp => `
+            ${resume.experience
+              .map(
+                (exp) => `
               <div class="job">
                 <div class="job-title">${exp.jobTitle}</div>
                 <div class="company">${exp.company} ${exp.location ? `| ${exp.location}` : ''}</div>
                 <div class="date">${exp.startDate} - ${exp.endDate || 'Present'}</div>
                 <ul>
-                  ${exp.description.map(point => `<li>${point}</li>`).join('')}
+                  ${exp.description.map((point) => `<li>${point}</li>`).join('')}
                 </ul>
               </div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
           
           <div class="section">
             <h2 class="section-title">Education</h2>
-            ${resume.education.map(edu => `
+            ${resume.education
+              .map(
+                (edu) => `
               <div class="education">
                 <div class="degree">${edu.degree} ${edu.fieldOfStudy ? `in ${edu.fieldOfStudy}` : ''}</div>
                 <div class="institution">${edu.institution}</div>
                 <div class="date">${edu.startDate} - ${edu.endDate || 'Present'}</div>
                 ${edu.description ? `<p>${edu.description}</p>` : ''}
               </div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
           
           <div class="section">
             <h2 class="section-title">Skills</h2>
             <div class="skills">
-              ${resume.skills.map(skill => `
+              ${resume.skills
+                .map(
+                  (skill) => `
                 <div class="skill">${skill.name} ${skill.proficiency ? `(${skill.proficiency})` : ''}</div>
-              `).join('')}
+              `
+                )
+                .join('')}
             </div>
           </div>
         </body>

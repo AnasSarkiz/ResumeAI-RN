@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '../services/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { User } from '../types/user';
-import { getUser,registerWithEmail,loginWithEmail,logoutUser } from '../services/auth';
+import { getUser, registerWithEmail, loginWithEmail, logoutUser } from '../services/auth';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -59,17 +59,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
- const register = async (email: string, password: string, name: string) => {
-  setLoading(true);
-  try {
-    await registerWithEmail(email, password, name); 
-  } catch (err) {
-    setError(err instanceof Error ? err.message : 'Registration failed');
-    throw err; 
-  } finally {
-    setLoading(false);
-  }
-};
+  const register = async (email: string, password: string, name: string) => {
+    setLoading(true);
+    try {
+      await registerWithEmail(email, password, name);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const logout = async () => {
     setLoading(true);

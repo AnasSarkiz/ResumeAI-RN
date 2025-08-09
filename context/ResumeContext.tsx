@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Resume, CoverLetter } from '../types/resume';
-import { getResumes, getResumeById, saveResume, deleteResume, getCoverLetter } from '../services/resume';
+import {
+  getResumes,
+  getResumeById,
+  saveResume,
+  deleteResume,
+  getCoverLetter,
+} from '../services/resume';
 
 interface ResumeContextType {
   resumes: Resume[];
@@ -14,7 +20,11 @@ interface ResumeContextType {
   updateResume: (resumeId: string, updates: Partial<Resume>) => Promise<void>;
   deleteResume: (resumeId: string) => Promise<void>;
   loadCoverLetter: (resumeId: string) => Promise<void>;
-  generateCoverLetter: (resumeId: string, company?: string, position?: string) => Promise<CoverLetter>;
+  generateCoverLetter: (
+    resumeId: string,
+    company?: string,
+    position?: string
+  ) => Promise<CoverLetter>;
 }
 
 const ResumeContext = createContext<ResumeContextType>({
@@ -25,11 +35,28 @@ const ResumeContext = createContext<ResumeContextType>({
   error: null,
   loadResumes: async () => {},
   loadResume: async () => {},
-  createResume: async () => ({ id: '', userId: '', title: '', fullName: '', email: '', experience: [], education: [], skills: [], createdAt: new Date(), updatedAt: new Date() }),
+  createResume: async () => ({
+    id: '',
+    userId: '',
+    title: '',
+    fullName: '',
+    email: '',
+    experience: [],
+    education: [],
+    skills: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }),
   updateResume: async () => {},
   deleteResume: async () => {},
   loadCoverLetter: async () => {},
-  generateCoverLetter: async () => ({ id: '', resumeId: '', content: '', createdAt: new Date(), updatedAt: new Date() }),
+  generateCoverLetter: async () => ({
+    id: '',
+    resumeId: '',
+    content: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }),
 });
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
@@ -78,9 +105,9 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         skills: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-        id: ''
+        id: '',
       });
-      setResumes(prev => [...prev, newResume]);
+      setResumes((prev) => [...prev, newResume]);
       return newResume;
     } catch (err) {
       setError('Failed to create resume');
@@ -100,9 +127,9 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         id: resumeId,
         updatedAt: new Date(),
       } as Resume);
-      
+
       setCurrentResume(updatedResume);
-      setResumes(prev => prev.map(r => r.id === resumeId ? updatedResume : r));
+      setResumes((prev) => prev.map((r) => (r.id === resumeId ? updatedResume : r)));
     } catch (err) {
       setError('Failed to update resume');
       console.error(err);
@@ -116,7 +143,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     try {
       await deleteResume(resumeId);
-      setResumes(prev => prev.filter(r => r.id !== resumeId));
+      setResumes((prev) => prev.filter((r) => r.id !== resumeId));
       if (currentResume?.id === resumeId) {
         setCurrentResume(null);
       }
@@ -146,10 +173,10 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     try {
       // const { generateCoverLetter } = await import('../services/ai');
-      const resume = currentResume || await getResumeById(resumeId);
+      const resume = currentResume || (await getResumeById(resumeId));
       // const content = await generateCoverLetter(resume, company, position);
       const content = `Cover letter content for ${resume.fullName} applying to ${position || 'a position'} at ${company || 'the company'}.`; // Placeholder for actual AI generation logic
-      
+
       const coverLetter: CoverLetter = {
         id: `${resumeId}-${Date.now()}`,
         resumeId,
@@ -159,7 +186,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
+
       setCurrentCoverLetter(coverLetter);
       return coverLetter;
     } catch (err) {
@@ -172,20 +199,21 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <ResumeContext.Provider value={{
-      resumes,
-      currentResume,
-      currentCoverLetter,
-      loading,
-      error,
-      loadResumes,
-      loadResume,
-      createResume,
-      updateResume,
-      deleteResume,
-      loadCoverLetter,
-      generateCoverLetter,
-    }}>
+    <ResumeContext.Provider
+      value={{
+        resumes,
+        currentResume,
+        currentCoverLetter,
+        loading,
+        error,
+        loadResumes,
+        loadResume,
+        createResume,
+        updateResume,
+        deleteResume,
+        loadCoverLetter,
+        generateCoverLetter,
+      }}>
       {children}
     </ResumeContext.Provider>
   );

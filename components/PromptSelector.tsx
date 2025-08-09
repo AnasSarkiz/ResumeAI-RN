@@ -19,21 +19,19 @@ export const PromptSelector: React.FC<PromptSelectorProps> = ({
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
         disabled={disabled}
-        className={`py-2 px-4 rounded-full ${disabled ? 'bg-gray-300' : 'bg-purple-500'}`}
-      >
-        <Text className="text-white font-medium">Select AI Action</Text>
+        className={`rounded-full px-4 py-2 ${disabled ? 'bg-gray-300' : 'bg-purple-500'}`}>
+        <Text className="font-medium text-white">Select AI Action</Text>
       </TouchableOpacity>
 
       <Modal
         visible={modalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
+        onRequestClose={() => setModalVisible(false)}>
         <View className="flex-1 justify-end bg-black bg-opacity-50">
-          <View className="bg-white p-4 rounded-t-lg max-h-[70%]">
-            <Text className="text-lg font-bold mb-4">Select an AI Action</Text>
-            
+          <View className="max-h-[70%] rounded-t-lg bg-white p-4">
+            <Text className="mb-4 text-lg font-bold">Select an AI Action</Text>
+
             <FlatList
               data={prompts}
               keyExtractor={(item) => item.id}
@@ -43,18 +41,16 @@ export const PromptSelector: React.FC<PromptSelectorProps> = ({
                     onSelect(item.id);
                     setModalVisible(false);
                   }}
-                  className="py-3 border-b border-gray-200"
-                >
+                  className="border-b border-gray-200 py-3">
                   <Text className="font-medium">{item.title}</Text>
-                  <Text className="text-gray-600 text-sm">{item.description}</Text>
+                  <Text className="text-sm text-gray-600">{item.description}</Text>
                 </TouchableOpacity>
               )}
             />
-            
+
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
-              className="mt-4 py-2 bg-gray-200 rounded-full"
-            >
+              className="mt-4 rounded-full bg-gray-200 py-2">
               <Text className="text-center font-medium">Cancel</Text>
             </TouchableOpacity>
           </View>

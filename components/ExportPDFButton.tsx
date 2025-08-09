@@ -41,13 +41,12 @@ export const ExportPDFButton: React.FC = () => {
       <TouchableOpacity
         onPress={handleExport}
         disabled={loading}
-        className="flex-row items-center justify-center py-2 px-4 bg-green-500 rounded-full"
-      >
+        className="flex-row items-center justify-center rounded-full bg-green-500 px-4 py-2">
         {loading ? (
           <ActivityIndicator color="white" />
         ) : (
           <>
-            <Text className="text-white font-medium mr-2">Export PDF</Text>
+            <Text className="mr-2 font-medium text-white">Export PDF</Text>
           </>
         )}
       </TouchableOpacity>

@@ -19,25 +19,23 @@ export default function ProfileScreen() {
 
   return (
     <View className="flex-1 bg-gray-50 p-4">
-      <View className="bg-white rounded-lg p-6 mb-4">
-        <View className="items-center mb-6">
-          <View className="w-20 h-20 bg-blue-100 rounded-full items-center justify-center mb-3">
-            <Text className="text-blue-500 text-3xl font-bold">
-              {user?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || 'U'}
+      <View className="mb-4 rounded-lg bg-white p-6">
+        <View className="mb-6 items-center">
+          <View className="mb-3 h-20 w-20 items-center justify-center rounded-full bg-blue-100">
+            <Text className="text-3xl font-bold text-blue-500">
+              {user?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
             </Text>
           </View>
-          <Text className="text-xl font-bold text-gray-800">{user?.name || 'User'}</Text>
+          <Text className="text-xl font-bold text-gray-800">{user?.name}</Text>
 
           <Text className="text-gray-500">{user?.email}</Text>
-
         </View>
 
         <View className="mb-6">
-          <Text className="text-lg font-medium text-gray-800 mb-2">Account Plan</Text>
-          <View className={`p-4 rounded-lg ${isPro ? 'bg-green-100 border border-green-200' : 'bg-gray-100 border border-gray-200'}`}>
-            <Text className="font-bold text-gray-800">
-              {isPro ? 'Pro Plan' : 'Free Plan'}
-            </Text>
+          <Text className="mb-2 text-lg font-medium text-gray-800">Account Plan</Text>
+          <View
+            className={`rounded-lg p-4 ${isPro ? 'border border-green-200 bg-green-100' : 'border border-gray-200 bg-gray-100'}`}>
+            <Text className="font-bold text-gray-800">{isPro ? 'Pro Plan' : 'Free Plan'}</Text>
             <Text className="text-gray-600">
               {isPro ? 'Unlimited resumes with AI features' : 'Limited to 1 resume'}
             </Text>
@@ -46,17 +44,16 @@ export default function ProfileScreen() {
 
         {!isPro && (
           <Link href="/(main)/subscribe" asChild>
-            <TouchableOpacity className="bg-blue-500 py-3 rounded-full mb-4">
-              <Text className="text-white text-center font-medium">Upgrade to Pro</Text>
+            <TouchableOpacity className="mb-4 rounded-full bg-blue-500 py-3">
+              <Text className="text-center font-medium text-white">Upgrade to Pro</Text>
             </TouchableOpacity>
           </Link>
         )}
 
         <TouchableOpacity
           onPress={handleLogout}
-          className="border border-red-500 py-3 rounded-full"
-        >
-          <Text className="text-red-500 text-center font-medium">Log Out</Text>
+          className="rounded-full border border-red-500 py-3">
+          <Text className="text-center font-medium text-red-500">Log Out</Text>
         </TouchableOpacity>
       </View>
     </View>

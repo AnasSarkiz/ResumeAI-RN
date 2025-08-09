@@ -57,7 +57,7 @@ export interface CoverLetter {
   updatedAt: Date;
 }
 
-export type AIAction = 
+export type AIAction =
   | 'generate-bullet-points'
   | 'reword-text'
   | 'draft-cover-letter'

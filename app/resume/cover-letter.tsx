@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
 import { useSubscription } from '../../context/SubscriptionContext';
-import {EditableTextInput} from '../../components/EditableTextInput';
+import { EditableTextInput } from '../../components/EditableTextInput';
 import { SubscriptionLock } from '../../components/SubscriptionLock';
 
 export default function CoverLetterScreen() {
@@ -41,38 +49,37 @@ export default function CoverLetterScreen() {
   return (
     <View className="flex-1 bg-gray-50">
       <ScrollView className="p-4">
-        <View className="mb-6 bg-white p-4 rounded-lg">
-          <Text className="text-lg font-bold mb-4">Cover Letter Details</Text>
-          
+        <View className="mb-6 rounded-lg bg-white p-4">
+          <Text className="mb-4 text-lg font-bold">Cover Letter Details</Text>
+
           <EditableTextInput
             label="Company Name"
             value={company}
             onChange={setCompany}
             placeholder="Acme Inc."
           />
-          
+
           <EditableTextInput
             label="Position"
             value={position}
             onChange={setPosition}
             placeholder="Software Engineer"
           />
-          
+
           <TouchableOpacity
             onPress={handleGenerate}
             disabled={!isPro}
-            className={`py-3 rounded-full ${!isPro ? 'bg-gray-300' : 'bg-blue-500'}`}
-          >
-            <Text className="text-white text-center font-medium">
+            className={`rounded-full py-3 ${!isPro ? 'bg-gray-300' : 'bg-blue-500'}`}>
+            <Text className="text-center font-medium text-white">
               {isPro ? 'Generate Cover Letter' : 'Upgrade to Pro to Generate'}
             </Text>
           </TouchableOpacity>
-          
+
           {!isPro && <SubscriptionLock />}
         </View>
 
-        <View className="bg-white p-4 rounded-lg">
-          <Text className="text-lg font-bold mb-2">Cover Letter Content</Text>
+        <View className="rounded-lg bg-white p-4">
+          <Text className="mb-2 text-lg font-bold">Cover Letter Content</Text>
           <TextInput
             value={content}
             onChangeText={setContent}

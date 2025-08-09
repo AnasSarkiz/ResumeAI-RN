@@ -1,5 +1,10 @@
-import { auth,db  } from './firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
+import { auth, db } from './firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  User as FirebaseUser,
+} from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { User } from '../types/user';
 
@@ -9,7 +14,7 @@ export const loginWithEmail = async (email: string, password: string) => {
 };
 
 export const registerWithEmail = async (email: string, password: string, name: string) => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password); // ← throws on bad email
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
 
   await setDoc(doc(db, 'users', user.uid), {
@@ -31,11 +36,11 @@ export const logoutUser = async () => {
 export const getUser = async (userId: string): Promise<User> => {
   const docRef = doc(db, 'users', userId);
   const docSnap = await getDoc(docRef);
-  
+
   if (!docSnap.exists()) {
     throw new Error('User not found');
   }
-  
+
   return {
     id: docSnap.id,
     email: docSnap.data().email,

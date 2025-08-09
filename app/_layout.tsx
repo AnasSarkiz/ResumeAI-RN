@@ -15,6 +15,9 @@ export default function RootLayout() {
             <Stack.Screen name="(main)/home" options={{ title: 'Home' }} />
             <Stack.Screen name="(main)/profile" options={{ title: 'Profile' }} />
             <Stack.Screen name="(main)/subscriptions" options={{ title: 'Subscriptions' }} />
+            <Stack.Screen name="resume/cover-letter.tsx" options={{ title: 'Cover Letter' }} />
+            <Stack.Screen name="resume/editor.tsx" options={{ title: 'Resume Editor' }} />
+            <Stack.Screen name="resume/preview.tsx" options={{ title: 'Preview Resume' }} />
           </Stack>
         </SubscriptionProvider>
       </ResumeProvider>

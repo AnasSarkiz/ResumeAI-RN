@@ -9,17 +9,16 @@ interface ResumeSectionCardProps {
   icon?: string;
 }
 
-export const ResumeSectionCard: React.FC<ResumeSectionCardProps> = ({ 
-  title, 
-  active, 
+export const ResumeSectionCard: React.FC<ResumeSectionCardProps> = ({
+  title,
+  active,
   onPress,
   icon,
 }) => {
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={onPress}
-      className={`p-4 mb-2 rounded-lg border ${active ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}
-    >
+      className={`mb-2 rounded-lg border p-4 ${active ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
       <View className="flex-row items-center">
         {icon && (
           <View className="mr-3">

@@ -25,24 +25,24 @@ export default function SubscribeScreen() {
 
   return (
     <View className="flex-1 bg-gray-50 p-4">
-      <Text className="text-2xl font-bold text-gray-800 mb-6">Upgrade to Pro</Text>
-      
-      <Text className="text-lg font-medium text-gray-700 mb-2">Pro Features:</Text>
-      <View className="bg-white rounded-lg p-4 mb-6">
-        <View className="flex-row items-center mb-2">
-          <Text className="text-green-500 mr-2">✓</Text>
+      <Text className="mb-6 text-2xl font-bold text-gray-800">Upgrade to Pro</Text>
+
+      <Text className="mb-2 text-lg font-medium text-gray-700">Pro Features:</Text>
+      <View className="mb-6 rounded-lg bg-white p-4">
+        <View className="mb-2 flex-row items-center">
+          <Text className="mr-2 text-green-500">✓</Text>
           <Text>Unlimited resumes</Text>
         </View>
-        <View className="flex-row items-center mb-2">
-          <Text className="text-green-500 mr-2">✓</Text>
+        <View className="mb-2 flex-row items-center">
+          <Text className="mr-2 text-green-500">✓</Text>
           <Text>AI-powered suggestions</Text>
         </View>
-        <View className="flex-row items-center mb-2">
-          <Text className="text-green-500 mr-2">✓</Text>
+        <View className="mb-2 flex-row items-center">
+          <Text className="mr-2 text-green-500">✓</Text>
           <Text>PDF export</Text>
         </View>
         <View className="flex-row items-center">
-          <Text className="text-green-500 mr-2">✓</Text>
+          <Text className="mr-2 text-green-500">✓</Text>
           <Text>Cover letter generator</Text>
         </View>
       </View>
@@ -57,12 +57,12 @@ export default function SubscribeScreen() {
             <TouchableOpacity
               key={plan.id}
               onPress={() => handlePurchase(plan.id)}
-              className="border-2 border-blue-500 rounded-lg p-4"
-            >
-              <View className="flex-row justify-between items-center mb-2">
-                <Text className="font-bold text-lg">{plan.name}</Text>
-                <Text className="font-bold text-lg">
-                  {plan.currency}{plan.price}/{plan.interval}
+              className="rounded-lg border-2 border-blue-500 p-4">
+              <View className="mb-2 flex-row items-center justify-between">
+                <Text className="text-lg font-bold">{plan.name}</Text>
+                <Text className="text-lg font-bold">
+                  {plan.currency}
+                  {plan.price}/{plan.interval}
                 </Text>
               </View>
               <Text className="text-gray-600">{plan.description}</Text>

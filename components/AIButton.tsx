@@ -32,10 +32,13 @@ export const AIButton: React.FC<AIButtonProps> = ({
     setLoading(true);
     try {
       let result: string | string[];
-      
+
       switch (action) {
         case 'generate-bullet-points':
-          result = await generateBulletPoints(context.jobTitle || 'current position', JSON.stringify(context));
+          result = await generateBulletPoints(
+            context.jobTitle || 'current position',
+            JSON.stringify(context)
+          );
           if (Array.isArray(result) && result.length > 0) {
             // Update the last experience item's description
             if (currentResume?.experience && currentResume.experience.length > 0) {
@@ -44,28 +47,25 @@ export const AIButton: React.FC<AIButtonProps> = ({
                 ...lastExp,
                 description: [...lastExp.description, ...result],
               };
-              
-              const updatedExperience = [
-                ...currentResume.experience.slice(0, -1),
-                updatedExp,
-              ];
-              
+
+              const updatedExperience = [...currentResume.experience.slice(0, -1), updatedExp];
+
               await updateResume(currentResume.id, { experience: updatedExperience });
             }
           }
           break;
-          
+
         case 'reword-text':
           result = await rewordText(context);
           return result;
-          
+
         case 'improve-summary':
           result = await improveSummary(context);
           if (currentResume) {
             await updateResume(currentResume.id, { summary: result });
           }
           break;
-          
+
         default:
           throw new Error('Unsupported AI action');
       }
@@ -82,13 +82,12 @@ export const AIButton: React.FC<AIButtonProps> = ({
       <TouchableOpacity
         onPress={handleAIAction}
         disabled={disabled || loading}
-        className={`flex-row items-center justify-center py-2 px-4 rounded-full ${disabled ? 'bg-gray-300' : 'bg-blue-500'}`}
-      >
+        className={`flex-row items-center justify-center rounded-full px-4 py-2 ${disabled ? 'bg-gray-300' : 'bg-blue-500'}`}>
         {loading ? (
           <ActivityIndicator color="white" />
         ) : (
           <>
-            <Text className="text-white font-medium mr-2">AI Enhance</Text>
+            <Text className="mr-2 font-medium text-white">AI Enhance</Text>
           </>
         )}
       </TouchableOpacity>

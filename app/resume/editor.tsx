@@ -3,11 +3,11 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } fr
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
 import { useSubscription } from '../../context/SubscriptionContext';
-import {ResumeSectionCard} from '../../components/ResumeSectionCard';
-import {EditableTextInput} from '../../components/EditableTextInput';
-import {AIButton} from '../../components/AIButton';
-import {ExportPDFButton} from '../../components/ExportPDFButton';
-import {PromptSelector} from '../../components/PromptSelector';
+import { ResumeSectionCard } from '../../components/ResumeSectionCard';
+import { EditableTextInput } from '../../components/EditableTextInput';
+import { AIButton } from '../../components/AIButton';
+import { ExportPDFButton } from '../../components/ExportPDFButton';
+import { PromptSelector } from '../../components/PromptSelector';
 import { Experience, ResumeSection } from '../../types/resume';
 
 const prompts = [
@@ -62,17 +62,17 @@ export default function ResumeEditorScreen() {
       current: true,
       description: [],
     };
-    
+
     updateResume(currentResume.id, {
       experience: [...currentResume.experience, newExperience],
     });
   };
 
   const handleUpdateExperience = (expId: string, updates: Partial<Experience>) => {
-    const updatedExperience = currentResume.experience.map(exp => 
+    const updatedExperience = currentResume.experience.map((exp) =>
       exp.id === expId ? { ...exp, ...updates } : exp
     );
-    
+
     updateResume(currentResume.id, { experience: updatedExperience });
   };
 
@@ -85,45 +85,45 @@ export default function ResumeEditorScreen() {
           <EditableTextInput
             label="Resume Title"
             value={currentResume.title}
-            onChange={(text:string) => handleUpdate('title', text)}
+            onChange={(text: string) => handleUpdate('title', text)}
           />
-          
-          <Text className="text-lg font-bold mb-2">Personal Information</Text>
+
+          <Text className="mb-2 text-lg font-bold">Personal Information</Text>
           <EditableTextInput
             label="Full Name"
             value={currentResume.fullName}
-            onChange={(text:string) => handleUpdate('fullName', text)}
+            onChange={(text: string) => handleUpdate('fullName', text)}
           />
           <EditableTextInput
             label="Email"
             value={currentResume.email}
-            onChange={(text:string) => handleUpdate('email', text)}
+            onChange={(text: string) => handleUpdate('email', text)}
           />
           <EditableTextInput
             label="Phone"
             value={currentResume.phone || ''}
-            onChange={(text:string) => handleUpdate('phone', text)}
+            onChange={(text: string) => handleUpdate('phone', text)}
             // keyboardType="phone-pad"
           />
           <EditableTextInput
             label="LinkedIn"
             value={currentResume.linkedIn || ''}
-            onChange={(text:string) => handleUpdate('linkedIn', text)}
+            onChange={(text: string) => handleUpdate('linkedIn', text)}
           />
           <EditableTextInput
             label="GitHub"
             value={currentResume.github || ''}
-            onChange={(text:string) => handleUpdate('github', text)}
+            onChange={(text: string) => handleUpdate('github', text)}
           />
           <EditableTextInput
             label="Website"
             value={currentResume.website || ''}
-            onChange={(text:string) => handleUpdate('website', text)}
+            onChange={(text: string) => handleUpdate('website', text)}
           />
         </View>
 
         <View className="mb-4">
-          <Text className="text-lg font-bold mb-2">Sections</Text>
+          <Text className="mb-2 text-lg font-bold">Sections</Text>
           <ResumeSectionCard
             title="Summary"
             active={activeSection === 'summary'}
@@ -148,14 +148,16 @@ export default function ResumeEditorScreen() {
 
         {activeSection === 'summary' && (
           <View className="mb-6">
-            <Text className="text-lg font-bold mb-2">Professional Summary</Text>
+            <Text className="mb-2 text-lg font-bold">Professional Summary</Text>
             <EditableTextInput
               value={currentResume.summary || ''}
               onChange={(text: string) => handleUpdate('summary', text)}
               multiline
-              placeholder="Write a brief summary of your professional background..." label={''}            />
-            <AIButton 
-              action="improve-summary" 
+              placeholder="Write a brief summary of your professional background..."
+              label={''}
+            />
+            <AIButton
+              action="improve-summary"
               context={currentResume.summary || ''}
               disabled={!isPro}
               className="mt-2"
@@ -165,56 +167,54 @@ export default function ResumeEditorScreen() {
 
         {activeSection === 'experience' && (
           <View className="mb-6">
-            <View className="flex-row justify-between items-center mb-2">
+            <View className="mb-2 flex-row items-center justify-between">
               <Text className="text-lg font-bold">Work Experience</Text>
               <TouchableOpacity
                 onPress={handleAddExperience}
                 disabled={!isPro && currentResume.experience.length > 0}
-                className={`p-2 ${!isPro && currentResume.experience.length > 0 ? 'opacity-50' : ''}`}
-              >
+                className={`p-2 ${!isPro && currentResume.experience.length > 0 ? 'opacity-50' : ''}`}>
                 <Text className="text-blue-500">+ Add</Text>
               </TouchableOpacity>
             </View>
-            
+
             {currentResume.experience.map((exp) => (
-              <View key={exp.id} className="mb-4 p-4 bg-white rounded-lg">
+              <View key={exp.id} className="mb-4 rounded-lg bg-white p-4">
                 <EditableTextInput
                   label="Job Title"
                   value={exp.jobTitle}
-                  onChange={(text:string) => handleUpdateExperience(exp.id, { jobTitle: text })}
+                  onChange={(text: string) => handleUpdateExperience(exp.id, { jobTitle: text })}
                 />
                 <EditableTextInput
                   label="Company"
                   value={exp.company}
-                  onChange={(text:string) => handleUpdateExperience(exp.id, { company: text })}
+                  onChange={(text: string) => handleUpdateExperience(exp.id, { company: text })}
                 />
                 <View className="flex-row space-x-4">
                   <EditableTextInput
                     label="Start Date"
                     value={exp.startDate}
-                    onChange={(text:string) => handleUpdateExperience(exp.id, { startDate: text })}
+                    onChange={(text: string) => handleUpdateExperience(exp.id, { startDate: text })}
                     className="flex-1"
                   />
                   {!exp.current && (
                     <EditableTextInput
                       label="End Date"
                       value={exp.endDate || ''}
-                      onChange={(text:string) => handleUpdateExperience(exp.id, { endDate: text })}
+                      onChange={(text: string) => handleUpdateExperience(exp.id, { endDate: text })}
                       className="flex-1"
                     />
                   )}
                 </View>
-                <View className="flex-row items-center mb-2">
+                <View className="mb-2 flex-row items-center">
                   <Text className="mr-2">Current Job</Text>
                   <TouchableOpacity
                     onPress={() => handleUpdateExperience(exp.id, { current: !exp.current })}
-                    className={`w-6 h-6 rounded-md border ${exp.current ? 'bg-blue-500 border-blue-500' : 'border-gray-300'}`}
-                  >
-                    {exp.current && <Text className="text-white text-center">✓</Text>}
+                    className={`h-6 w-6 rounded-md border ${exp.current ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
+                    {exp.current && <Text className="text-center text-white">✓</Text>}
                   </TouchableOpacity>
                 </View>
-                
-                <Text className="text-sm font-medium text-gray-700 mb-1">Description</Text>
+
+                <Text className="mb-1 text-sm font-medium text-gray-700">Description</Text>
                 {exp.description.map((point, idx) => (
                   <EditableTextInput
                     key={idx}
@@ -223,24 +223,25 @@ export default function ResumeEditorScreen() {
                       const newDescription = [...exp.description];
                       newDescription[idx] = text;
                       handleUpdateExperience(exp.id, { description: newDescription });
-                    } }
+                    }}
                     multiline
-                    className="mb-2" label={''}                  />
+                    className="mb-2"
+                    label={''}
+                  />
                 ))}
-                
+
                 <TouchableOpacity
                   onPress={() => {
                     const newDescription = [...exp.description, ''];
                     handleUpdateExperience(exp.id, { description: newDescription });
                   }}
-                  className="py-1"
-                >
+                  className="py-1">
                   <Text className="text-blue-500">+ Add bullet point</Text>
                 </TouchableOpacity>
-                
+
                 <PromptSelector
                   prompts={prompts}
-                  onSelect={(promptId:string) => {
+                  onSelect={(promptId: string) => {
                     if (promptId === 'generate-bullet-points') {
                       // Handle AI generation for bullet points
                     }
@@ -255,14 +256,14 @@ export default function ResumeEditorScreen() {
         {/* Similar sections for Education and Skills */}
       </ScrollView>
 
-      <View className="p-4 border-t border-gray-200 bg-white">
+      <View className="border-t border-gray-200 bg-white p-4">
         <View className="flex-row justify-between">
           <Link href={`/resume/preview?id=${currentResume.id}`} asChild>
-            <TouchableOpacity className="border border-blue-500 py-2 px-4 rounded-full">
+            <TouchableOpacity className="rounded-full border border-blue-500 px-4 py-2">
               <Text className="text-blue-500">Preview</Text>
             </TouchableOpacity>
           </Link>
-          
+
           <ExportPDFButton />
         </View>
       </View>

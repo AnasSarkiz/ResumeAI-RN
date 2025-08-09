@@ -46,32 +46,34 @@ export default function OnboardingScreen() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={(e) => {
-          const index = Math.round(e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width);
+          const index = Math.round(
+            e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width
+          );
           setCurrentIndex(index);
         }}
         renderItem={({ item }) => (
-          <View className="flex-1 items-center justify-center p-6 w-screen">
-            <Image source={item.image} className="w-64 h-64 mb-8" />
-            <Text className="text-2xl font-bold text-center mb-4">{item.title}</Text>
-            <Text className="text-lg text-gray-600 text-center mb-8">{item.description}</Text>
+          <View className="w-screen flex-1 items-center justify-center p-6">
+            <Image source={item.image} className="mb-8 h-64 w-64" />
+            <Text className="mb-4 text-center text-2xl font-bold">{item.title}</Text>
+            <Text className="mb-8 text-center text-lg text-gray-600">{item.description}</Text>
           </View>
         )}
       />
-      
-      <View className="flex-row justify-center mb-8">
+
+      <View className="mb-8 flex-row justify-center">
         {onboardingData.map((_, index) => (
           <View
             key={index}
-            className={`w-2 h-2 rounded-full mx-1 ${currentIndex === index ? 'bg-blue-500' : 'bg-gray-300'}`}
+            className={`mx-1 h-2 w-2 rounded-full ${currentIndex === index ? 'bg-blue-500' : 'bg-gray-300'}`}
           />
         ))}
       </View>
-      
+
       <View className="px-6 pb-8">
         {currentIndex === onboardingData.length - 1 ? (
           <Link href="./home" asChild>
-            <TouchableOpacity className="bg-blue-500 py-3 rounded-full">
-              <Text className="text-white text-center font-medium text-lg">Get Started</Text>
+            <TouchableOpacity className="rounded-full bg-blue-500 py-3">
+              <Text className="text-center text-lg font-medium text-white">Get Started</Text>
             </TouchableOpacity>
           </Link>
         ) : (
@@ -79,16 +81,12 @@ export default function OnboardingScreen() {
             <TouchableOpacity
               onPress={handlePrevious}
               disabled={currentIndex === 0}
-              className={`py-3 px-6 ${currentIndex === 0 ? 'opacity-0' : ''}`}
-            >
-              <Text className="text-blue-500 font-medium">Back</Text>
+              className={`px-6 py-3 ${currentIndex === 0 ? 'opacity-0' : ''}`}>
+              <Text className="font-medium text-blue-500">Back</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={handleNext}
-              className="bg-blue-500 py-3 px-6 rounded-full"
-            >
-              <Text className="text-white font-medium">Next</Text>
+
+            <TouchableOpacity onPress={handleNext} className="rounded-full bg-blue-500 px-6 py-3">
+              <Text className="font-medium text-white">Next</Text>
             </TouchableOpacity>
           </View>
         )}

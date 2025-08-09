@@ -1,8 +1,20 @@
 import { db } from './firebase';
-import { doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
+import {
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+} from 'firebase/firestore';
 import { Resume, CoverLetter } from '../types/resume';
 
 export const saveResume = async (resume: Resume): Promise<Resume> => {
+  if (!resume.id) {
+    throw new Error('resume.id is required');
+  }
   await setDoc(doc(db, 'resumes', resume.id), resume);
   return resume;
 };
@@ -10,11 +22,11 @@ export const saveResume = async (resume: Resume): Promise<Resume> => {
 export const getResumeById = async (resumeId: string): Promise<Resume> => {
   const docRef = doc(db, 'resumes', resumeId);
   const docSnap = await getDoc(docRef);
-  
+
   if (!docSnap.exists()) {
     throw new Error('Resume not found');
   }
-  
+
   const data = docSnap.data();
   return {
     id: docSnap.id,
@@ -61,8 +73,8 @@ export const getResumeById = async (resumeId: string): Promise<Resume> => {
 export const getResumes = async (userId: string): Promise<Resume[]> => {
   const q = query(collection(db, 'resumes'), where('userId', '==', userId));
   const querySnapshot = await getDocs(q);
-  
-  return querySnapshot.docs.map(doc => {
+
+  return querySnapshot.docs.map((doc) => {
     const data = doc.data();
     return {
       id: doc.id,
@@ -96,14 +108,14 @@ export const saveCoverLetter = async (coverLetter: CoverLetter): Promise<CoverLe
 export const getCoverLetter = async (resumeId: string): Promise<CoverLetter> => {
   const q = query(collection(db, 'coverLetters'), where('resumeId', '==', resumeId));
   const querySnapshot = await getDocs(q);
-  
+
   if (querySnapshot.empty) {
     throw new Error('Cover letter not found');
   }
-  
+
   const doc = querySnapshot.docs[0];
   const data = doc.data();
-  
+
   return {
     id: doc.id,
     resumeId: data.resumeId,

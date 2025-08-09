@@ -22,7 +22,7 @@ export const EditableTextInput: React.FC<EditableTextInputProps> = ({
 
   return (
     <View className={`mb-4 ${className}`}>
-      <Text className="text-sm font-medium text-gray-700 mb-1">{label}</Text>
+      <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
       {isEditing ? (
         <View className="relative">
           <TextInput
@@ -30,19 +30,19 @@ export const EditableTextInput: React.FC<EditableTextInputProps> = ({
             onChangeText={onChange}
             multiline={multiline}
             placeholder={placeholder}
-            className={`border border-gray-300 rounded-md p-2 ${multiline ? 'min-h-[100px]' : ''}`}
+            className={`rounded-md border border-gray-300 p-2 ${multiline ? 'min-h-[100px]' : ''}`}
             autoFocus
           />
           <TouchableOpacity
             onPress={() => setIsEditing(false)}
-            className="absolute right-2 top-2 bg-blue-500 px-2 py-1 rounded"
-          >
-            <Text className="text-white text-sm">Done</Text>
+            className="absolute right-2 top-2 rounded bg-blue-500 px-2 py-1">
+            <Text className="text-sm text-white">Done</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <TouchableOpacity onPress={() => setIsEditing(true)}>
-          <View className={`border border-transparent rounded-md p-2 ${value ? 'bg-white' : 'bg-gray-100'}`}>
+          <View
+            className={`rounded-md border border-transparent p-2 ${value ? 'bg-white' : 'bg-gray-100'}`}>
             <Text className={`${value ? 'text-gray-800' : 'text-gray-500'}`}>
               {value || placeholder}
             </Text>
