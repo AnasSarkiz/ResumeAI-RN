@@ -7,6 +7,7 @@ import { useSubscription } from '../../context/SubscriptionContext';
 import * as Sharing from 'expo-sharing';
 import { exportResumeToPDF } from '../../services/pdf';
 
+
 export default function HomeScreen() {
   const { user, logout } = useAuth();
   const { resumes, loading, loadResumes, createResume } = useResume();
@@ -81,11 +82,18 @@ export default function HomeScreen() {
       ) : resumes.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <Text className="mb-4 text-gray-500">No resumes yet</Text>
-          <TouchableOpacity
-            onPress={handleCreateResume}
-            className="rounded-full bg-blue-500 px-6 py-2">
-            <Text className="font-medium text-white">Create First Resume</Text>
-          </TouchableOpacity>
+          <View className="space-y-3">
+            <TouchableOpacity
+              onPress={() => router.push('/resume/ai-generator')}
+              className="rounded-full text-black px-6 py-3">
+              <Text className="text-center font-semibold text-white">✨ Create with AI</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleCreateResume}
+              className="rounded-full border border-blue-500 bg-white px-6 py-3">
+              <Text className="text-center font-medium text-blue-500">Create Manually</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ) : (
         <>
@@ -133,11 +141,20 @@ export default function HomeScreen() {
             )}
             className="mb-4"
           />
-          <TouchableOpacity
-            onPress={handleCreateResume}
-            className="items-center rounded-lg border-2 border-dashed border-blue-500 py-4">
-            <Text className="text-base font-semibold text-blue-600">+ New Resume</Text>
-          </TouchableOpacity>
+          <View className="space-y-3">
+
+       
+            <TouchableOpacity
+              onPress={handleCreateResume}
+              className="items-center rounded-lg my-2 border-2 border-dashed border-blue-500 py-4">
+              <Text className="text-base font-semibold text-blue-600">+ Create Manually</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('/resume/ai-generator')}
+              className="items-center rounded-lg my-2 bg-blue-500 py-4">
+                <Text className="text-base font-semibold text-white">✨ Create with AI</Text>
+            </TouchableOpacity>
+          </View>
         </>
       )}
     </View>

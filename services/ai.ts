@@ -159,3 +159,143 @@ export const improveSummary = async (summary: string): Promise<string> => {
   const result = await callGemini(prompt);
   return result || summary;
 };
+
+// New function to generate complete CVs with different designs
+export interface CVTemplate {
+  id: string;
+  name: string;
+  description: string;
+  resume: Resume;
+}
+
+export interface UserInputFields {
+  fullName: string;
+  email: string;
+  phone?: string;
+  summary?: string;
+  jobTitle?: string;
+  experience?: string;
+  education?: string;
+  skills?: string;
+  targetRole?: string;
+  industry?: string;
+}
+
+export const generateThreeCVDesigns = async (userInput: UserInputFields): Promise<CVTemplate[]> => {
+  const basePrompt = `
+Based on the following user information, generate 3 different professional CV/resume designs with varying approaches and emphasis:
+
+User Information:
+- Full Name: ${userInput.fullName}
+- Email: ${userInput.email}
+- Phone: ${userInput.phone || 'Not provided'}
+- Professional Summary: ${userInput.summary || 'Not provided'}
+- Current/Target Job Title: ${userInput.jobTitle || 'Not provided'}
+- Experience Details: ${userInput.experience || 'Not provided'}
+- Education Details: ${userInput.education || 'Not provided'}
+- Skills: ${userInput.skills || 'Not provided'}
+- Target Role: ${userInput.targetRole || 'Not provided'}
+- Industry: ${userInput.industry || 'Not provided'}
+
+Generate 3 distinct CV variations:
+1. PROFESSIONAL & TRADITIONAL - Conservative, corporate-friendly format
+2. MODERN & CREATIVE - Contemporary design with emphasis on achievements
+3. TECHNICAL & DETAILED - Comprehensive, skill-focused approach
+
+For each CV, provide a complete JSON structure matching the Resume interface with:
+- Enhanced professional summary
+- 2-3 relevant work experiences with achievement-focused bullet points
+- 1-2 education entries
+- 8-12 relevant skills with categories
+- Consistent formatting and professional language
+
+Return ONLY a JSON array with 3 objects, each containing:
+{
+  "id": "template_1/2/3",
+  "name": "Template Name",
+  "description": "Brief description of this template's approach",
+  "resume": { /* Complete Resume object */ }
+}
+`;
+
+  try {
+    const response = await callGemini(basePrompt);
+    const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
+    const templates = JSON.parse(cleanedResponse);
+    
+    // Ensure each template has proper IDs and structure
+    return templates.map((template: any, index: number) => ({
+      ...template,
+      id: template.id || `template_${index + 1}`,
+      resume: {
+        ...template.resume,
+        id: `resume_${Date.now()}_${index}`,
+        userId: '', // Will be set when user selects
+        title: `${userInput.fullName}'s Resume - ${template.name}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    }));
+  } catch (error) {
+    console.error('Failed to generate CV templates:', error);
+    // Fallback to generating a single basic template
+    return generateFallbackTemplates(userInput);
+  }
+};
+
+const generateFallbackTemplates = (userInput: UserInputFields): CVTemplate[] => {
+  const baseResume = {
+    id: `resume_${Date.now()}`,
+    userId: '',
+    title: `${userInput.fullName}'s Resume`,
+    fullName: userInput.fullName,
+    email: userInput.email,
+    phone: userInput.phone,
+    summary: userInput.summary || `Professional ${userInput.jobTitle || 'professional'} with expertise in ${userInput.industry || 'various fields'}.`,
+    experience: userInput.experience ? [{
+      id: `exp_${Date.now()}`,
+      jobTitle: userInput.jobTitle || 'Professional',
+      company: 'Previous Company',
+      startDate: '2020',
+      endDate: '2024',
+      current: false,
+      description: [userInput.experience]
+    }] : [],
+    education: userInput.education ? [{
+      id: `edu_${Date.now()}`,
+      institution: 'University',
+      degree: userInput.education,
+      startDate: '2016',
+      endDate: '2020',
+      current: false
+    }] : [],
+    skills: userInput.skills ? userInput.skills.split(',').map((skill, index) => ({
+      id: `skill_${index}`,
+      name: skill.trim(),
+      proficiency: 'intermediate' as const
+    })) : [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
+
+  return [
+    {
+      id: 'template_1',
+      name: 'Professional',
+      description: 'Clean and traditional format',
+      resume: { ...baseResume, id: `resume_${Date.now()}_1` }
+    },
+    {
+      id: 'template_2', 
+      name: 'Modern',
+      description: 'Contemporary design with impact focus',
+      resume: { ...baseResume, id: `resume_${Date.now()}_2` }
+    },
+    {
+      id: 'template_3',
+      name: 'Detailed',
+      description: 'Comprehensive skill-focused approach',
+      resume: { ...baseResume, id: `resume_${Date.now()}_3` }
+    }
+  ];
+};

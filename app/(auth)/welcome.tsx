@@ -6,7 +6,7 @@ export default function WelcomeScreen() {
   const { user } = useAuth();
 
   return (
-    <View className="flex-1 justify-center bg-white p-6">
+    <View className="flex-1 justify-center bg-f2f2f2 p-6">
       <View className="mb-12 items-center">
         <Image source={require('../../assets/logo.png')} className="h-80 w-80 " />
         {/* <Text className="mb-2 text-3xl font-bold text-gray-800">ResumeAI</Text> */}
