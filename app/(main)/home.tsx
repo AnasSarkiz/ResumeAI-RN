@@ -1,24 +1,24 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { Link, useRouter} from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { Link, useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
-import { ResumeSectionCard } from '../../components/ResumeSectionCard';
-import { SubscriptionLock } from '../../components/SubscriptionLock';
 import { useSubscription } from '../../context/SubscriptionContext';
+import * as Sharing from 'expo-sharing';
+import { exportResumeToPDF } from '../../services/pdf';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
   const { resumes, loading, loadResumes, createResume } = useResume();
-  const { isPro } = useSubscription();
+  // const { isPro } = useSubscription();
+  const isPro = user?.isPro;
 
   const router = useRouter();
+  const [exportingId, setExportingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
       loadResumes(user.id);
-      console.log('user', user);
-      
     }
   }, [user]);
 
@@ -31,9 +31,31 @@ export default function HomeScreen() {
     }
 
     try {
-      await createResume(user?.id || '', `My Resume ${resumes.length + 1}`);
+      const newResume = await createResume(user?.id || '', `My Resume ${resumes.length + 1}`);
+      if (newResume?.id) {
+        router.push(`/resume/editor?id=${newResume.id}`);
+      }
     } catch (error) {
       console.error('Failed to create resume:', error);
+    }
+  };
+
+  const handleExport = async (resumeId: string) => {
+    try {
+      const res = resumes.find((r) => r.id === resumeId);
+      if (!res) return;
+      setExportingId(resumeId);
+      const uri = await exportResumeToPDF(res as any);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri);
+      } else {
+        Alert.alert('Exported', `PDF saved at: ${uri}`);
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Export failed', 'There was a problem exporting your PDF.');
+    } finally {
+      setExportingId(null);
     }
   };
 
@@ -71,20 +93,50 @@ export default function HomeScreen() {
             data={resumes}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-                <TouchableOpacity className='py-2'>
-                  <View className="relative">
-                    <ResumeSectionCard title={item.title} active={false} onPress={() => {router.push(`/resume/editor?id=${item.id}`)}} />
-                    {!isPro && <SubscriptionLock />}
+              <View className="mb-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <View className="mb-3 flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <Text className="text-lg font-semibold text-gray-900" numberOfLines={1}>{item.title}</Text>
+                    <Text className="mt-1 text-xs text-gray-500">
+                      Updated {new Date(item.updatedAt).toLocaleDateString()}
+                    </Text>
+                    {!isPro && <Text className="mt-1 text-xs text-red-500">Upgrade to Pro to unlock more features</Text>}
                   </View>
-                </TouchableOpacity>
+                </View>
+                <View className="flex-row items-center gap-2">
+                  <TouchableOpacity
+                    disabled={!isPro}
+                    onPress={() => router.push(`/resume/editor?id=${item.id}`)}
+                    className={`flex-1 rounded-md px-3 py-2 ${isPro ? 'bg-blue-600' : 'bg-gray-300'}`}
+                  >
+                    <Text className="text-center font-medium text-white">Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    disabled={!isPro}
+                    onPress={() => router.push(`/resume/preview?id=${item.id}`)}
+                    className={`flex-1 rounded-md px-3 py-2 ${isPro ? 'bg-blue-600' : 'bg-gray-300'}`}
+                  >
+                    <Text className="text-center font-medium text-white">Preview</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleExport(item.id)}
+                    className="flex-1 rounded-md bg-emerald-600 px-3 py-2"
+                  >
+                    {exportingId === item.id ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text className="text-center font-medium text-white">Export PDF</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
             )}
             className="mb-4"
           />
-
           <TouchableOpacity
             onPress={handleCreateResume}
-            className="items-center rounded-lg border-2 border-dashed border-blue-500 py-3">
-            <Text className="font-medium text-blue-500">+ New Resume</Text>
+            className="items-center rounded-lg border-2 border-dashed border-blue-500 py-4">
+            <Text className="text-base font-semibold text-blue-600">+ New Resume</Text>
           </TouchableOpacity>
         </>
       )}

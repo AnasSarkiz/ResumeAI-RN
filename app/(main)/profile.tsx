@@ -6,7 +6,8 @@ import { useSubscription } from '../../context/SubscriptionContext';
 
 export default function ProfileScreen() {
   const { user, logout, loading } = useAuth();
-  const { isPro, refreshSubscriptionStatus } = useSubscription();
+  // const { isPro, refreshSubscriptionStatus } = useSubscription();
+  const isPro = user?.isPro;
 
   const handleLogout = async () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [

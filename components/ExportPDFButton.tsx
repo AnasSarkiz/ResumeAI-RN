@@ -8,7 +8,8 @@ import { SubscriptionLock } from './SubscriptionLock';
 export const ExportPDFButton: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { currentResume } = useResume();
-  const { isPro } = useSubscription();
+  // const { isPro } = useSubscription();
+  const isPro = true;
 
   const handleExport = async () => {
     if (!isPro) {
@@ -23,9 +24,9 @@ export const ExportPDFButton: React.FC = () => {
 
     setLoading(true);
     try {
-      const pdfPath = await exportResumeToPDF(currentResume);
+      const pdfUri = await exportResumeToPDF(currentResume);
       await Share.share({
-        url: `file://${pdfPath}`,
+        url: pdfUri,
         title: `Resume - ${currentResume.title}`,
       });
     } catch (error) {

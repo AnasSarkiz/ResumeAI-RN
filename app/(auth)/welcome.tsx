@@ -8,8 +8,8 @@ export default function WelcomeScreen() {
   return (
     <View className="flex-1 justify-center bg-white p-6">
       <View className="mb-12 items-center">
-        <Image source={require('../../assets/ResumeAILogo.png')} className="mb-6 h-40 w-40" />
-        <Text className="mb-2 text-3xl font-bold text-gray-800">ResumeAI</Text>
+        <Image source={require('../../assets/logo.png')} className="h-80 w-80 " />
+        {/* <Text className="mb-2 text-3xl font-bold text-gray-800">ResumeAI</Text> */}
         <Text className="text-center text-lg text-gray-600">
           Create professional resumes with AI-powered enhancements
         </Text>

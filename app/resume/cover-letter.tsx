@@ -13,11 +13,14 @@ import { useResume } from '../../context/ResumeContext';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { EditableTextInput } from '../../components/EditableTextInput';
 import { SubscriptionLock } from '../../components/SubscriptionLock';
+import { useAuth } from '../../context/AuthContext';
 
 export default function CoverLetterScreen() {
   const { id } = useLocalSearchParams();
   const { currentResume, currentCoverLetter, generateCoverLetter, loading } = useResume();
-  const { isPro } = useSubscription();
+  // const { isPro } = useSubscription();
+  const { user } = useAuth();
+  const isPro = user?.isPro;
   const [company, setCompany] = useState(currentCoverLetter?.company || '');
   const [position, setPosition] = useState(currentCoverLetter?.position || '');
   const [content, setContent] = useState(currentCoverLetter?.content || '');

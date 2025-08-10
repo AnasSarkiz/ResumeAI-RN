@@ -11,6 +11,8 @@ interface AIButtonProps {
   context: any;
   disabled?: boolean;
   className?: string;
+  targetExpId?: string;
+  onBulletsGenerated?: (bullets: string[]) => void;
 }
 
 export const AIButton: React.FC<AIButtonProps> = ({
@@ -18,9 +20,12 @@ export const AIButton: React.FC<AIButtonProps> = ({
   context,
   disabled = false,
   className = '',
+  targetExpId,
+  onBulletsGenerated,
 }) => {
   const [loading, setLoading] = useState(false);
-  const { isPro } = useSubscription();
+  // const { isPro } = useSubscription();
+  const isPro = true;
   const { currentResume, updateResume } = useResume();
 
   const handleAIAction = async () => {
@@ -35,22 +40,32 @@ export const AIButton: React.FC<AIButtonProps> = ({
 
       switch (action) {
         case 'generate-bullet-points':
+          // Determine jobTitle from context
+          let derivedJobTitle: string | undefined = context?.jobTitle;
+          if (!derivedJobTitle && context?.resume) {
+            const exps = Array.isArray(context.resume.experience) ? context.resume.experience : [];
+            const target = exps.find((e: any) => e?.id === context.targetExperienceId) || exps[exps.length - 1];
+            derivedJobTitle = target?.jobTitle;
+          }
           result = await generateBulletPoints(
-            context.jobTitle || 'current position',
+            derivedJobTitle || 'current position',
             JSON.stringify(context)
           );
           if (Array.isArray(result) && result.length > 0) {
-            // Update the last experience item's description
+            // If consumer wants to handle locally, pass back and return
+            if (onBulletsGenerated) {
+              onBulletsGenerated(result as string[]);
+              break;
+            }
+            // Update targeted experience or fallback to last item
             if (currentResume?.experience && currentResume.experience.length > 0) {
-              const lastExp = currentResume.experience[currentResume.experience.length - 1];
-              const updatedExp = {
-                ...lastExp,
-                description: [...lastExp.description, ...result],
-              };
-
-              const updatedExperience = [...currentResume.experience.slice(0, -1), updatedExp];
-
-              await updateResume(currentResume.id, { experience: updatedExperience });
+              const targetId = targetExpId || currentResume.experience[currentResume.experience.length - 1].id;
+              const updated = currentResume.experience.map((exp) =>
+                exp.id === targetId
+                  ? { ...exp, description: [...exp.description, ...result as string[]] }
+                  : exp
+              );
+              await updateResume(currentResume.id, { experience: updated });
             }
           }
           break;

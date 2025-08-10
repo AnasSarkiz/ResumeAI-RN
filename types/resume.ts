@@ -29,13 +29,27 @@ export interface Skill {
   category?: string;
 }
 
+export interface LinkItem {
+  id: string;
+  label: string; // e.g., LinkedIn, GitHub, Portfolio, ResearchGate
+  url: string;
+}
+
+export interface PhoneItem {
+  id: string;
+  dial: string; // e.g., +1
+  number: string; // local/national number part
+  countryCode?: string; // e.g., US
+  label?: string; // e.g., Mobile, Work
+}
+
 export interface Resume {
   id: string;
   userId: string;
   title: string;
   fullName: string;
   email: string;
-  phone?: string;
+  phone?: string; // legacy single phone, kept for backward compat
   website?: string;
   linkedIn?: string;
   github?: string;
@@ -43,6 +57,8 @@ export interface Resume {
   experience: Experience[];
   education: Education[];
   skills: Skill[];
+  links?: LinkItem[];
+  phones?: PhoneItem[];
   createdAt: Date;
   updatedAt: Date;
 }

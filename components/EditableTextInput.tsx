@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, TextInput } from 'react-native';
+import type { KeyboardTypeOptions } from 'react-native';
 
 interface EditableTextInputProps {
   label: string;
@@ -8,6 +9,12 @@ interface EditableTextInputProps {
   multiline?: boolean;
   placeholder?: string;
   className?: string;
+  keyboardType?: KeyboardTypeOptions;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  secureTextEntry?: boolean;
+  numberOfLines?: number;
+  required?: boolean;
+  error?: string | boolean;
 }
 
 export const EditableTextInput: React.FC<EditableTextInputProps> = ({
@@ -17,38 +24,31 @@ export const EditableTextInput: React.FC<EditableTextInputProps> = ({
   multiline = false,
   placeholder = '',
   className = '',
+  keyboardType,
+  autoCapitalize = 'none',
+  secureTextEntry = false,
+  numberOfLines,
+  required = false,
+  error,
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-
+  const invalid = Boolean(error) || (required && (!value || value.trim().length === 0));
   return (
     <View className={`mb-4 ${className}`}>
-      <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
-      {isEditing ? (
-        <View className="relative">
-          <TextInput
-            value={value}
-            onChangeText={onChange}
-            multiline={multiline}
-            placeholder={placeholder}
-            className={`rounded-md border border-gray-300 p-2 ${multiline ? 'min-h-[100px]' : ''}`}
-            autoFocus
-          />
-          <TouchableOpacity
-            onPress={() => setIsEditing(false)}
-            className="absolute right-2 top-2 rounded bg-blue-500 px-2 py-1">
-            <Text className="text-sm text-white">Done</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <TouchableOpacity onPress={() => setIsEditing(true)}>
-          <View
-            className={`rounded-md border border-transparent p-2 ${value ? 'bg-white' : 'bg-gray-100'}`}>
-            <Text className={`${value ? 'text-gray-800' : 'text-gray-500'}`}>
-              {value || placeholder}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      )}
+      <Text className="mb-1 text-sm font-medium text-gray-700">
+        {label}
+        {required ? ' *' : ''}
+      </Text>
+      <TextInput
+        value={value}
+        onChangeText={onChange}
+        multiline={multiline}
+        placeholder={placeholder}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        secureTextEntry={secureTextEntry}
+        numberOfLines={numberOfLines}
+        className={`rounded-md border p-2 ${multiline ? 'min-h-[120px]' : ''} ${invalid ? 'border-red-500' : 'border-gray-300'}`}
+      />
     </View>
   );
 };

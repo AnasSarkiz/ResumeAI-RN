@@ -31,18 +31,84 @@ const callGemini = async (prompt: string): Promise<string> => {
   }
 };
 
+// Remove markdown bullets/syntax and placeholder brackets from AI output
+const sanitizeBullet = (line: string): string => {
+  let s = line.trim();
+  // Remove leading list tokens: -, *, •, or numbers like 1.
+  s = s.replace(/^(\s*[\-*•]+\s+|\s*\d+\.\s+)/, '');
+  // Remove bold/italic/backticks
+  s = s.replace(/\*\*([^*]+)\*\*/g, '$1'); // **bold**
+  s = s.replace(/__([^_]+)__/g, '$1'); // __bold__
+  s = s.replace(/\*([^*]+)\*/g, '$1'); // *italic*
+  s = s.replace(/_([^_]+)_/g, '$1'); // _italic_
+  s = s.replace(/`([^`]+)`/g, '$1'); // `code`
+  // Remove placeholder bracket content like [number], [quantifiable ...]
+  s = s.replace(/\[[^\]]+\]/g, '').trim();
+  // Collapse extra spaces
+  s = s.replace(/\s{2,}/g, ' ');
+  // Remove wrapping parentheses left by template text
+  s = s.replace(/^\(|\)$/g, '');
+  return s.trim();
+};
+
 export const generateBulletPoints = async (
   jobTitle: string,
   context: string
 ): Promise<string[]> => {
-  const prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}". 
-Here's some context about the user: ${context}. Make the points achievement-oriented and quantifiable where possible.`;
+  let prompt: string;
+  // Try to parse structured context to craft a richer prompt
+  try {
+    const parsed = JSON.parse(context);
+    const resume = parsed?.resume || parsed; // support passing entire resume directly
+    const targetId = parsed?.targetExperienceId;
+    if (resume && typeof resume === 'object') {
+      const fullName = resume.fullName || '';
+      const summary = resume.summary || '';
+      const skills = Array.isArray(resume.skills)
+        ? resume.skills.map((s: any) => s?.name).filter(Boolean).join(', ')
+        : '';
+      const experiences = Array.isArray(resume.experience) ? resume.experience : [];
+      const targetExp = experiences.find((e: any) => e?.id === targetId) || experiences[experiences.length - 1];
+      const targetTitle = targetExp?.jobTitle || jobTitle;
+      const targetCompany = targetExp?.company || '';
+      const targetDesc = Array.isArray(targetExp?.description) ? targetExp.description.join(' | ') : '';
+
+      const previousHighlights = experiences
+        .filter((e: any) => e && e !== targetExp)
+        .map((e: any) => `${e.jobTitle || ''} at ${e.company || ''}`.trim())
+        .filter(Boolean)
+        .slice(0, 5)
+        .join('; ');
+
+      prompt = `You are writing resume bullets for ${fullName}. Generate 5 high-impact, achievement-oriented bullet points for the role "${targetTitle}"${
+        targetCompany ? ` at ${targetCompany}` : ''
+      }.
+
+User summary: ${summary}
+Skills: ${skills}
+Target experience current bullets (if any): ${targetDesc}
+Other roles: ${previousHighlights}
+
+Guidelines:
+- Start with strong action verbs and quantify impact where possible.
+- Focus on outcomes, metrics, scope, and technologies.
+- Avoid markdown or list markers. Output plain sentences (no leading dashes or asterisks).
+- Do not include placeholders like [number] or [metric]. Use realistic metrics if context allows.
+`;
+    } else {
+      prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}".
+Here's some context about the user: ${context}. Make the points achievement-oriented and quantifiable where possible. Avoid markdown and placeholders.`;
+    }
+  } catch {
+    prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}".
+Here's some context about the user: ${context}. Make the points achievement-oriented and quantifiable where possible. Avoid markdown and placeholders.`;
+  }
 
   const text = await callGemini(prompt);
   return text
     .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean);
+    .map((line) => sanitizeBullet(line))
+    .filter((l) => l.length > 0);
 };
 
 export const rewordText = async (text: string): Promise<string> => {

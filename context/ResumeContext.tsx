@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Resume, CoverLetter } from '../types/resume';
 import {
   getResumes,
@@ -13,6 +13,7 @@ interface ResumeContextType {
   currentResume: Resume | null;
   currentCoverLetter: CoverLetter | null;
   loading: boolean;
+  saving: boolean;
   error: string | null;
   loadResumes: (userId: string) => Promise<void>;
   loadResume: (resumeId: string) => Promise<void>;
@@ -32,6 +33,7 @@ const ResumeContext = createContext<ResumeContextType>({
   currentResume: null,
   currentCoverLetter: null,
   loading: false,
+  saving: false,
   error: null,
   loadResumes: async () => {},
   loadResume: async () => {},
@@ -64,31 +66,86 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentResume, setCurrentResume] = useState<Resume | null>(null);
   const [currentCoverLetter, setCurrentCoverLetter] = useState<CoverLetter | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Debounce timers per resumeId to batch saves
+  const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
+  const currentResumeRef = useRef<Resume | null>(null);
+  useEffect(() => {
+    currentResumeRef.current = currentResume;
+  }, [currentResume]);
+
+  // Simple in-memory caches and request coalescing
+  const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+  const cacheResumesByUser = useRef<Record<string, { ts: number; data: Resume[] }>>({});
+  const cacheResumeById = useRef<Record<string, { ts: number; data: Resume }>>({});
+  const inflightResumesByUser = useRef<Record<string, Promise<Resume[]>>>({});
+  const inflightResumeById = useRef<Record<string, Promise<Resume>>>({});
+
   const loadResumes = async (userId: string) => {
-    setLoading(true);
+    // Try cached
+    const cached = cacheResumesByUser.current[userId];
+    const now = Date.now();
+    if (cached && now - cached.ts < CACHE_TTL_MS) {
+      setResumes(cached.data);
+      return;
+    }
+
+    // Coalesce inflight request
+    if (!inflightResumesByUser.current[userId]) {
+      setLoading(true);
+      inflightResumesByUser.current[userId] = (async () => {
+        try {
+          const userResumes = await getResumes(userId);
+          cacheResumesByUser.current[userId] = { ts: Date.now(), data: userResumes };
+          return userResumes;
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
     try {
-      const userResumes = await getResumes(userId);
-      setResumes(userResumes);
+      const data = await inflightResumesByUser.current[userId];
+      setResumes(data);
     } catch (err) {
       setError('Failed to load resumes');
       console.error(err);
     } finally {
-      setLoading(false);
+      delete inflightResumesByUser.current[userId];
     }
   };
 
   const loadResume = async (resumeId: string) => {
-    setLoading(true);
+    // Try cached
+    const cached = cacheResumeById.current[resumeId];
+    const now = Date.now();
+    if (cached && now - cached.ts < CACHE_TTL_MS) {
+      setCurrentResume(cached.data);
+      return;
+    }
+
+    // Coalesce inflight request
+    if (!inflightResumeById.current[resumeId]) {
+      setLoading(true);
+      inflightResumeById.current[resumeId] = (async () => {
+        try {
+          const resume = await getResumeById(resumeId);
+          cacheResumeById.current[resumeId] = { ts: Date.now(), data: resume };
+          return resume;
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
     try {
-      const resume = await getResumeById(resumeId);
-      setCurrentResume(resume);
+      const data = await inflightResumeById.current[resumeId];
+      setCurrentResume(data);
     } catch (err) {
       setError('Failed to load resume');
       console.error(err);
     } finally {
-      setLoading(false);
+      delete inflightResumeById.current[resumeId];
     }
   };
 
@@ -108,6 +165,12 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         id: '',
       });
       setResumes((prev) => [...prev, newResume]);
+      // update caches
+      cacheResumeById.current[newResume.id] = { ts: Date.now(), data: newResume };
+      if (userId) {
+        const curr = cacheResumesByUser.current[userId]?.data || [];
+        cacheResumesByUser.current[userId] = { ts: Date.now(), data: [...curr, newResume] };
+      }
       return newResume;
     } catch (err) {
       setError('Failed to create resume');
@@ -119,24 +182,58 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const updateResume = async (resumeId: string, updates: Partial<Resume>) => {
-    setLoading(true);
-    try {
-      const updatedResume = await saveResume({
-        ...(currentResume || {}),
-        ...updates,
-        id: resumeId,
-        updatedAt: new Date(),
-      } as Resume);
+    // Optimistic update to keep UI responsive without global loading spinner
+    const optimistic: Resume = {
+      ...(currentResume as Resume),
+      ...updates,
+      id: resumeId,
+      updatedAt: new Date(),
+    };
 
-      setCurrentResume(updatedResume);
-      setResumes((prev) => prev.map((r) => (r.id === resumeId ? updatedResume : r)));
-    } catch (err) {
-      setError('Failed to update resume');
-      console.error(err);
-      throw err;
-    } finally {
-      setLoading(false);
+    setCurrentResume(optimistic);
+    setResumes((prev) => prev.map((r) => (r.id === resumeId ? optimistic : r)));
+    // update caches optimistically
+    cacheResumeById.current[resumeId] = { ts: Date.now(), data: optimistic };
+    const ownerId = optimistic.userId;
+    if (ownerId) {
+      const list = cacheResumesByUser.current[ownerId]?.data || [];
+      cacheResumesByUser.current[ownerId] = {
+        ts: Date.now(),
+        data: list.map((r) => (r.id === resumeId ? optimistic : r)),
+      };
     }
+
+    // Debounced save to Firestore
+    if (saveTimers.current[resumeId]) {
+      clearTimeout(saveTimers.current[resumeId]);
+    }
+    // indicate a save is pending
+    setSaving(true);
+    saveTimers.current[resumeId] = setTimeout(async () => {
+      try {
+        const latest = currentResumeRef.current as Resume;
+        if (!latest) return;
+        const saved = await saveResume(latest);
+        setCurrentResume(saved);
+        setResumes((prev) => prev.map((r) => (r.id === resumeId ? saved : r)));
+        // refresh caches with saved
+        cacheResumeById.current[resumeId] = { ts: Date.now(), data: saved };
+        const owner = saved.userId;
+        if (owner) {
+          const list = cacheResumesByUser.current[owner]?.data || [];
+          const exists = list.some((r) => r.id === resumeId);
+          cacheResumesByUser.current[owner] = {
+            ts: Date.now(),
+            data: exists ? list.map((r) => (r.id === resumeId ? saved : r)) : [...list, saved],
+          };
+        }
+      } catch (err) {
+        setError('Failed to update resume');
+        console.error(err);
+      } finally {
+        setSaving(false);
+      }
+    }, 400);
   };
 
   const deleteResume = async (resumeId: string) => {
@@ -147,6 +244,18 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       if (currentResume?.id === resumeId) {
         setCurrentResume(null);
       }
+      // drop from caches
+      delete cacheResumeById.current[resumeId];
+      // Best effort: remove from any user cache lists
+      Object.keys(cacheResumesByUser.current).forEach((uid) => {
+        const entry = cacheResumesByUser.current[uid];
+        if (entry) {
+          cacheResumesByUser.current[uid] = {
+            ts: Date.now(),
+            data: entry.data.filter((r) => r.id !== resumeId),
+          };
+        }
+      });
     } catch (err) {
       setError('Failed to delete resume');
       console.error(err);
@@ -205,6 +314,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         currentResume,
         currentCoverLetter,
         loading,
+        saving,
         error,
         loadResumes,
         loadResume,
