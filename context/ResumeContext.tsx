@@ -155,6 +155,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       const newResume = await saveResume({
         userId,
         title,
+        kind: 'manual',
         fullName: '',
         email: '',
         experience: [],

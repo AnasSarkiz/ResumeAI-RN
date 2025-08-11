@@ -123,7 +123,9 @@ export default function HomeScreen() {
 
   const ResumeCard = ({ item, index = 0 }: { item: Resume; index?: number }) => {
     const tpl = (item as any).template as TemplateId | undefined;
-    const html = renderHTMLTemplate(item as any, (tpl || 'classic') as TemplateId);
+    const html = (item as any).kind === 'ai' && (item as any).aiHtml
+      ? (item as any).aiHtml
+      : renderHTMLTemplate(item as any, (tpl || 'classic') as TemplateId);
     // Compute preview height using A4 aspect ratio (~1:1.414) based on available card width
     const screenWidth = Dimensions.get('window').width;
     // Page has outer padding 16 and card has inner padding 16
@@ -147,13 +149,9 @@ export default function HomeScreen() {
           className="mb-3 overflow-hidden rounded-lg"
           style={{ height: previewHeight, backgroundColor: '#fff' }}
         >
-          {WebViewComp ? (
+      
             <WebViewComp originWhitelist={["*"]} source={{ html }} style={{ flex: 1 }} scrollEnabled={false} />
-          ) : (
-            <View className="flex-1 items-center justify-center bg-gray-50">
-              <Text className="text-gray-500 text-sm">Install react-native-webview to enable previews.</Text>
-            </View>
-          )}
+         
         </TouchableOpacity>
 
         <View className="flex-row flex-wrap gap-2">
@@ -224,7 +222,7 @@ export default function HomeScreen() {
               <Ionicons name="add" size={20} color="#3B82F6" />
               <Text className="ml-2 text-base font-semibold text-blue-600">Create Manually</Text>
             </TouchableOpacity>
-            <TouchableOpacity className=" h-20 rounded-xl py-2 overflow-hidden shadow-lg" onPress={() => (isPro ? router.push('/resume/create-ai') : router.push('/(main)/subscribe'))} >
+            <TouchableOpacity className=" h-20 rounded-xl py-2 overflow-hidden shadow-lg" onPress={() => (isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe'))} >
               <LinearGradient
                 colors={['#a855f7', '#6366f1']}
                 start={{ x: 0, y: 0 }}

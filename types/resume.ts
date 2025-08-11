@@ -47,6 +47,8 @@ export interface Resume {
   id: string;
   userId: string;
   title: string;
+  // Discriminator for storage/rendering strategy. Defaults to 'manual' if missing
+  kind?: 'manual' | 'ai';
   fullName: string;
   email: string;
   phone?: string; // legacy single phone, kept for backward compat
@@ -63,6 +65,13 @@ export interface Resume {
   template?: string;
   // Flag: using a pre-built template from the app (free plan)
   temp?: boolean;
+  // When kind === 'ai', the full HTML for the resume is stored here.
+  // Manual resumes should leave this undefined.
+  aiHtml?: string;
+  // Optional AI generation metadata for audit/debug.
+  aiPrompt?: string;
+  aiModel?: string; // e.g., gemini-2.0-flash-lite
+  aiTemplateName?: string; // human-friendly template label if AI picked a style
   createdAt: Date;
   updatedAt: Date;
 }

@@ -32,6 +32,94 @@ const callGemini = async (prompt: string): Promise<string> => {
   }
 };
 
+// New: Multi-step AI HTML generator input and function
+export interface AIGeneratorInput {
+  fullName: string;
+  email: string;
+  countryCode?: string;
+  phone?: string;
+  links?: string; // newline-separated entries like "Label - URL"
+  summary?: string;
+  jobTitle?: string;
+  experience?: string; // free-text experience
+  education?: string; // free-text education
+  skills?: string; // comma-separated skills
+  targetRole?: string;
+  industry?: string;
+  designInstructions?: string; // user style guidance
+}
+
+/**
+ * Generate a complete, self-contained HTML resume based on user inputs and design instructions.
+ * Returns a valid HTML string (with <!DOCTYPE html>) suitable for WebView and PDF printing.
+ */
+export const generateFullHTMLResume = async (input: AIGeneratorInput): Promise<string> => {
+  const base = `You are a professional resume designer and front-end developer.
+Create a COMPLETE, PRODUCTION-READY resume as a single HTML document for printing and PDF export.
+
+Strict requirements:
+- Return ONLY raw HTML. Do NOT include markdown code fences.
+- The HTML must be self-contained (inline <style> with fonts, no external links).
+- Use responsive, print-friendly CSS with A4-focused layout.
+- Include explicit print CSS to enforce A4:
+  - Use @page { size: A4; margin: 12mm; }
+  - Ensure html/body width is 210mm; content area has min-height 297mm.
+  - Wrap all content in a single <div class="page"> that is 210mm wide and min-height 297mm.
+  - Preserve colors in print: -webkit-print-color-adjust: exact; print-color-adjust: exact.
+- Use semantic structure and accessible markup.
+- Do not fabricate impossible claims; if data is sparse, keep it professional and concise.
+
+User Info:
+- Full Name: ${input.fullName}
+- Email: ${input.email}
+- Country Code: ${input.countryCode || ''}
+- Phone: ${input.phone || ''}
+- Links (newline-separated, format: Label - URL):
+${input.links || ''}
+- Target Job Title: ${input.jobTitle || ''}
+- Target Role: ${input.targetRole || ''}
+- Industry: ${input.industry || ''}
+- Summary: ${input.summary || ''}
+- Experience entries (newline-separated):
+${input.experience || ''}
+- Education entries (newline-separated):
+${input.education || ''}
+- Skills (comma-separated):
+${input.skills || ''}
+
+Data format notes:
+- Treat each EDUCATION line as one education item: Degree — Institution (Years).
+- Treat each EXPERIENCE line as one role item: Role — Company (Dates), followed by bullet achievements inferred from the text.
+- Parse SKILLS by comma and render as a clean, compact list (or inline tags) without duplicates.
+
+Design Instructions from user: ${input.designInstructions || 'Clean, professional, ATS-friendly.'}
+
+Output:
+- A beautiful, modern resume in a single HTML file with inline CSS.
+- Include sections for Summary, Experience, Education, and Skills when content is provided.
+- Include a contact area at the top: name prominently, then email, phone (with country code if provided), and render LINKS as clickable anchors with the provided labels.
+- Ensure typography, spacing, and headings are polished. Avoid placeholders like [X].
+ - Ensure the final HTML adheres to the A4 rules above and uses the <div class="page"> wrapper.
+`;
+
+  try {
+    const raw = await callGemini(base);
+    const cleaned = (raw || '').replace(/```[a-zA-Z]*\n?|\n?```/g, '').trim();
+    // Basic sanity: ensure it looks like HTML
+    const hasDoctype = /<!DOCTYPE\s+html/i.test(cleaned);
+    const hasHtmlTag = /<html[\s>]/i.test(cleaned);
+    if (hasHtmlTag) {
+      return hasDoctype ? cleaned : `<!DOCTYPE html>\n${cleaned}`;
+    }
+    // Fallback minimal wrapper if model returned body fragment
+    return `<!DOCTYPE html>\n<html><head><meta name="viewport" content="width=device-width, initial-scale=1" /></head><body>${cleaned}</body></html>`;
+  } catch (e) {
+    console.error('Failed to generate full HTML resume:', e);
+    // Provide a minimal fallback so UI does not break
+    return `<!DOCTYPE html>\n<html><head><meta name="viewport" content="width=device-width, initial-scale=1" /><style>body{font-family:sans-serif;padding:32px;}</style></head><body><h1>${input.fullName}</h1><p>${input.summary || ''}</p></body></html>`;
+  }
+};
+
 // Remove markdown bullets/syntax and placeholder brackets from AI output
 const sanitizeBullet = (line: string): string => {
   let s = line.trim();

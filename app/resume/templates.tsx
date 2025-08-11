@@ -28,6 +28,7 @@ export default function TemplateSelectorScreen() {
   const items = listHTMLTemplates();
 
   const handleSelect = async (tpl: TemplateId) => {
+    if ((currentResume as any)?.kind === 'ai') return; // no-op for AI resumes
     setSelected(tpl);
     // Persist selection with temp flag
     if (currentResume?.id) {
@@ -54,7 +55,12 @@ export default function TemplateSelectorScreen() {
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16 }}>
           {items.map(({ id: tplId, name }) => {
-            const html = currentResume ? renderHTMLTemplate(currentResume, tplId) : null;
+            const isAI = (currentResume as any)?.kind === 'ai';
+            const html = currentResume
+              ? (isAI && (currentResume as any).aiHtml)
+                ? (currentResume as any).aiHtml
+                : renderHTMLTemplate(currentResume, tplId)
+              : null;
             return (
               <View
                 key={tplId}
@@ -98,9 +104,12 @@ export default function TemplateSelectorScreen() {
                 <View className="px-4 pb-4">
                   <TouchableOpacity
                     onPress={() => handleSelect(tplId)}
-                    className="rounded-full bg-blue-600 py-3"
+                    disabled={(currentResume as any)?.kind === 'ai'}
+                    className={`rounded-full py-3 ${((currentResume as any)?.kind === 'ai') ? 'bg-gray-300' : 'bg-blue-600'}`}
                   >
-                    <Text className="text-center font-semibold text-white">Use This Template</Text>
+                    <Text className="text-center font-semibold text-white">
+                      {((currentResume as any)?.kind === 'ai') ? 'Templates unavailable for AI resumes' : 'Use This Template'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>

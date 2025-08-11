@@ -54,6 +54,13 @@ const isValidUrl = (v?: string) => {
 export const validateResume = (resume: Resume): ValidationResult => {
   const errors: Record<string, string> = {};
 
+  // Allow AI resumes to skip structural validation; they store full HTML.
+  if (resume.kind === 'ai') {
+    if (!isNonEmpty(resume.title)) errors['title'] = 'Title is required';
+    if (!isNonEmpty(resume.aiHtml)) errors['aiHtml'] = 'AI HTML is required';
+    return { valid: Object.keys(errors).length === 0, errors };
+  }
+
   // Required top-level fields
   if (!isNonEmpty(resume.title)) errors['title'] = 'Title is required';
   if (!isNonEmpty(resume.fullName)) errors['fullName'] = 'Full name is required';
@@ -118,10 +125,18 @@ export const getResumeById = async (resumeId: string): Promise<Resume> => {
   }
 
   const data = docSnap.data();
+  const toJsDate = (v: any): Date => {
+    try {
+      if (v && typeof v.toDate === 'function') return v.toDate();
+      if (typeof v === 'string' || typeof v === 'number') return new Date(v);
+    } catch {}
+    return new Date();
+  };
   return {
     id: docSnap.id,
     userId: data.userId,
     title: data.title,
+    kind: data.kind,
     fullName: data.fullName,
     email: data.email,
     phone: data.phone,
@@ -131,7 +146,7 @@ export const getResumeById = async (resumeId: string): Promise<Resume> => {
     summary: data.summary,
     template: data.template,
     temp: data.temp,
-    experience: data.experience.map((exp: any) => ({
+    experience: (data.experience || []).map((exp: any) => ({
       id: exp.id,
       jobTitle: exp.jobTitle,
       company: exp.company,
@@ -141,7 +156,7 @@ export const getResumeById = async (resumeId: string): Promise<Resume> => {
       current: exp.current,
       description: exp.description,
     })),
-    education: data.education.map((edu: any) => ({
+    education: (data.education || []).map((edu: any) => ({
       id: edu.id,
       institution: edu.institution,
       degree: edu.degree,
@@ -151,14 +166,20 @@ export const getResumeById = async (resumeId: string): Promise<Resume> => {
       current: edu.current,
       description: edu.description,
     })),
-    skills: data.skills.map((skill: any) => ({
+    skills: (data.skills || []).map((skill: any) => ({
       id: skill.id,
       name: skill.name,
       proficiency: skill.proficiency,
       category: skill.category,
     })),
-    createdAt: data.createdAt.toDate(),
-    updatedAt: data.updatedAt.toDate(),
+    links: data.links,
+    phones: data.phones,
+    aiHtml: data.aiHtml,
+    aiPrompt: data.aiPrompt,
+    aiModel: data.aiModel,
+    aiTemplateName: data.aiTemplateName,
+    createdAt: toJsDate(data.createdAt),
+    updatedAt: toJsDate(data.updatedAt),
   };
 };
 
@@ -168,10 +189,18 @@ export const getResumes = async (userId: string): Promise<Resume[]> => {
 
   return querySnapshot.docs.map((doc) => {
     const data = doc.data();
+    const toJsDate = (v: any): Date => {
+      try {
+        if (v && typeof v.toDate === 'function') return v.toDate();
+        if (typeof v === 'string' || typeof v === 'number') return new Date(v);
+      } catch {}
+      return new Date();
+    };
     return {
       id: doc.id,
       userId: data.userId,
       title: data.title,
+      kind: data.kind,
       fullName: data.fullName,
       email: data.email,
       phone: data.phone,
@@ -181,11 +210,17 @@ export const getResumes = async (userId: string): Promise<Resume[]> => {
       summary: data.summary,
       template: data.template,
       temp: data.temp,
-      experience: data.experience,
-      education: data.education,
-      skills: data.skills,
-      createdAt: data.createdAt.toDate(),
-      updatedAt: data.updatedAt.toDate(),
+      experience: data.experience || [],
+      education: data.education || [],
+      skills: data.skills || [],
+      links: data.links,
+      phones: data.phones,
+      aiHtml: data.aiHtml,
+      aiPrompt: data.aiPrompt,
+      aiModel: data.aiModel,
+      aiTemplateName: data.aiTemplateName,
+      createdAt: toJsDate(data.createdAt),
+      updatedAt: toJsDate(data.updatedAt),
     };
   });
 };

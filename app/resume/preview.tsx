@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
@@ -16,13 +16,45 @@ try {
 
 export default function PreviewScreen() {
   const { id, template } = useLocalSearchParams();
-  const { currentResume, loading } = useResume();
+  const { currentResume, loading, loadResume } = useResume();
   const tpl = (template as TemplateId | undefined);
+
+  // Ensure the resume is loaded when arriving from Home
+  useEffect(() => {
+    const rid = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
+    if (rid) {
+      if (!currentResume || currentResume.id !== rid) {
+        loadResume(rid);
+      }
+    }
+  }, [id]);
 
   if (loading || !currentResume) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // If this is an AI resume, render stored HTML directly
+  const kind = (currentResume as any)?.kind;
+  if (kind === 'ai') {
+    const aiHtml = (currentResume as any)?.aiHtml as string | undefined;
+    if (WebViewComp && aiHtml) {
+      return (
+        <View className="flex-1 bg-white">
+          <WebViewComp originWhitelist={["*"]} source={{ html: aiHtml }} style={{ flex: 1 }} />
+          <View className="border-t border-gray-200 p-4">
+            <ExportPDFButton />
+          </View>
+        </View>
+      );
+    }
+    return (
+      <View className="flex-1 items-center justify-center p-6">
+        <Text className="mb-2 text-lg font-semibold">Preview unavailable</Text>
+        <Text className="text-center text-gray-600">Install react-native-webview to preview AI resumes, or try exporting to PDF.</Text>
       </View>
     );
   }
