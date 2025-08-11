@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen() {
@@ -49,20 +49,17 @@ export default function LoginScreen() {
 
       <TouchableOpacity
         onPress={handleLogin}
-        // onPress={()=> router.replace('/(main)/home')}
         className="mb-4 rounded-full bg-blue-500 py-3">
         <Text className="text-center text-lg font-medium text-white">
           {loading ? 'Logging In...' : 'Log In'}
         </Text>
       </TouchableOpacity>
 
-      <Link href="/register" asChild>
-        <TouchableOpacity className="py-3">
+        <TouchableOpacity className="py-3" onPress={()=> router.replace("./register")}>
           <Text className="text-center font-medium text-blue-500">
             Don not have an account? Sign up
           </Text>
         </TouchableOpacity>
-      </Link>
     </View>
   );
 }

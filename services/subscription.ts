@@ -1,16 +1,39 @@
 import Purchases from 'react-native-purchases';
 import { SubscriptionPlan } from '../types/user';
 
+let purchasesConfigured = false;
+
 export const initializeRevenueCat = () => {
   const apiKey = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY;
+  const useMock = (process.env.EXPO_PUBLIC_IAP_MOCK || '').toString().toLowerCase() === 'true';
+
   if (!apiKey) {
-    throw new Error("Missing RevenueCat API key");
+    console.warn('[RevenueCat] Missing API key. Skipping configure (dev).');
+    purchasesConfigured = false;
+    return;
   }
+  // Prevent using secret keys in the app bundle
+  if (apiKey.startsWith('sk_')) {
+    console.warn('[RevenueCat] Secret API key detected. Do not use secret keys in the app. Skipping configure.');
+    purchasesConfigured = false;
+    return;
+  }
+  // Optionally bypass in mock mode
+  if (useMock) {
+    console.log('[RevenueCat] Mock mode enabled. Skipping real configuration.');
+    purchasesConfigured = false;
+    return;
+  }
+
   Purchases.configure({ apiKey });
+  purchasesConfigured = true;
 };
 
 export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
   try {
+    if (!purchasesConfigured) {
+      return [];
+    }
     const offerings = await Purchases.getOfferings();
     const current = offerings.current;
     
@@ -38,6 +61,9 @@ export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
 
 export const purchaseSubscription = async (planId: string) => {
   try {
+    if (!purchasesConfigured) {
+      throw new Error('Purchases not configured. Skipping in dev.');
+    }
     const offerings = await Purchases.getOfferings();
     const current = offerings.current;
     
@@ -68,6 +94,9 @@ export const purchaseSubscription = async (planId: string) => {
 
 export const restorePurchases = async () => {
   try {
+    if (!purchasesConfigured) {
+      return false;
+    }
     const customerInfo = await Purchases.restorePurchases();
     return customerInfo.entitlements.active.pro !== undefined;
   } catch (error) {

@@ -6,9 +6,9 @@ export default function WelcomeScreen() {
   const { user } = useAuth();
 
   return (
-    <View className="flex-1 justify-center bg-f2f2f2 p-6">
-      <View className="mb-12 items-center">
-        <Image source={require('../../assets/logo.png')} className="h-80 w-80 " />
+    <View className="flex-1 justify-center bg-f0f0f0 p-6">
+      <View className="mb-12 -mt-36 items-center">
+        <Image source={require('../../assets/logo.png')} className="h-96 w-96 " />
         {/* <Text className="mb-2 text-3xl font-bold text-gray-800">ResumeAI</Text> */}
         <Text className="text-center text-lg text-gray-600">
           Create professional resumes with AI-powered enhancements
@@ -27,7 +27,7 @@ export default function WelcomeScreen() {
             <TouchableOpacity
               className="my-2 rounded-full bg-blue-500 py-3"
               onPress={() => {
-                router.replace('/register');
+                router.push('/register');
               }}>
               <Text className="text-center text-lg font-medium text-white">Get Started</Text>
             </TouchableOpacity>
@@ -35,7 +35,7 @@ export default function WelcomeScreen() {
             <TouchableOpacity
               className="my-2 rounded-full border border-blue-500 py-3"
               onPress={() => {
-                router.replace('/login');
+                router.push('/login');
               }}>
               <Text className="text-center text-lg font-medium text-blue-500">Log In</Text>
             </TouchableOpacity>
