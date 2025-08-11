@@ -4,8 +4,9 @@ import { useResume } from '../context/ResumeContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { exportResumeToPDF } from '../services/pdf';
 import { SubscriptionLock } from './SubscriptionLock';
+import { TemplateId } from '../services/templates';
 
-export const ExportPDFButton: React.FC = () => {
+export const ExportPDFButton: React.FC<{ template?: TemplateId }> = ({ template }) => {
   const [loading, setLoading] = useState(false);
   const { currentResume } = useResume();
   // const { isPro } = useSubscription();
@@ -24,7 +25,7 @@ export const ExportPDFButton: React.FC = () => {
 
     setLoading(true);
     try {
-      const pdfUri = await exportResumeToPDF(currentResume);
+      const pdfUri = await exportResumeToPDF(currentResume, template);
       await Share.share({
         url: pdfUri,
         title: `Resume - ${currentResume.title}`,

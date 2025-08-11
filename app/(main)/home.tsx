@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert, Image, Dimensions } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
 import * as Sharing from 'expo-sharing';
 import { exportResumeToPDF } from '../../services/pdf';
+import { renderHTMLTemplate, TemplateId } from '../../services/templates';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Resume } from 'types/resume';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,6 +17,15 @@ export default function HomeScreen() {
   console.log(resumes)
   const router = useRouter();
   const [exportingId, setExportingId] = useState<string | null>(null);
+
+  // Load WebView lazily to avoid issues if not installed
+  let WebViewComp: any = null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    WebViewComp = require('react-native-webview').WebView;
+  } catch (e) {
+    WebViewComp = null;
+  }
 
   useEffect(() => {
     if (user) {
@@ -61,7 +71,8 @@ export default function HomeScreen() {
       const res = resumes.find((r) => r.id === resumeId);
       if (!res) return;
       setExportingId(resumeId);
-      const uri = await exportResumeToPDF(res as any);
+      const tpl = (res as any).template as TemplateId | undefined;
+      const uri = await exportResumeToPDF(res as any, (tpl || 'classic') as TemplateId);
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
@@ -88,7 +99,7 @@ export default function HomeScreen() {
       </Text>
       <View className="w-full space-y-3">
         <TouchableOpacity
-          onPress={() => (isPro ? router.push('/resume/create-ai') : router.push('/(main)/subscribe'))}
+          onPress={() => (isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe'))}
           className="flex-row items-center justify-center rounded-full py-4 shadow-lg">
                    <LinearGradient
                 colors={['#a855f7', '#6366f1']} 
@@ -101,7 +112,7 @@ export default function HomeScreen() {
           </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => router.push('/resume/create-manual')}
+          onPress={handleCreateResume}
           className="flex-row items-center justify-center rounded-full border border-blue-500 bg-white py-4">
           <Ionicons name="add-circle-outline" size={20} color="#3B82F6" />
           <Text className="ml-2 text-center font-medium text-blue-500">Create Manually</Text>
@@ -110,57 +121,70 @@ export default function HomeScreen() {
     </View>
   );
 
-  const ResumeCard = ({ item }: { item: Resume }) => (
-    <View className="mb-4 rounded-xl border border-gray-200 bg-white p-4">
-      <View className="mb-3 flex-row items-center justify-between">
-        <View className="flex-1">
-          <Text className="text-lg font-semibold text-gray-900" numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text className="mt-1 text-xs text-gray-500">
-            Updated {new Date(item.updatedAt).toLocaleDateString()}
-          </Text>
-          {!isPro && (
-            <View className="mt-1 flex-row items-center">
-              <MaterialIcons name="lock" size={14} color="red" />
-              <Text className="ml-1 text-xs text-red-500">Upgrade to Pro to unlock more features</Text>
+  const ResumeCard = ({ item, index = 0 }: { item: Resume; index?: number }) => {
+    const tpl = (item as any).template as TemplateId | undefined;
+    const html = renderHTMLTemplate(item as any, (tpl || 'classic') as TemplateId);
+    // Compute preview height using A4 aspect ratio (~1:1.414) based on available card width
+    const screenWidth = Dimensions.get('window').width;
+    // Page has outer padding 16 and card has inner padding 16
+    const previewWidth = Math.max(0, screenWidth - 32 - 32);
+    const previewHeight = Math.round(previewWidth * 1.414);
+    return (
+      <View className="mb-4  rounded-xl border border-gray-200 bg-white p-4 shadow-md">
+        <View className="mb-3 flex-row items-center justify-between">
+          <View>
+            <Text className="text-lg font-semibold text-gray-900">{item.title}</Text>
+            <Text className="text-xs text-gray-600">Updated {item.updatedAt?.toLocaleDateString?.() || ''}</Text>
+          </View>
+          <TouchableOpacity onPress={() => handleDelete(item.id)} className="rounded-full bg-red-50 p-2">
+            <Ionicons name="trash-outline" size={18} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => router.push({ pathname: '/resume/preview', params: { id: String(item.id), template: String(tpl || 'classic') } })}
+          className="mb-3 overflow-hidden rounded-lg"
+          style={{ height: previewHeight, backgroundColor: '#fff' }}
+        >
+          {WebViewComp ? (
+            <WebViewComp originWhitelist={["*"]} source={{ html }} style={{ flex: 1 }} scrollEnabled={false} />
+          ) : (
+            <View className="flex-1 items-center justify-center bg-gray-50">
+              <Text className="text-gray-500 text-sm">Install react-native-webview to enable previews.</Text>
             </View>
           )}
+        </TouchableOpacity>
+
+        <View className="flex-row flex-wrap gap-2">
+          <TouchableOpacity
+            onPress={() => router.push(`/resume/editor?id=${item.id}`)}
+            className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 bg-blue-600`}>
+            <Ionicons name="create-outline" size={16} color="white" />
+            <Text className="ml-1 font-medium text-white">Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/resume/preview', params: { id: String(item.id), template: String(tpl || 'classic') } })}
+            className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 bg-blue-600`}>
+            <Ionicons name="eye-outline" size={16} color="white" />
+            <Text className="ml-1 font-medium text-white">Preview</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleExport(item.id)}
+            className="flex-1 flex-row items-center justify-center rounded-md bg-emerald-600 px-3 py-2">
+            {exportingId === item.id ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="download-outline" size={16} color="white" />
+                <Text className="ml-1 font-medium text-white">Export</Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
-      <View className="flex-row flex-wrap gap-2">
-        <TouchableOpacity
-          onPress={() => router.push(`/resume/editor?id=${item.id}`)}
-          className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 bg-blue-600`}>
-          <Ionicons name="create-outline" size={16} color="white" />
-          <Text className="ml-1 font-medium text-white">Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.push(`/resume/preview?id=${item.id}`)}
-          className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 bg-blue-600`}>
-          <Ionicons name="eye-outline" size={16} color="white" />
-          <Text className="ml-1 font-medium text-white">Preview</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleExport(item.id)}
-          className="flex-1 flex-row items-center justify-center rounded-md bg-emerald-600 px-3 py-2">
-          {exportingId === item.id ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Ionicons name="download-outline" size={16} color="white" />
-              <Text className="ml-1 font-medium text-white">Export</Text>
-            </>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleDelete(item.id)}
-          className="flex-row items-center justify-center rounded-md bg-red-600 px-3 py-2">
-          <Ionicons name="trash-outline" size={16} color="white" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View className="flex-1 bg-gray-50 p-4">
@@ -189,20 +213,20 @@ export default function HomeScreen() {
           <FlatList
             data={resumes}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <ResumeCard item={item} />}
+            renderItem={({ item, index }) => <ResumeCard item={item} index={index} />}
             showsVerticalScrollIndicator={false}
           />
 
           <View className="mt-4 ">
             <TouchableOpacity
-              onPress={() => router.push('/resume/create-manual')}
+              onPress={handleCreateResume}
               className="flex-row items-center justify-center rounded-lg border-2 border-dashed border-blue-500 py-4">
               <Ionicons name="add" size={20} color="#3B82F6" />
               <Text className="ml-2 text-base font-semibold text-blue-600">Create Manually</Text>
             </TouchableOpacity>
             <TouchableOpacity className=" h-20 rounded-xl py-2 overflow-hidden shadow-lg" onPress={() => (isPro ? router.push('/resume/create-ai') : router.push('/(main)/subscribe'))} >
               <LinearGradient
-                colors={['#a855f7', '#6366f1']} 
+                colors={['#a855f7', '#6366f1']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{ height: 52 , borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row'}}

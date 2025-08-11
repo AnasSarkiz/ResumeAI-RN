@@ -3,15 +3,39 @@ import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
 import { ExportPDFButton } from '../../components/ExportPDFButton';
+import { TemplateId, TEMPLATE_NAMES, renderHTMLTemplate } from '../../services/templates';
+
+// Try to load WebView at runtime to avoid crashing if it's not installed yet.
+let WebViewComp: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  WebViewComp = require('react-native-webview').WebView;
+} catch (e) {
+  WebViewComp = null;
+}
 
 export default function PreviewScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, template } = useLocalSearchParams();
   const { currentResume, loading } = useResume();
+  const tpl = (template as TemplateId | undefined);
 
   if (loading || !currentResume) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // If a template is chosen and WebView is available, render the real HTML template preview
+  if (tpl && WebViewComp && currentResume) {
+    const html = renderHTMLTemplate(currentResume, tpl);
+    return (
+      <View className="flex-1 bg-white">
+        <WebViewComp key={tpl} originWhitelist={["*"]} source={{ html }} style={{ flex: 1 }} />
+        <View className="border-t border-gray-200 p-4">
+          <ExportPDFButton template={tpl} />
+        </View>
       </View>
     );
   }
@@ -24,6 +48,11 @@ export default function PreviewScreen() {
           <Text className="text-gray-600">
             {currentResume.email} | {currentResume.phone}
           </Text>
+          {tpl && (
+            <Text className="mt-1 text-xs text-gray-500">
+              Template: {TEMPLATE_NAMES[tpl] || tpl} {WebViewComp ? '' : '(Install react-native-webview for full preview)'}
+            </Text>
+          )}
           {currentResume.linkedIn && (
             <Text className="text-blue-500">LinkedIn: {currentResume.linkedIn}</Text>
           )}
@@ -92,7 +121,7 @@ export default function PreviewScreen() {
       </ScrollView>
 
       <View className="border-t border-gray-200 p-4">
-        <ExportPDFButton />
+        <ExportPDFButton template={tpl} />
       </View>
     </View>
   );

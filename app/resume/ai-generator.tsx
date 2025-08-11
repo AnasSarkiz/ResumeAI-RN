@@ -110,7 +110,10 @@ export default function AIGeneratorScreen() {
             },
             {
               text: 'View Preview',
-              onPress: () => router.push(`/resume/preview?id=${createdResume.id}`)
+              onPress: () => {
+                const tpl = template.preferredTemplate || 'classic';
+                router.push({ pathname: '/resume/preview', params: { id: String(createdResume.id), template: String(tpl) } });
+              }
             }
           ]
         );

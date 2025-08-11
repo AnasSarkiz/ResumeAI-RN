@@ -7,28 +7,10 @@ import { ResumeSectionCard } from '../../components/ResumeSectionCard';
 import { EditableTextInput } from '../../components/EditableTextInput';
 import { AIButton } from '../../components/AIButton';
 import { ExportPDFButton } from '../../components/ExportPDFButton';
-import { PromptSelector } from '../../components/PromptSelector';
 import { Experience, ResumeSection, Resume, Education, Skill, LinkItem } from '../../types/resume';
 import { validateResume } from '../../services/resume';
 import { useAuth } from '../../context/AuthContext';
 
-const prompts = [
-  {
-    id: 'generate-bullet-points',
-    title: 'Generate Bullet Points',
-    description: 'Create achievement-oriented bullet points for your experience',
-  },
-  {
-    id: 'reword-text',
-    title: 'Reword Text',
-    description: 'Make your text sound more professional',
-  },
-  {
-    id: 'improve-summary',
-    title: 'Improve Summary',
-    description: 'Enhance your professional summary',
-  },
-];
 
 export default function ResumeEditorScreen() {
   const { id } = useLocalSearchParams();
@@ -420,6 +402,19 @@ export default function ResumeEditorScreen() {
             active={activeSection === 'skills'}
             onPress={() => setActiveSection('skills')}
           />
+          <View className="mt-3 items-end">
+            <TouchableOpacity
+              onPress={async () => {
+                await handleValidateAndSave();
+                if (currentResume?.id) {
+                  router.push(`/resume/templates?id=${currentResume.id}`);
+                }
+              }}
+              className="rounded-full bg-indigo-600 px-4 py-2"
+            >
+              <Text className="font-semibold text-white">Choose Template</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Per-section action bar directly below section tabs */}

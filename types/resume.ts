@@ -59,6 +59,10 @@ export interface Resume {
   skills: Skill[];
   links?: LinkItem[];
   phones?: PhoneItem[];
+  // Selected HTML template ID for rendering/printing (free plan templates)
+  template?: string;
+  // Flag: using a pre-built template from the app (free plan)
+  temp?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

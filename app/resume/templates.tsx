@@ -1,0 +1,122 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useResume } from '../../context/ResumeContext';
+import { listHTMLTemplates, TemplateId, TEMPLATE_NAMES, renderHTMLTemplate } from '../../services/templates';
+
+// Load WebView at runtime to avoid crashes if unavailable
+let WebViewComp: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  WebViewComp = require('react-native-webview').WebView;
+} catch (e) {
+  WebViewComp = null;
+}
+
+export default function TemplateSelectorScreen() {
+  const { id, template } = useLocalSearchParams<{ id?: string; template?: TemplateId }>();
+  const router = useRouter();
+  const { currentResume, updateResume, loadResume, loading } = useResume();
+  const [selected, setSelected] = useState<TemplateId | undefined>(template as TemplateId | undefined);
+
+  useEffect(() => {
+    if (id && typeof id === 'string') {
+      loadResume(id);
+    }
+  }, [id]);
+
+  const items = listHTMLTemplates();
+
+  const handleSelect = async (tpl: TemplateId) => {
+    setSelected(tpl);
+    // Persist selection with temp flag
+    if (currentResume?.id) {
+      try {
+        await updateResume(currentResume.id, { template: tpl, temp: true } as any);
+      } catch (e) {
+        console.error('Failed to save template selection', e);
+      }
+    }
+    // Selection only; do not navigate to preview
+  };
+
+  return (
+    <View className="flex-1 bg-gray-50">
+      <View className="px-4 pt-4 pb-2">
+        <Text className="text-2xl font-bold text-gray-900">Choose a Template</Text>
+        <Text className="mt-1 text-sm text-gray-600">Select one of the 5 free templates for your resume.</Text>
+      </View>
+
+      {loading && (!currentResume) ? (
+        <View className="mt-10 items-center">
+          <ActivityIndicator />
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={{ padding: 16 }}>
+          {items.map(({ id: tplId, name }) => {
+            const html = currentResume ? renderHTMLTemplate(currentResume, tplId) : null;
+            return (
+              <View
+                key={tplId}
+                className={`mb-6 rounded-xl border ${selected === tplId ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}
+              >
+                <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
+                  <View>
+                    <Text className="text-lg font-semibold text-gray-900">{name}</Text>
+                    <Text className="text-xs text-gray-600">ID: {tplId}</Text>
+                  </View>
+                  {selected === tplId && (
+                    <View className="rounded-full bg-blue-500 px-3 py-1">
+                      <Text className="text-xs font-semibold text-white">Selected</Text>
+                    </View>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => id && router.push({ pathname: '/resume/preview', params: { id: String(id), template: tplId } })}
+                  className="mx-4 mb-4 overflow-hidden rounded-lg"
+                  style={{ height: 420, backgroundColor: '#fff' }}
+                >
+                  {WebViewComp && html ? (
+                    <WebViewComp
+                      key={`${tplId}`}
+                      originWhitelist={["*"]}
+                      source={{ html }}
+                      style={{ flex: 1 }}
+                      scrollEnabled={false}
+                    />
+                  ) : (
+                    <View className="flex-1 items-center justify-center">
+                      <Text className="text-gray-500 text-sm">
+                        {WebViewComp ? 'No resume data to preview.' : 'Install react-native-webview to enable previews.'}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                <View className="px-4 pb-4">
+                  <TouchableOpacity
+                    onPress={() => handleSelect(tplId)}
+                    className="rounded-full bg-blue-600 py-3"
+                  >
+                    <Text className="text-center font-semibold text-white">Use This Template</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      <View className="px-4 pb-6">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="rounded-full border border-gray-300 bg-white py-3"
+        >
+          <Text className="text-center font-medium text-gray-700">Back</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}

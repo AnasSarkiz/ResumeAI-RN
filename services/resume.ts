@@ -129,6 +129,8 @@ export const getResumeById = async (resumeId: string): Promise<Resume> => {
     linkedIn: data.linkedIn,
     github: data.github,
     summary: data.summary,
+    template: data.template,
+    temp: data.temp,
     experience: data.experience.map((exp: any) => ({
       id: exp.id,
       jobTitle: exp.jobTitle,
@@ -177,6 +179,8 @@ export const getResumes = async (userId: string): Promise<Resume[]> => {
       linkedIn: data.linkedIn,
       github: data.github,
       summary: data.summary,
+      template: data.template,
+      temp: data.temp,
       experience: data.experience,
       education: data.education,
       skills: data.skills,

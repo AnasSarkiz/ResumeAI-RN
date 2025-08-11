@@ -1,6 +1,7 @@
 // services/geminiService.ts
 import axios from 'axios';
 import { Resume } from '../types/resume';
+import type { TemplateId } from './templates';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -165,6 +166,7 @@ export interface CVTemplate {
   id: string;
   name: string;
   description: string;
+  preferredTemplate?: TemplateId;
   resume: Resume;
 }
 
@@ -182,8 +184,9 @@ export interface UserInputFields {
 }
 
 export const generateThreeCVDesigns = async (userInput: UserInputFields): Promise<CVTemplate[]> => {
-  const basePrompt = `
-Based on the following user information, generate 3 different professional CV/resume designs with varying approaches and emphasis:
+  const basePrompt = `You are an expert resume writer and CV designer.
+
+Goal: Generate 3 DISTINCT, high-quality resume variants based on the user's input. Each variant must be realistic, achievement-oriented, and tailored to a slightly different presentation style.
 
 User Information:
 - Full Name: ${userInput.fullName}
@@ -197,24 +200,32 @@ User Information:
 - Target Role: ${userInput.targetRole || 'Not provided'}
 - Industry: ${userInput.industry || 'Not provided'}
 
-Generate 3 distinct CV variations:
-1. PROFESSIONAL & TRADITIONAL - Conservative, corporate-friendly format
-2. MODERN & CREATIVE - Contemporary design with emphasis on achievements
-3. TECHNICAL & DETAILED - Comprehensive, skill-focused approach
+Variants to produce (use these as directional styles):
+1) Professional & Traditional — corporate-friendly, concise, strong fundamentals.
+2) Modern & Impactful — contemporary tone, clear outcomes and value.
+3) Technical & Detailed — skill-forward, deeper technical scope and metrics.
 
-For each CV, provide a complete JSON structure matching the Resume interface with:
-- Enhanced professional summary
-- 2-3 relevant work experiences with achievement-focused bullet points
-- 1-2 education entries
-- 8-12 relevant skills with categories
-- Consistent formatting and professional language
+Strict Requirements:
+- DO NOT use placeholders like [X], [metric], [company], or {variable}. Use realistic, context-appropriate values. If uncertain, omit the metric rather than inserting placeholders.
+- Use strong action verbs and quantify impact when plausible (%, $, time saved, scale), without fabricating impossible details.
+- Keep bullets concise and results-focused. Avoid first-person.
+- Ensure each variant feels DIFFERENT in emphasis, tone, and section ordering.
+- Use professional language and consistent tense/formatting within each experience.
+- If user inputs are sparse, infer reasonable defaults while staying realistic.
 
-Return ONLY a JSON array with 3 objects, each containing:
+Output Format:
+Return ONLY a valid JSON array with exactly 3 objects. Each object MUST have:
 {
-  "id": "template_1/2/3",
-  "name": "Template Name",
-  "description": "Brief description of this template's approach",
-  "resume": { /* Complete Resume object */ }
+  "id": "template_1|template_2|template_3",           // stable ids for the three variants
+  "name": "Short descriptive name",
+  "description": "1-2 sentence summary of the approach",
+  "preferredTemplate": "classic|modern|elegant|sidebar|timeline", // choose the best fit from these options ONLY
+  "resume": {
+    // Complete Resume object matching the project's Resume interface
+    // Required fields: fullName, email, (optional phone), summary,
+    // experience[] (2-3 roles, each with jobTitle, company, startDate, endDate or current, description[3-6]),
+    // education[] (1-2 items), skills[] (8-12 items, include categories when reasonable)
+  }
 }
 `;
 
