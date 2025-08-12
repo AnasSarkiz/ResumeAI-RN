@@ -64,7 +64,30 @@ export default function HomeScreen() {
       ]
     );
   };
-
+  function enforceFixedViewport(html: string): string {
+    if (!html) return html;
+  
+    const FIXED_META = `
+    <meta name="viewport" content="width=794, initial-scale=0.42, user-scalable=false" />
+  `;
+  
+    const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
+  
+    // Replace existing viewport meta if present
+    let out = html.replace(/<meta[^>]*name=["']viewport["'][^>]*>/i, FIXED_META);
+  
+    // If no viewport meta existed, inject one into <head>
+    if (!/name=["']viewport["']/i.test(out)) {
+      out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_META}`);
+    }
+  
+    // Inject reset style early in <head> (idempotent)
+    if (!/id=["']fixed-a4-reset["']/.test(out)) {
+      out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_STYLE}`);
+    }
+  
+    return out;
+  }
   const handleExport = async (resumeId: string) => {
     try {
       const res = resumes.find((r) => r.id === resumeId);
@@ -144,7 +167,7 @@ export default function HomeScreen() {
           style={{ height: previewHeight, backgroundColor: '#fff' }}
         >
       
-            <WebViewComp originWhitelist={["*"]} source={{ html }} style={{ flex: 1 }} scrollEnabled={false} />
+            <WebViewComp originWhitelist={["*"]} source={{ html: enforceFixedViewport(html) }} style={{ flex: 1 }} scrollEnabled={false} />
          
         </TouchableOpacity>
 

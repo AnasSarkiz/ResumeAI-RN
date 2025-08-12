@@ -27,6 +27,7 @@ export type TemplateId =
   | 'circularOrbit'
   | 'verticalRibbon'
   | 'diagonalSplit'
+  | 'hexagonalGrid'
 
 export const TEMPLATE_NAMES: Record<TemplateId, string> = {
   classic: 'Classic Professional',
@@ -54,6 +55,7 @@ export const TEMPLATE_NAMES: Record<TemplateId, string> = {
   circularOrbit: 'Circular Orbit',
   verticalRibbon: 'Vertical Ribbon',
   diagonalSplit: 'Diagonal Split',
+  hexagonalGrid: 'Hexagonal Grid',
 };
 const escape = (s: string) =>
   s
@@ -128,6 +130,13 @@ const classic = (r: Resume) => `
   li { margin-bottom:6px; }
   .chips { display:flex; flex-wrap:wrap; gap:8px; }
   .chip { background:#f3f4f6; padding:6px 10px; border-radius:999px; font-size:12px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; box-shadow: none; margin: 0; }
+    .section, .item { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -165,6 +174,13 @@ const modern = (r: Resume) => `
   ul { margin:8px 0 0 18px; }
   .chips { display:flex; flex-wrap:wrap; gap:8px; }
   .chip { background:#eff6ff; color:#1d4ed8; padding:6px 10px; border-radius:10px; font-size:12px; border:1px solid #bfdbfe; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .wrap { max-width: initial; width: auto; box-shadow: none; margin: 0; }
+    .section, .card { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -215,6 +231,13 @@ const elegant = (r: Resume) => `
   ul { margin:8px 0 0 18px; }
   .chips { display:flex; flex-wrap:wrap; gap:8px; }
   .chip { background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; padding:6px 10px; border-radius:999px; font-size:12px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; box-shadow: none; margin: 0; border: none; }
+    .section, .item { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -253,6 +276,14 @@ const sidebar = (r: Resume) => `
   .meta { color:#64748b; font-size:13px; }
   .date { color:#94a3b8; font-size:12px; }
   ul { margin:8px 0 0 18px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .grid { min-height: auto; }
+    .left, .right { box-shadow: none; }
+    .section { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -312,6 +343,14 @@ const timeline = (r: Resume) => `
   ul { margin:8px 0 0 18px; }
   .chips { display:flex; flex-wrap:wrap; gap:8px; }
   .chip { background:#ecfdf5; color:#166534; border:1px solid #bbf7d0; padding:6px 10px; border-radius:999px; font-size:12px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; margin: 0; }
+    .timeline:before { background: #ccc; }
+    .event { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -359,6 +398,13 @@ const compactGrid = (r: Resume) => `
   ul { margin:6px 0 0 18px; }
   .chips { display:flex; flex-wrap:wrap; gap:6px; }
   .chip { background:#eff6ff; color:#1e40af; padding:4px 8px; border-radius:999px; font-size:12px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; margin: 0; }
+    .section, .item { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -399,6 +445,13 @@ const creativeGradient = (r: Resume) => `
   .date { font-size:12px; color:#f97316; }
   ul { margin:6px 0 0 18px; }
   .chip { background:#fff0f3; color:#be123c; padding:5px 10px; border-radius:999px; font-size:12px; display:inline-block; margin:0 6px 6px 0; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .content { max-width: initial; width: auto; margin: 0; }
+    .section { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -436,6 +489,13 @@ const futuristicDarkMode = (r: Resume) => `
   .date { font-size:13px; color:var(--accent); margin-top:2px; }
   ul { margin:8px 0 0 18px; }
   .chip { display:inline-block; background:var(--accent); color:var(--bg); padding:4px 10px; border-radius:12px; font-size:12px; margin:4px 6px 4px 0; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; margin: 0; }
+    .section, .item { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -469,6 +529,13 @@ const photoHeader = (r: Resume) => `
   .meta { font-size:13px; color:#6b7280; }
   .date { font-size:12px; color:#2563eb; }
   .chip { background:#eff6ff; color:#1d4ed8; padding:4px 8px; border-radius:6px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .content { max-width: initial; width: auto; margin: 0; box-shadow: none; }
+    .section { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -506,6 +573,13 @@ const softPastel = (r: Resume) => `
   .meta { font-size:13px; color:var(--muted); }
   .date { font-size:12px; color:#f582ae; }
   .chip { background:#fde2e4; color:#9a031e; padding:5px 10px; border-radius:999px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; margin: 0; box-shadow: none; border-radius: 0; }
+    .section { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -541,6 +615,13 @@ const minimalistColumns = (r: Resume) => `
   .meta { color:var(--muted); font-size:13px; }
   .date { font-size:12px; color:#9ca3af; }
   ul { margin:6px 0 0 18px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; margin: 0; }
+    .section, .item { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -578,6 +659,13 @@ const boldAccentLine = (r: Resume) => `
   .date { font-size:12px; color:var(--accent); }
   .chip { background:#fee2e2; color:#b91c1c; padding:5px 10px; border-radius:999px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
   ul { margin:6px 0 0 18px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; margin: 0; border-left: 0; }
+    .section { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -612,6 +700,13 @@ const splitBanner = (r: Resume) => `
   .date { color:var(--accent); font-size:12px; }
   .chip { background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:999px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
   ul { margin:6px 0 0 18px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .content { max-width: initial; width: auto; margin: 0; }
+    .section { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -630,6 +725,7 @@ const splitBanner = (r: Resume) => `
   </div>
 </body>
 </html>`;
+
 // 14) Modern Card Blocks
 const modernCardBlocks = (r: Resume) => `
 <!DOCTYPE html>
@@ -650,6 +746,14 @@ const modernCardBlocks = (r: Resume) => `
   .date { font-size:12px; color:var(--accent); }
   .chip { background:#f3e8ff; color:#6d28d9; padding:4px 8px; border-radius:999px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
   ul { margin:6px 0 0 18px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; margin: 0; }
+    .card { box-shadow: none; }
+    .section, .card { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -687,6 +791,13 @@ const elegantMonochrome = (r: Resume) => `
   .date { font-size:12px; color:#000; }
   .chip { background:#eee; color:#000; padding:4px 8px; border-radius:4px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
   ul { margin:6px 0 0 18px; }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; margin: 0; }
+    .section, .experience-item, .education-item { break-inside: avoid; page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
@@ -849,6 +960,14 @@ const magazineEditorial = (r: Resume) => `
     border-left: 3px solid var(--secondary);
     font-size: 0.95rem;
   }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: initial; width: auto; margin: 0; box-shadow: none; }
+    .section, .experience-item { break-inside: avoid; page-break-inside: avoid; }
+    .header::after { display: none; }
+  }
   @media (max-width: 768px) {
     .header { padding: 30px; }
     .content { padding: 30px; }
@@ -919,8 +1038,7 @@ const magazineEditorial = (r: Resume) => `
     </div>
   </div>
 </body>
-</html>
-`;
+</html>`;
 
 // 17. Infographic Minimal
 const infographicMinimal = (r: Resume) => `
@@ -1074,11 +1192,18 @@ const infographicMinimal = (r: Resume) => `
   }
   .degree {
     font-weight: bold;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
   }
   .institution {
     color: var(--primary);
     font-size: 0.95rem;
+  }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .resume-card { max-width: initial; width: auto; margin: 0; box-shadow: none; }
+    .section, .experience-item, .education-item { break-inside: avoid; page-break-inside: avoid; }
   }
   @media (max-width: 768px) {
     .content {
@@ -1170,8 +1295,7 @@ const infographicMinimal = (r: Resume) => `
     </div>
   </div>
 </body>
-</html>
-`;
+</html>`;
 
 // 18. Asymmetric Layout
 const asymmetricLayout = (r: Resume) => `
@@ -1326,6 +1450,13 @@ const asymmetricLayout = (r: Resume) => `
     color: var(--secondary);
     font-size: 0.95rem;
   }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .resume-container { max-width: initial; width: auto; margin: 0; box-shadow: none; }
+    .section, .experience-item, .education-item { break-inside: avoid; page-break-inside: avoid; }
+  }
   @media (max-width: 900px) {
     .resume-container {
       grid-template-columns: 1fr;
@@ -1414,8 +1545,7 @@ const asymmetricLayout = (r: Resume) => `
     </main>
   </div>
 </body>
-</html>
-`;
+</html>`;
 
 // 19. Typographic Emphasis
 const typographicEmphasis = (r: Resume) => `
@@ -1525,7 +1655,7 @@ const typographicEmphasis = (r: Resume) => `
   }
   .degree {
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
   }
   .institution {
     color: var(--secondary);
@@ -1557,6 +1687,13 @@ const typographicEmphasis = (r: Resume) => `
     border: 1px solid #ddd;
     padding: 5px 12px;
     font-size: 0.9rem;
+  }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .resume-wrapper { max-width: initial; width: auto; margin: 0; }
+    .section, .experience-grid, .education-item { break-inside: avoid; page-break-inside: avoid; }
   }
   @media (max-width: 768px) {
     .name {
@@ -1645,8 +1782,7 @@ const typographicEmphasis = (r: Resume) => `
     </div>` : ''}
   </div>
 </body>
-</html>
-`;
+</html>`;
 
 // 20. Geometric Minimalism
 const geometricMinimalism = (r: Resume) => `
@@ -1662,6 +1798,7 @@ const geometricMinimalism = (r: Resume) => `
     --light: #ffffff;
     --dark: #2c3e50;
     --gray: #95a5a6;
+    --accent: #1abc9c;
   }
   body {
     font-family: 'Roboto', sans-serif;
@@ -1800,6 +1937,14 @@ const geometricMinimalism = (r: Resume) => `
     background: var(--primary);
     color: white;
     transform: translateY(-3px);
+  }
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .resume-card { max-width: initial; width: auto; margin: 0; box-shadow: none; border-radius: 0; }
+    .section, .experience-item, .education-item { break-inside: avoid; page-break-inside: avoid; }
+    .geometric-bg { opacity: 1; }
   }
   @media (max-width: 900px) {
     .header {
@@ -2086,14 +2231,35 @@ const hexagonalGrid = (r: Resume) => `
       border-radius: 15px;
     }
   }
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
   @media print {
-    body {
-      background: white;
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      margin: 0;
       padding: 0;
+      background: white;
+    }
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .container {
+      max-width: initial;
+      width: auto;
+      min-height: auto;
+      margin: 0;
       box-shadow: none;
       border-radius: 0;
+    }
+    .hex-grid,
+    .hex-section,
+    .experience-item {
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
     .header::before {
       display: none;
@@ -2385,18 +2551,40 @@ const diagonalSplit = (r: Resume) => `
       height: 250px;
     }
   }
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
   @media print {
-    body {
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      margin: 0;
+      padding: 0;
       background: white;
     }
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
     .container {
+      max-width: initial;
+      width: auto;
+      min-height: auto;
       box-shadow: none;
+      margin: 0;
+    }
+    .section,
+    .experience-item {
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
     .diagonal-bg {
       background: #ddd !important;
     }
     .skill-tag {
       background: #666 !important;
+      color: #fff !important;
     }
   }
 </style>
@@ -2497,6 +2685,7 @@ export const renderHTMLTemplate = (resume: Resume, template: TemplateId): string
       case 'circularOrbit': return circularOrbit(resume);
       case 'verticalRibbon': return verticalRibbon(resume);
       case 'diagonalSplit': return diagonalSplit(resume);
+      case 'hexagonalGrid': return hexagonalGrid(resume);
       default: return classic(resume);
     }
   };

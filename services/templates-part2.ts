@@ -26,6 +26,17 @@ export const circularOrbit = (r: Resume) => `
     color: #e94560;
     min-height: 100vh;
   }
+  /* Ensure A4 size with safe margins when printing */
+  @page { size: A4; margin: 15mm; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; }
+    body { margin: 0 !important; padding: 0 !important; background: white !important; color: black; }
+    .container { max-width: unset !important; width: auto !important; margin: 0 !important; box-shadow: none !important; border-radius: 0 !important; background: white !important; }
+    .header { background: #eee !important; color: #000 !important; }
+    .contact-item { background: transparent !important; border: 1px solid #999 !important; color: #000 !important; }
+    .orbit-bg { display: none !important; }
+    .section, .experience-item { break-inside: avoid; page-break-inside: avoid; }
+  }
   .container {
     max-width: 900px;
     margin: 0 auto;
@@ -234,6 +245,8 @@ export const verticalRibbon = (r: Resume) => `
     background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
   }
+  /* Ensure A4 size with safe margins when printing */
+  @page { size: A4; margin: 15mm; }
   .container {
     max-width: 900px;
     margin: 0 auto;
@@ -479,15 +492,14 @@ export const verticalRibbon = (r: Resume) => `
     }
   }
   @media print {
-    body {
-      background: white;
-    }
-    .container {
-      box-shadow: none;
-    }
-    .skill-tag {
-      background: #666 !important;
-    }
+    html, body { width: 210mm; height: 297mm; }
+    body { margin: 0 !important; background: white !important; }
+    .container { max-width: unset !important; width: auto !important; margin: 0 !important; box-shadow: none !important; }
+    .ribbon { width: 100px; }
+    .ribbon::before, .ribbon::after { display: none !important; }
+    .title-banner { margin: 0 !important; padding: 12mm 0 6mm 0 !important; }
+    .section, .experience-item { break-inside: avoid; page-break-inside: avoid; }
+    .skill-tag { background: #666 !important; }
   }
 </style>
 </head>

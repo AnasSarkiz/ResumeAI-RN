@@ -38,6 +38,8 @@ export interface AIGeneratorInput {
   email: string;
   countryCode?: string;
   phone?: string;
+  dateOfBirth?: string;
+  country?: string;
   links?: string; // newline-separated entries like "Label - URL"
   summary?: string;
   jobTitle?: string;
@@ -87,6 +89,8 @@ User Info:
 - Email: ${input.email}
 - Country Code: ${input.countryCode || ''}
 - Phone: ${input.phone || ''}
+- Date of Birth: ${input.dateOfBirth || ''}
+- Country: ${input.country || ''}
 - Links (newline-separated, format: Label - URL):
 ${input.links || ''}
 - Target Job Title: ${input.jobTitle || ''}

@@ -52,6 +52,9 @@ export interface Resume {
   fullName: string;
   email: string;
   phone?: string; // legacy single phone, kept for backward compat
+  // New optional personal details
+  dateOfBirth?: string; // ISO date or free-text (e.g., 1995-07-30)
+  country?: string; // e.g., Germany
   website?: string;
   linkedIn?: string;
   github?: string;

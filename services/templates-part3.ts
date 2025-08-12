@@ -24,6 +24,8 @@ export const layeredPaper = (r: Resume) => `
     background: #f5f5f5;
     min-height: 100vh;
   }
+  /* Ensure A4 size with safe margins when printing */
+  @page { size: A4; margin: 15mm; }
   .container {
     max-width: 850px;
     margin: 0 auto;
@@ -234,19 +236,13 @@ export const layeredPaper = (r: Resume) => `
     }
   }
   @media print {
-    body {
-      background: white;
-      padding: 0;
-    }
-    .paper-layer {
-      transform: none !important;
-      box-shadow: none !important;
-      margin: 0 0 20px 0 !important;
-    }
-    .skill-paper {
-      background: #f0f0f0 !important;
-      border-color: #666 !important;
-    }
+    html, body { width: 210mm; height: 297mm; }
+    body { background: white !important; color: black; padding: 0 !important; margin: 0 !important; }
+    .container { max-width: unset !important; width: auto !important; margin: 0 !important; }
+    .paper-layer { transform: none !important; box-shadow: none !important; margin: 0 0 12mm 0 !important; }
+    .paper-content { padding: 0; }
+    .section-paper, .experience-paper { break-inside: avoid; page-break-inside: avoid; }
+    .skill-paper { background: #f0f0f0 !important; border-color: #666 !important; }
   }
 </style>
 </head>
@@ -348,6 +344,8 @@ export const artDecoRevival = (r: Resume) => `
     color: #f4f4f4;
     min-height: 100vh;
   }
+  /* Ensure A4 size with safe margins when printing */
+  @page { size: A4; margin: 15mm; }
   .container {
     max-width: 900px;
     margin: 0 auto;
@@ -619,27 +617,13 @@ export const artDecoRevival = (r: Resume) => `
     }
   }
   @media print {
-    body {
-      background: white;
-      color: black;
-    }
-    .container {
-      background: white;
-      border-color: #666;
-    }
-    .header {
-      background: #f0f0f0 !important;
-      color: black;
-    }
-    .section-title,
-    .job-title,
-    .skill-deco {
-      color: #666 !important;
-    }
-    .art-deco-border,
-    .art-deco-corner {
-      border-color: #666;
-    }
+    html, body { width: 210mm; height: 297mm; }
+    body { background: white !important; color: black; margin: 0 !important; }
+    .container { background: white !important; border-color: #666; max-width: unset !important; width: auto !important; margin: 0 !important; }
+    .header { background: #f0f0f0 !important; color: black; }
+    .section, .experience-deco { break-inside: avoid; page-break-inside: avoid; }
+    .section-title, .job-title, .skill-deco { color: #666 !important; }
+    .art-deco-border, .art-deco-corner { border-color: #666; }
   }
 </style>
 </head>

@@ -18,7 +18,10 @@ try {
 function enforceFixedViewport(html: string): string {
   if (!html) return html;
 
-  const FIXED_META = '<meta name="viewport" content="width=794, initial-scale=1, minimum-scale=0.1, maximum-scale=5, user-scalable=yes" />';
+  const FIXED_META = `
+  <meta name="viewport" content="width=794, initial-scale=0.20, user-scalable=false" />
+`;
+
   const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
 
   // Replace existing viewport meta if present
@@ -77,7 +80,8 @@ export default function TemplateSelectorScreen() {
           <ActivityIndicator />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <ScrollView contentContainerStyle={{ padding: 8 }}>
+          <View className="flex-row flex-wrap justify-between">
           {items.map(({ id: tplId, name }) => {
             const isAI = (currentResume as any)?.kind === 'ai';
             const rawHtml = currentResume
@@ -89,11 +93,11 @@ export default function TemplateSelectorScreen() {
             return (
               <View
                 key={tplId}
-                className={`mb-6 rounded-xl border ${selected === tplId ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}
+                className={`mb-6 h-[360px] w-[49%] rounded-xl border ${selected === tplId ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}
               >
                 <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
                   <View>
-                    <Text className="text-lg font-semibold text-gray-900">{name}</Text>
+                    <Text className="text-sm font-semibold text-purple-900">{name}</Text>
                     <Text className="text-xs text-gray-600">ID: {tplId}</Text>
                   </View>
                   {selected === tplId && (
@@ -106,8 +110,8 @@ export default function TemplateSelectorScreen() {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => id && router.push({ pathname: '/resume/preview', params: { id: String(id), template: tplId } })}
-                  className="mx-4 mb-4 overflow-hidden rounded-lg"
-                  style={{ height: 420, backgroundColor: '#fff' }}
+                  className="mx-4 mb-2 absolute bottom-14 left-0 right-0 overflow-hidden rounded-lg"
+                  style={{ height: 240, backgroundColor: '#fff' }}
                 >
                   {WebViewComp && html ? (
                     <WebViewComp
@@ -115,7 +119,6 @@ export default function TemplateSelectorScreen() {
                       originWhitelist={["*"]}
                       source={{ html }}
                       style={{ flex: 1 }}
-                      scrollEnabled={false}
                     />
                   ) : (
                     <View className="flex-1 items-center justify-center">
@@ -126,13 +129,13 @@ export default function TemplateSelectorScreen() {
                   )}
                 </TouchableOpacity>
 
-                <View className="px-4 pb-4">
+                <View className="px-4 absolute bottom-0 left-0 right-0 pb-4">
                   <TouchableOpacity
                     onPress={() => handleSelect(tplId)}
                     disabled={(currentResume as any)?.kind === 'ai'}
-                    className={`rounded-full py-3 ${((currentResume as any)?.kind === 'ai') ? 'bg-gray-300' : 'bg-blue-600'}`}
+                    className={`rounded-full px-2 py-2 ${((currentResume as any)?.kind === 'ai') ? 'bg-gray-300' : 'bg-blue-600'}`}
                   >
-                    <Text className="text-center font-semibold text-white">
+                    <Text className="text-center text-xs font-semibold text-white">
                       {((currentResume as any)?.kind === 'ai') ? 'Templates unavailable for AI resumes' : 'Use This Template'}
                     </Text>
                   </TouchableOpacity>
@@ -140,6 +143,7 @@ export default function TemplateSelectorScreen() {
               </View>
             );
           })}
+          </View>
         </ScrollView>
       )}
 

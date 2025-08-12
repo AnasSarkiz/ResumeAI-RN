@@ -19,7 +19,7 @@ try {
 function enforceFixedViewport(html: string): string {
   if (!html) return html;
 
-  const FIXED_META = '<meta name="viewport" content="width=794, initial-scale=1, minimum-scale=0.1, maximum-scale=5, user-scalable=yes" />';
+  const FIXED_META = '<meta name="viewport" content="width=794, initial-scale=0.5, minimum-scale=0.1, maximum-scale=5, user-scalable=yes" />';
   const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
 
   // Replace existing viewport meta if present

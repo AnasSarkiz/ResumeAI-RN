@@ -27,6 +27,8 @@ export default function AIGeneratorScreen() {
     email: user?.email || '',
     countryCode: '+',
     phone: '',
+    dateOfBirth: '',
+    country: '',
     summary: '',
     jobTitle: '',
     experience: '',
@@ -206,6 +208,24 @@ export default function AIGeneratorScreen() {
           {errors.fullName ? <Text className="mt-1 text-xs text-red-500">{errors.fullName}</Text> : null}
           <EditableTextInput label="Email *" value={formData.email} onChange={(t) => handleInputChange('email', t)} required error={errors.email} />
           {errors.email ? <Text className="mt-1 text-xs text-red-500">{errors.email}</Text> : null}
+          <View className="mt-2 flex-row items-end gap-3">
+            <View className="flex-1">
+              <EditableTextInput
+                label="Date of Birth"
+                value={formData.dateOfBirth || ''}
+                onChange={(t) => handleInputChange('dateOfBirth', t)}
+                placeholder="YYYY-MM-DD"
+              />
+            </View>
+            <View className="flex-1">
+              <EditableTextInput
+                label="Country"
+                value={formData.country || ''}
+                onChange={(t) => handleInputChange('country', t)}
+                placeholder="e.g., Germany"
+              />
+            </View>
+          </View>
           <View className="mt-2 flex-row items-end gap-3">
             <View style={{ width: 96 }}>
               <EditableTextInput

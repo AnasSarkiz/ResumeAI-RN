@@ -205,6 +205,22 @@ export default function ResumeEditorScreen() {
             error={errors['email']}
           />
           {renderError('email')}
+          <View className="flex-row space-x-4 mt-2">
+            <EditableTextInput
+              label="Date of Birth"
+              value={draft.dateOfBirth || ''}
+              onChange={(text: string) => handleUpdate('dateOfBirth', text)}
+              placeholder="YYYY-MM-DD"
+              className="flex-1"
+            />
+            <EditableTextInput
+              label="Country"
+              value={draft.country || ''}
+              onChange={(text: string) => handleUpdate('country', text)}
+              placeholder="e.g. Germany"
+              className="flex-1"
+            />
+          </View>
           {/* Phone Numbers */}
           <View className="mt-2">
             <View className="mb-2 flex-row items-center justify-between">
