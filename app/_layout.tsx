@@ -13,11 +13,12 @@ export default function RootLayout() {
             <Stack.Screen name="(auth)/login" options={{ title: 'Login' }} />
             <Stack.Screen name="(auth)/register" options={{ title: 'Register' }} />
             <Stack.Screen name="(main)/home" options={{ title: 'Home' }} />
+            <Stack.Screen name="(main)/onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="(main)/profile" options={{ title: 'Profile' }} />
             <Stack.Screen name="(main)/subscriptions" options={{ title: 'Subscriptions' }} />
-            <Stack.Screen name="resume/cover-letter.tsx" options={{ title: 'Cover Letter' }} />
-            <Stack.Screen name="resume/editor.tsx" options={{ title: 'Resume Editor' }} />
-            <Stack.Screen name="resume/preview.tsx" options={{ title: 'Preview Resume' }} />
+            <Stack.Screen name="resume/cover-letter" options={{ title: 'Cover Letter' }} />
+            <Stack.Screen name="resume/editor" options={{ title: 'Resume Editor' }} />
+            <Stack.Screen name="resume/preview" options={{ title: 'Preview Resume' }} />
           </Stack>
         </SubscriptionProvider>
       </ResumeProvider>

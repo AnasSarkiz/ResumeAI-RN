@@ -13,6 +13,30 @@ try {
   WebViewComp = null;
 }
 
+// Ensure fixed-size A4-like layout while allowing zoom inside WebView by
+// normalizing the meta viewport and injecting a small non-responsive reset.
+function enforceFixedViewport(html: string): string {
+  if (!html) return html;
+
+  const FIXED_META = '<meta name="viewport" content="width=794, initial-scale=1, minimum-scale=0.1, maximum-scale=5, user-scalable=yes" />';
+  const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
+
+  // Replace existing viewport meta if present
+  let out = html.replace(/<meta[^>]*name=["']viewport["'][^>]*>/i, FIXED_META);
+
+  // If no viewport meta existed, inject one into <head>
+  if (!/name=["']viewport["']/i.test(out)) {
+    out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_META}`);
+  }
+
+  // Inject reset style early in <head> (idempotent)
+  if (!/id=["']fixed-a4-reset["']/.test(out)) {
+    out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_STYLE}`);
+  }
+
+  return out;
+}
+
 export default function TemplateSelectorScreen() {
   const { id, template } = useLocalSearchParams<{ id?: string; template?: TemplateId }>();
   const router = useRouter();
@@ -56,11 +80,12 @@ export default function TemplateSelectorScreen() {
         <ScrollView contentContainerStyle={{ padding: 16 }}>
           {items.map(({ id: tplId, name }) => {
             const isAI = (currentResume as any)?.kind === 'ai';
-            const html = currentResume
+            const rawHtml = currentResume
               ? (isAI && (currentResume as any).aiHtml)
                 ? (currentResume as any).aiHtml
                 : renderHTMLTemplate(currentResume, tplId)
               : null;
+            const html = rawHtml ? enforceFixedViewport(rawHtml) : null;
             return (
               <View
                 key={tplId}

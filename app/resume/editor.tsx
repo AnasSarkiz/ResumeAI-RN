@@ -5,8 +5,6 @@ import { useResume } from '../../context/ResumeContext';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { ResumeSectionCard } from '../../components/ResumeSectionCard';
 import { EditableTextInput } from '../../components/EditableTextInput';
-import { AIButton } from '../../components/AIButton';
-import { ExportPDFButton } from '../../components/ExportPDFButton';
 import { Experience, ResumeSection, Resume, Education, Skill, LinkItem } from '../../types/resume';
 import { validateResume } from '../../services/resume';
 import { useAuth } from '../../context/AuthContext';
@@ -23,20 +21,7 @@ export default function ResumeEditorScreen() {
   const [selectedText, setSelectedText] = useState('');
   const [draft, setDraft] = useState<Resume | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const countryOptions = [
-    { code: 'US', flag: '🇺🇸', dial: '+1', label: 'United States' },
-    { code: 'GB', flag: '🇬🇧', dial: '+44', label: 'United Kingdom' },
-    { code: 'CA', flag: '🇨🇦', dial: '+1', label: 'Canada' },
-    { code: 'DE', flag: '🇩🇪', dial: '+49', label: 'Germany' },
-    { code: 'FR', flag: '🇫🇷', dial: '+33', label: 'France' },
-    { code: 'SA', flag: '🇸🇦', dial: '+966', label: 'Saudi Arabia' },
-    { code: 'AE', flag: '🇦🇪', dial: '+971', label: 'UAE' },
-    { code: 'IN', flag: '🇮🇳', dial: '+91', label: 'India' },
-    { code: 'EG', flag: '🇪🇬', dial: '+20', label: 'Egypt' },
-  ];
   
-  const [countryPickerVisible, setCountryPickerVisible] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState(countryOptions[0]);
 
   useEffect(() => {
     if (id && typeof id === 'string') {
@@ -232,11 +217,9 @@ export default function ResumeEditorScreen() {
                           ...prev,
                           phones: [
                             ...((prev.phones || []).length ? prev.phones! : (
-                              prev.phone
-                                ? [{ id: Date.now().toString(), dial: selectedCountry.dial, number: (prev.phone || '').replace(selectedCountry.dial, '').trim(), countryCode: selectedCountry.code }]
-                                : []
+                              prev.phone ? [{ id: Date.now().toString(), dial: '', number: (prev.phone || '').trim() }] : []
                             )),
-                            { id: (Date.now() + 1).toString(), dial: selectedCountry.dial, number: '', countryCode: selectedCountry.code },
+                            { id: (Date.now() + 1).toString(), dial: '', number: '' },
                           ],
                           // keep legacy phone untouched until save
                         }
@@ -249,7 +232,7 @@ export default function ResumeEditorScreen() {
             </View>
             {(draft.phones && draft.phones.length > 0
               ? draft.phones
-              : (draft.phone ? [{ id: 'legacy', dial: selectedCountry.dial, number: (draft.phone || '').replace(selectedCountry.dial, '').trim(), countryCode: selectedCountry.code }] : [])
+              : (draft.phone ? [{ id: 'legacy', dial: '', number: (draft.phone || '').trim() }] : [])
             ).map((p, idx) => (
               <View key={p.id} className="mb-3 rounded-lg bg-white p-3">
                 <View className="mb-2 flex-row items-center">
@@ -452,12 +435,6 @@ export default function ResumeEditorScreen() {
               placeholder="Write a brief summary of your professional background..."
               label={''}
             />
-            <AIButton
-              action="improve-summary"
-              context={draft.summary || ''}
-              disabled={!isPro}
-              className="mt-2"
-            />
           </View>
         )}
 
@@ -543,27 +520,6 @@ export default function ResumeEditorScreen() {
                 >
                   <Text className="text-blue-500">+ Add bullet point</Text>
                 </TouchableOpacity>
-
-                <View className="mt-2">
-                  <AIButton
-                    action="generate-bullet-points"
-                    context={{ resume: draft, targetExperienceId: exp.id }}
-                    targetExpId={exp.id}
-                    disabled={!isPro}
-                    onBulletsGenerated={(bullets) => {
-                      setDraft((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              experience: prev.experience.map((e) =>
-                                e.id === exp.id ? { ...e, description: [...e.description, ...bullets] } : e
-                              ),
-                            }
-                          : prev
-                      );
-                    }}
-                  />
-                </View>
               </View>
             ))}
           </View>

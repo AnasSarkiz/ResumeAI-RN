@@ -54,20 +54,33 @@ export interface AIGeneratorInput {
  * Returns a valid HTML string (with <!DOCTYPE html>) suitable for WebView and PDF printing.
  */
 export const generateFullHTMLResume = async (input: AIGeneratorInput): Promise<string> => {
-  const base = `You are a professional resume designer and front-end developer.
-Create a COMPLETE, PRODUCTION-READY resume as a single HTML document for printing and PDF export.
+  const base = `You are a senior resume designer and front-end stylist.
+Create a COMPLETE, PRODUCTION-READY resume as a single HTML document suitable for WebView and PDF export.
 
 Strict requirements:
 - Return ONLY raw HTML. Do NOT include markdown code fences.
-- The HTML must be self-contained (inline <style> with fonts, no external links).
+- The HTML must be self-contained (inline <style>, no external links or fonts).
 - Use responsive, print-friendly CSS with A4-focused layout.
 - Include explicit print CSS to enforce A4:
-  - Use @page { size: A4; margin: 12mm; }
-  - Ensure html/body width is 210mm; content area has min-height 297mm.
-  - Wrap all content in a single <div class="page"> that is 210mm wide and min-height 297mm.
+  - @page { size: A4; margin: 12mm; }
+  - html, body width: 210mm; main content min-height: 297mm.
+  - Wrap content in <div class="page"> sized for A4.
   - Preserve colors in print: -webkit-print-color-adjust: exact; print-color-adjust: exact.
-- Use semantic structure and accessible markup.
-- Do not fabricate impossible claims; if data is sparse, keep it professional and concise.
+- Use semantic structure, accessible markup, and consistent heading hierarchy.
+- Absolutely NO placeholders like [X] or {metric}. If unsure, omit rather than fabricate.
+
+Voice and content:
+- Write powerful, achievement-driven text with clear outcomes, scope, and impact.
+- Prefer STAR-style bullets (Situation-Task-Action-Result) distilled to a single, punchy sentence.
+- Quantify results realistically (%, $, time saved, scale) when context allows; avoid exaggeration.
+- Keep bullets concise (12–22 words), vary strong action verbs, avoid first-person.
+
+Design & creativity:
+- Produce a tasteful, modern visual design while remaining ATS-friendly.
+- Use a refined typographic system (e.g., headings vs body, consistent sizes/weights, letter-spacing for headings).
+- Employ a limited color palette with subtle accents for headings, rules, or icons (ensure legible in B/W print).
+- Consider optional layout features when appropriate: subtle sidebar, balanced two-column sections, section dividers, timeline accents.
+- Use CSS variables for colors/spacing to keep styling coherent.
 
 User Info:
 - Full Name: ${input.fullName}
@@ -87,19 +100,19 @@ ${input.education || ''}
 - Skills (comma-separated):
 ${input.skills || ''}
 
-Data format notes:
-- Treat each EDUCATION line as one education item: Degree — Institution (Years).
-- Treat each EXPERIENCE line as one role item: Role — Company (Dates), followed by bullet achievements inferred from the text.
-- Parse SKILLS by comma and render as a clean, compact list (or inline tags) without duplicates.
+Data parsing notes:
+- Treat each EDUCATION line as one item: Degree — Institution (Years).
+- Treat each EXPERIENCE line as one role: Role — Company (Dates) with 3–6 impact bullets inferred from text.
+- Parse SKILLS by comma, dedupe and render cleanly (tags or compact list).
 
-Design Instructions from user: ${input.designInstructions || 'Clean, professional, ATS-friendly.'}
+Design instructions from user: ${input.designInstructions || 'Clean, modern, ATS-friendly with tasteful accents.'}
 
 Output:
-- A beautiful, modern resume in a single HTML file with inline CSS.
-- Include sections for Summary, Experience, Education, and Skills when content is provided.
-- Include a contact area at the top: name prominently, then email, phone (with country code if provided), and render LINKS as clickable anchors with the provided labels.
-- Ensure typography, spacing, and headings are polished. Avoid placeholders like [X].
- - Ensure the final HTML adheres to the A4 rules above and uses the <div class="page"> wrapper.
+ \n Provide full HTML code with inline CSS.\nIncorporate subtle but high-quality design details (gradients, borders, dividers, creative section titles, background accents, icons if simple.\nThink outside the box—experiment with vertical text, rotated elements, oversized headings, two-tone backgrounds, iconography, or minimalist geometric shapes.
+- A visually distinctive but professional resume in a single HTML file with inline CSS.
+- Sections: Summary, Experience, Education, Skills when content exists.
+- Top contact block: prominent name, then email/phone (with country code), and LINKS as labeled anchors.
+- Ensure the final HTML adheres to A4 rules and uses the <div class="page"> wrapper.
 `;
 
   try {
@@ -179,10 +192,11 @@ Target experience current bullets (if any): ${targetDesc}
 Other roles: ${previousHighlights}
 
 Guidelines:
-- Start with strong action verbs and quantify impact where possible.
-- Focus on outcomes, metrics, scope, and technologies.
-- Avoid markdown or list markers. Output plain sentences (no leading dashes or asterisks).
-- Do not include placeholders like [number] or [metric]. Use realistic metrics if context allows.
+- Start with strong action verbs and vary verbs across bullets.
+- Use STAR thinking; focus on outcomes, scope, key technologies, and measurable impact.
+- Include realistic metrics (%/$/time/scale) when possible; never use placeholders.
+- Be concise (12–22 words) and specific; remove fluff.
+- Output plain sentences only (no list markers or markdown).
 `;
     } else {
       prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}".
@@ -201,7 +215,15 @@ Here's some context about the user: ${context}. Make the points achievement-orie
 };
 
 export const rewordText = async (text: string): Promise<string> => {
-  const prompt = `Rewrite the following text to sound more professional and polished for a resume: "${text}"`;
+  const prompt = `Rewrite the following text to be more impactful, concise, and resume-ready.
+
+Rules:
+- Use professional tone and active voice.
+- Prefer outcomes and metrics where appropriate.
+- Avoid first-person and filler words.
+
+Text:
+"${text}"`;
   const result = await callGemini(prompt);
   return result || text;
 };
@@ -211,7 +233,7 @@ export const generateCoverLetter = async (
   company?: string,
   position?: string
 ): Promise<string> => {
-  const prompt = `Write a professional cover letter for the following resume targeting ${
+  const prompt = `Write a professional, results-focused cover letter for the following resume targeting ${
     position ? `the ${position} position` : 'a job'
   }${company ? ` at ${company}` : ''}. Here's the resume data:
 
@@ -221,18 +243,29 @@ Experience: ${resume.experience.map((exp) => `${exp.jobTitle} at ${exp.company}`
 Education: ${resume.education.map((edu) => `${edu.degree} from ${edu.institution}`).join(', ')}
 Skills: ${resume.skills.map((skill) => skill.name).join(', ')}
 
-Make the cover letter concise (3-4 paragraphs), tailored to the position, and highlight relevant experience and skills.`;
+Requirements:
+- 3–4 concise paragraphs (intro, 1–2 value paragraphs, closing call-to-action).
+- Tailor to the role/company; emphasize relevant achievements and quantified outcomes.
+- Use professional tone, no placeholders, no first-person pronouns overuse.
+`;
 
   return await callGemini(prompt);
 };
 
 export const tailorResume = async (resume: Resume, jobDescription: string): Promise<Resume> => {
-  const prompt = `Optimize the following resume for this job description: ${jobDescription}.
+  const prompt = `Optimize the following resume for this job description:
+${jobDescription}
 
-Current resume:
+Rules:
+- Keep the exact JSON schema of the project's Resume interface; do not add unknown fields.
+- Improve wording for impact and clarity; prioritize relevant skills and achievements.
+- Reorder experiences and skills for best fit; keep dates and facts realistic.
+- Add realistic, non-placeholder metrics only if implied by context; otherwise omit.
+
+Current resume JSON:
 ${JSON.stringify(resume, null, 2)}
 
-Return the optimized resume in the exact same JSON format, with improved wording, reordered sections if needed, and emphasis on relevant skills and experience.`;
+Return ONLY the optimized resume JSON.`;
 
   const text = await callGemini(prompt);
   try {
@@ -244,7 +277,15 @@ Return the optimized resume in the exact same JSON format, with improved wording
 };
 
 export const improveSummary = async (summary: string): Promise<string> => {
-  const prompt = `Improve this resume summary to be more compelling and professional: "${summary}"`;
+  const prompt = `Improve this resume summary to be more compelling, keyword-rich, and concise (2–3 sentences).
+
+Guidelines:
+- Lead with role/years/value proposition; follow with core strengths and differentiators.
+- Use industry keywords naturally (no buzzword stuffing).
+- Maintain professional tone; avoid first-person.
+
+Summary:
+"${summary}"`;
   const result = await callGemini(prompt);
   return result || summary;
 };
@@ -270,131 +311,3 @@ export interface UserInputFields {
   targetRole?: string;
   industry?: string;
 }
-
-export const generateThreeCVDesigns = async (userInput: UserInputFields): Promise<CVTemplate[]> => {
-  const basePrompt = `You are an expert resume writer and CV designer.
-
-Goal: Generate 3 DISTINCT, high-quality resume variants based on the user's input. Each variant must be realistic, achievement-oriented, and tailored to a slightly different presentation style.
-
-User Information:
-- Full Name: ${userInput.fullName}
-- Email: ${userInput.email}
-- Phone: ${userInput.phone || 'Not provided'}
-- Professional Summary: ${userInput.summary || 'Not provided'}
-- Current/Target Job Title: ${userInput.jobTitle || 'Not provided'}
-- Experience Details: ${userInput.experience || 'Not provided'}
-- Education Details: ${userInput.education || 'Not provided'}
-- Skills: ${userInput.skills || 'Not provided'}
-- Target Role: ${userInput.targetRole || 'Not provided'}
-- Industry: ${userInput.industry || 'Not provided'}
-
-Variants to produce (use these as directional styles):
-1) Professional & Traditional — corporate-friendly, concise, strong fundamentals.
-2) Modern & Impactful — contemporary tone, clear outcomes and value.
-3) Technical & Detailed — skill-forward, deeper technical scope and metrics.
-
-Strict Requirements:
-- DO NOT use placeholders like [X], [metric], [company], or {variable}. Use realistic, context-appropriate values. If uncertain, omit the metric rather than inserting placeholders.
-- Use strong action verbs and quantify impact when plausible (%, $, time saved, scale), without fabricating impossible details.
-- Keep bullets concise and results-focused. Avoid first-person.
-- Ensure each variant feels DIFFERENT in emphasis, tone, and section ordering.
-- Use professional language and consistent tense/formatting within each experience.
-- If user inputs are sparse, infer reasonable defaults while staying realistic.
-
-Output Format:
-Return ONLY a valid JSON array with exactly 3 objects. Each object MUST have:
-{
-  "id": "template_1|template_2|template_3",           // stable ids for the three variants
-  "name": "Short descriptive name",
-  "description": "1-2 sentence summary of the approach",
-  "preferredTemplate": "classic|modern|elegant|sidebar|timeline", // choose the best fit from these options ONLY
-  "resume": {
-    // Complete Resume object matching the project's Resume interface
-    // Required fields: fullName, email, (optional phone), summary,
-    // experience[] (2-3 roles, each with jobTitle, company, startDate, endDate or current, description[3-6]),
-    // education[] (1-2 items), skills[] (8-12 items, include categories when reasonable)
-  }
-}
-`;
-
-  try {
-    const response = await callGemini(basePrompt);
-    const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
-    const templates = JSON.parse(cleanedResponse);
-    
-    // Ensure each template has proper IDs and structure
-    return templates.map((template: any, index: number) => ({
-      ...template,
-      id: template.id || `template_${index + 1}`,
-      resume: {
-        ...template.resume,
-        id: `resume_${Date.now()}_${index}`,
-        userId: '', // Will be set when user selects
-        title: `${userInput.fullName}'s Resume - ${template.name}`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-    }));
-  } catch (error) {
-    console.error('Failed to generate CV templates:', error);
-    // Fallback to generating a single basic template
-    return generateFallbackTemplates(userInput);
-  }
-};
-
-const generateFallbackTemplates = (userInput: UserInputFields): CVTemplate[] => {
-  const baseResume = {
-    id: `resume_${Date.now()}`,
-    userId: '',
-    title: `${userInput.fullName}'s Resume`,
-    fullName: userInput.fullName,
-    email: userInput.email,
-    phone: userInput.phone,
-    summary: userInput.summary || `Professional ${userInput.jobTitle || 'professional'} with expertise in ${userInput.industry || 'various fields'}.`,
-    experience: userInput.experience ? [{
-      id: `exp_${Date.now()}`,
-      jobTitle: userInput.jobTitle || 'Professional',
-      company: 'Previous Company',
-      startDate: '2020',
-      endDate: '2024',
-      current: false,
-      description: [userInput.experience]
-    }] : [],
-    education: userInput.education ? [{
-      id: `edu_${Date.now()}`,
-      institution: 'University',
-      degree: userInput.education,
-      startDate: '2016',
-      endDate: '2020',
-      current: false
-    }] : [],
-    skills: userInput.skills ? userInput.skills.split(',').map((skill, index) => ({
-      id: `skill_${index}`,
-      name: skill.trim(),
-      proficiency: 'intermediate' as const
-    })) : [],
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
-
-  return [
-    {
-      id: 'template_1',
-      name: 'Professional',
-      description: 'Clean and traditional format',
-      resume: { ...baseResume, id: `resume_${Date.now()}_1` }
-    },
-    {
-      id: 'template_2', 
-      name: 'Modern',
-      description: 'Contemporary design with impact focus',
-      resume: { ...baseResume, id: `resume_${Date.now()}_2` }
-    },
-    {
-      id: 'template_3',
-      name: 'Detailed',
-      description: 'Comprehensive skill-focused approach',
-      resume: { ...baseResume, id: `resume_${Date.now()}_3` }
-    }
-  ];
-};

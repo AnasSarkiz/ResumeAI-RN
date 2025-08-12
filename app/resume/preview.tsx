@@ -14,6 +14,30 @@ try {
   WebViewComp = null;
 }
 
+// Ensure fixed-size A4-like layout while allowing zoom inside WebView by
+// normalizing the meta viewport and injecting a small non-responsive reset.
+function enforceFixedViewport(html: string): string {
+  if (!html) return html;
+
+  const FIXED_META = '<meta name="viewport" content="width=794, initial-scale=1, minimum-scale=0.1, maximum-scale=5, user-scalable=yes" />';
+  const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
+
+  // Replace existing viewport meta if present
+  let out = html.replace(/<meta[^>]*name=["']viewport["'][^>]*>/i, FIXED_META);
+
+  // If no viewport meta existed, inject one into <head>
+  if (!/name=["']viewport["']/i.test(out)) {
+    out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_META}`);
+  }
+
+  // Inject reset style early in <head> (idempotent)
+  if (!/id=["']fixed-a4-reset["']/.test(out)) {
+    out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_STYLE}`);
+  }
+
+  return out;
+}
+
 export default function PreviewScreen() {
   const { id, template } = useLocalSearchParams();
   const { currentResume, loading, loadResume } = useResume();
@@ -44,7 +68,7 @@ export default function PreviewScreen() {
     if (WebViewComp && aiHtml) {
       return (
         <View className="flex-1 bg-white">
-          <WebViewComp originWhitelist={["*"]} source={{ html: aiHtml }} style={{ flex: 1 }} />
+          <WebViewComp originWhitelist={["*"]} source={{ html: enforceFixedViewport(aiHtml) }} style={{ flex: 1 }} />
           <View className="border-t border-gray-200 p-4">
             <ExportPDFButton />
           </View>
@@ -61,7 +85,7 @@ export default function PreviewScreen() {
 
   // If a template is chosen and WebView is available, render the real HTML template preview
   if (tpl && WebViewComp && currentResume) {
-    const html = renderHTMLTemplate(currentResume, tpl);
+    const html = enforceFixedViewport(renderHTMLTemplate(currentResume, tpl));
     return (
       <View className="flex-1 bg-white">
         <WebViewComp key={tpl} originWhitelist={["*"]} source={{ html }} style={{ flex: 1 }} />

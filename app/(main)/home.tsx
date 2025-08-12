@@ -14,7 +14,6 @@ export default function HomeScreen() {
   const { user, logout } = useAuth();
   const { resumes, loading, loadResumes, createResume, deleteResume } = useResume();
   const isPro = user?.isPro;
-  console.log(resumes)
   const router = useRouter();
   const [exportingId, setExportingId] = useState<string | null>(null);
 
@@ -88,11 +87,6 @@ export default function HomeScreen() {
 
   const EmptyState = () => (
     <View className="flex-1 items-center justify-center px-4">
-      {/* <Image
-        source={require('../../assets/empty-resume.png')}
-        style={{ width: 220, height: 220 }}
-        resizeMode="contain"
-      /> */}
       <Text className="mt-4 text-lg font-semibold text-gray-700">No resumes yet</Text>
       <Text className="text-center text-gray-500 mb-6">
         Create your first resume manually or let AI craft it for you in seconds.
@@ -132,13 +126,13 @@ export default function HomeScreen() {
     const previewWidth = Math.max(0, screenWidth - 32 - 32);
     const previewHeight = Math.round(previewWidth * 1.414);
     return (
-      <View className="mb-4  rounded-xl border border-gray-200 bg-white p-4 shadow-md">
+      <View className="mb-4  rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <View className="mb-3 flex-row items-center justify-between">
           <View>
             <Text className="text-lg font-semibold text-gray-900">{item.title}</Text>
             <Text className="text-xs text-gray-600">Updated {item.updatedAt?.toLocaleDateString?.() || ''}</Text>
           </View>
-          <TouchableOpacity onPress={() => handleDelete(item.id)} className="rounded-full bg-red-50 p-2">
+          <TouchableOpacity onPress={() => handleDelete(item.id)} className="absolute right-0 top-0 rounded-full bg-red-50 p-2">
             <Ionicons name="trash-outline" size={18} color="#EF4444" />
           </TouchableOpacity>
         </View>
@@ -185,7 +179,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50 p-4">
+    <View className="flex-1 bg-[#f9f9f9] p-4">
       {/* Header */}
       <View className="mb-6 flex-row items-center justify-between">
         <Text className="text-3xl font-bold text-gray-800">My Resumes</Text>
@@ -215,25 +209,25 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
           />
 
-          <View className="mt-4 ">
+          <View className="mt-4 flex-row items-center justify-between">
             <TouchableOpacity
               onPress={handleCreateResume}
-              className="flex-row items-center justify-center rounded-lg border-2 border-dashed border-blue-500 py-4">
+              className="flex-row w-[48%] items-center justify-center rounded-lg border-2 border-dashed border-blue-500 py-4">
               <Ionicons name="add" size={20} color="#3B82F6" />
               <Text className="ml-2 text-base font-semibold text-blue-600">Create Manually</Text>
             </TouchableOpacity>
-            <TouchableOpacity className=" h-20 rounded-xl py-2 overflow-hidden shadow-lg" onPress={() => (isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe'))} >
+            <TouchableOpacity className="w-[48%] rounded-xl py-2 overflow-hidden " onPress={() => (isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe'))} >
               <LinearGradient
                 colors={['#a855f7', '#6366f1']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{ height: 52 , borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row'}}
               >
-                <Ionicons className='absolute left-0 top-0 overflow-hidden' name="sparkles" size={36} color="gold" />
-                <Text className=" font-semibold text-white text-xl text-center">✨ Create with AI</Text>
+                <Ionicons className='absolute left-0 top-0 overflow-hidden' name="sparkles" size={16} color="gold" />
+                <Text className="-ml-4 font-semibold text-white text-xl text-center">✨ Create with AI</Text>
               </LinearGradient>
             </TouchableOpacity>
-          </View>
+            </View>
         </>
       )}
     </View>
