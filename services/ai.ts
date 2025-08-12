@@ -294,6 +294,52 @@ Summary:
   return result || summary;
 };
 
+/**
+ * Edit an existing full HTML resume using natural-language instructions.
+ * The model must return ONLY raw HTML (no markdown fences) and preserve A4/print-friendly structure.
+ */
+export const editHTMLResume = async (
+  currentHtml: string,
+  instructions: string
+): Promise<string> => {
+  const prompt = `You are a senior resume designer and front-end engineer.
+You will receive an existing COMPLETE resume as a single self-contained HTML document and a set of edit instructions.
+
+Your task:
+- Apply the requested edits precisely and tastefully.
+- Keep the document as valid, self-contained HTML suitable for WebView and PDF export.
+- Preserve A4/print settings already present (e.g., @page size A4, print color adjust, page container sizes) and global structure.
+- Maintain semantic markup, accessibility, and consistent design language.
+- Do not invent data; only reword/restructure or add elements explicitly implied by instructions.
+
+Strict output requirements:
+- Return ONLY the final raw HTML (no markdown, no backticks, no commentary).
+- Include <!DOCTYPE html> at the top.
+- Keep it self-contained with inline <style> only (no external fonts/links).
+
+Edit instructions:
+"""
+${instructions?.trim() || ''}
+"""
+
+Current HTML:
+"""
+${currentHtml}
+"""`;
+
+  const result = await callGemini(prompt);
+  // Clean potential markdown code fences like ```html ... ```
+  const cleaned = (result || '').replace(/```[a-zA-Z]*\n?|\n?```/g, '').trim();
+  if (!cleaned) return currentHtml;
+  const hasDoctype = /<!DOCTYPE\s+html/i.test(cleaned);
+  const hasHtmlTag = /<html[\s>]/i.test(cleaned);
+  if (hasHtmlTag) {
+    return hasDoctype ? cleaned : `<!DOCTYPE html>\n${cleaned}`;
+  }
+  // If the model returned only a fragment, wrap safely
+  return `<!DOCTYPE html>\n<html><head><meta name="viewport" content="width=device-width, initial-scale=1" /></head><body>${cleaned}</body></html>`;
+};
+
 // New function to generate complete CVs with different designs
 export interface CVTemplate {
   id: string;

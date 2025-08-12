@@ -19,7 +19,7 @@ function enforceFixedViewport(html: string): string {
   if (!html) return html;
 
   const FIXED_META = `
-  <meta name="viewport" content="width=794, initial-scale=0.20, user-scalable=false" />
+  <meta name="viewport" content="width=794, initial-scale=0.2, user-scalable=false" />
 `;
 
   const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
@@ -80,7 +80,7 @@ export default function TemplateSelectorScreen() {
           <ActivityIndicator />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={{ padding: 8 }}>
+        <ScrollView contentContainerStyle={{ padding: 6 }}>
           <View className="flex-row flex-wrap justify-between">
           {items.map(({ id: tplId, name }) => {
             const isAI = (currentResume as any)?.kind === 'ai';
@@ -93,7 +93,7 @@ export default function TemplateSelectorScreen() {
             return (
               <View
                 key={tplId}
-                className={`mb-6 h-[360px] w-[49%] rounded-xl border ${selected === tplId ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}
+                className={`mb-6 h-[360px] w-[49.5%] rounded-xl border ${selected === tplId ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}
               >
                 <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
                   <View>
@@ -110,7 +110,7 @@ export default function TemplateSelectorScreen() {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => id && router.push({ pathname: '/resume/preview', params: { id: String(id), template: tplId } })}
-                  className="mx-4 mb-2 absolute bottom-14 left-0 right-0 overflow-hidden rounded-lg"
+                  className="mx-1 mb-2 absolute bottom-14 left-0 right-0 overflow-hidden rounded-lg"
                   style={{ height: 240, backgroundColor: '#fff' }}
                 >
                   {WebViewComp && html ? (
