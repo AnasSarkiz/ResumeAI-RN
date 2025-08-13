@@ -4,7 +4,7 @@ import {
   getResumes,
   getResumeById,
   saveResume,
-  deleteResume,
+  deleteResume as deleteResumeApi,
   getCoverLetter,
 } from '../services/resume';
 
@@ -26,6 +26,7 @@ interface ResumeContextType {
     company?: string,
     position?: string
   ) => Promise<CoverLetter>;
+  saveNow: (resume: Resume) => Promise<void>;
 }
 
 const ResumeContext = createContext<ResumeContextType>({
@@ -59,6 +60,7 @@ const ResumeContext = createContext<ResumeContextType>({
     createdAt: new Date(),
     updatedAt: new Date(),
   }),
+  saveNow: async () => {},
 });
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
@@ -113,6 +115,39 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       console.error(err);
     } finally {
       delete inflightResumesByUser.current[userId];
+    }
+  };
+
+  // Immediate save that bypasses debounce, used for explicit Save buttons
+  const saveNow = async (resume: Resume) => {
+    const resumeId = resume.id;
+    try {
+      setSaving(true);
+      // Cancel any pending debounced save for this resume
+      if (saveTimers.current[resumeId]) {
+        clearTimeout(saveTimers.current[resumeId]);
+        saveTimers.current[resumeId] = undefined;
+      }
+      const saved = await saveResume(resume);
+      setCurrentResume(saved);
+      setResumes((prev) => prev.map((r) => (r.id === resumeId ? saved : r)));
+      // refresh caches with saved
+      cacheResumeById.current[resumeId] = { ts: Date.now(), data: saved };
+      const owner = saved.userId;
+      if (owner) {
+        const list = cacheResumesByUser.current[owner]?.data || [];
+        const exists = list.some((r) => r.id === resumeId);
+        cacheResumesByUser.current[owner] = {
+          ts: Date.now(),
+          data: exists ? list.map((r) => (r.id === resumeId ? saved : r)) : [...list, saved],
+        };
+      }
+    } catch (err) {
+      setError('Failed to save resume');
+      console.error(err);
+      throw err;
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -240,7 +275,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const deleteResume = async (resumeId: string) => {
     setLoading(true);
     try {
-      await deleteResume(resumeId);
+      await deleteResumeApi(resumeId);
       setResumes((prev) => prev.filter((r) => r.id !== resumeId));
       if (currentResume?.id === resumeId) {
         setCurrentResume(null);
@@ -324,6 +359,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         deleteResume,
         loadCoverLetter,
         generateCoverLetter,
+        saveNow,
       }}>
       {children}
     </ResumeContext.Provider>

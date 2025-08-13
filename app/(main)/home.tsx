@@ -178,21 +178,28 @@ export default function HomeScreen() {
           style={{ height: previewHeight, backgroundColor: '#fff' }}
         >
       
-            <WebViewComp originWhitelist={["*"]} source={{ html: enforceFixedViewport(html) }} style={{ flex: 1 }} scrollEnabled={false} />
-         
+      
+   
+                     <WebViewComp originWhitelist={["*"]} source={{ html: enforceFixedViewport(html) }} style={{ flex: 1 }} scrollEnabled={false} />
         </TouchableOpacity>
 
         <View className="flex-row flex-wrap gap-2">
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={onManualEdit}
             className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 ${isAI ? 'bg-gray-300' : 'bg-blue-600'}`}>
             <Ionicons name="create-outline" size={16} color={isAI ? '#6b7280' : 'white'} />
             <Text className={`ml-1 font-medium ${isAI ? 'text-gray-600' : 'text-white'}`}>Edit</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity
             onPress={() => (isPro ? router.push(`/resume/ai-edit?id=${item.id}`) : router.push('/(main)/subscribe'))}
             className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 bg-purple-600`}> 
             <Text className="-ml-1 font-medium text-white">✨ AI-Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push(`/resume/manual-edit?id=${item.id}`)}
+            className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 bg-amber-600`}>
+            <Ionicons name="create-outline" size={16} color="white" />
+            <Text className="ml-1 font-medium text-white">Manual Edit</Text>
           </TouchableOpacity>
           {/* <TouchableOpacity
             onPress={() => router.push({ pathname: '/resume/preview', params: { id: String(item.id), template: String(tpl || 'classic') } })}

@@ -68,7 +68,62 @@ export default function PreviewScreen() {
     if (WebViewComp && aiHtml) {
       return (
         <View className="flex-1 bg-white">
-          <WebViewComp originWhitelist={["*"]} source={{ html: enforceFixedViewport(aiHtml) }} style={{ flex: 1 }} />
+          <WebViewComp
+            key={(currentResume.updatedAt?.toISOString?.() || '') + ':' + currentResume.id}
+            originWhitelist={["*"]}
+            source={{ html: enforceFixedViewport(aiHtml) }}
+            style={{ flex: 1 }}
+            javaScriptEnabled
+            injectedJavaScriptBeforeContentLoaded={`(function(){
+              try {
+                function preStrip(){
+                  try { document.designMode = 'off'; } catch(e) {}
+                }
+                preStrip();
+              } catch (e) {}
+            })(); true;`}
+            injectedJavaScript={`(function(){
+              try {
+                function stripDoc(doc){
+                  if(!doc) return;
+                  // Remove any edit attributes/styles if present
+                  doc.querySelectorAll('[contenteditable], [data-rn-edit]')
+                    .forEach(function(el){ el.removeAttribute('data-rn-edit'); el.setAttribute('contenteditable','false'); });
+                  var st = doc.getElementById('rn-edit-focus-style');
+                  if (st && st.parentNode) st.parentNode.removeChild(st);
+                  // Force design mode off and body non-editable
+                  try { document.designMode = 'off'; } catch(e) {}
+                  doc.body && doc.body.setAttribute && doc.body.setAttribute('contenteditable','false');
+                  // Disable selection with CSS
+                  if (!doc.getElementById('rn-preview-readonly-style')) {
+                    var css = '*{user-select:none;-webkit-user-select:none;-ms-user-select:none} a, button, input, textarea, select, label, [role="button"], [contenteditable]{pointer-events:none !important;}';
+                    var s = doc.createElement('style'); s.id='rn-preview-readonly-style'; s.textContent = css; doc.head.appendChild(s);
+                  }
+                  // Disable form controls explicitly
+                  Array.prototype.forEach.call(doc.querySelectorAll('input, textarea, select, button'), function(c){ try{ c.setAttribute('disabled','true'); c.setAttribute('readonly','true'); c.blur(); }catch(_){}});
+                }
+                function strip(){
+                  stripDoc(document);
+                  // Also attempt to strip inside any iframes
+                  Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(frame){
+                    try { stripDoc(frame.contentDocument || frame.contentWindow && frame.contentWindow.document); } catch(_) {}
+                  });
+                }
+                strip();
+                // Block focus and key inputs
+                document.addEventListener('focusin', function(e){ try{ e.target && e.target.blur && e.target.blur(); }catch(_){} e.stopPropagation(); }, true);
+                document.addEventListener('keydown', function(e){ e.preventDefault(); e.stopPropagation(); }, true);
+                var mo = new MutationObserver(function(){ strip(); });
+                mo.observe(document.documentElement, { attributes:true, childList:true, subtree:true, attributeFilter:['contenteditable','data-rn-edit'] });
+                // Observe iframes loading new content
+                Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(frame){
+                  try {
+                    frame.addEventListener('load', function(){ try { stripDoc(frame.contentDocument || frame.contentWindow && frame.contentWindow.document); } catch(_) {} });
+                  } catch(_) {}
+                });
+              } catch (e) {}
+            })(); true;`}
+          />
           <View className="border-t border-gray-200 p-4">
             <ExportPDFButton />
           </View>
@@ -88,7 +143,53 @@ export default function PreviewScreen() {
     const html = enforceFixedViewport(renderHTMLTemplate(currentResume, tpl));
     return (
       <View className="flex-1 bg-white">
-        <WebViewComp key={tpl} originWhitelist={["*"]} source={{ html }} style={{ flex: 1 }} />
+        <WebViewComp
+          key={tpl}
+          originWhitelist={["*"]}
+          source={{ html }}
+          style={{ flex: 1 }}
+          javaScriptEnabled
+          injectedJavaScriptBeforeContentLoaded={`(function(){
+            try {
+              function preStrip(){
+                try { document.designMode = 'off'; } catch(e) {}
+              }
+              preStrip();
+            } catch (e) {}
+          })(); true;`}
+          injectedJavaScript={`(function(){
+            try {
+              function stripDoc(doc){
+                if(!doc) return;
+                doc.querySelectorAll('[contenteditable], [data-rn-edit]')
+                  .forEach(function(el){ el.removeAttribute('data-rn-edit'); el.setAttribute('contenteditable','false'); });
+                var st = doc.getElementById('rn-edit-focus-style');
+                if (st && st.parentNode) st.parentNode.removeChild(st);
+                try { document.designMode = 'off'; } catch(e) {}
+                doc.body && doc.body.setAttribute && doc.body.setAttribute('contenteditable','false');
+                if (!doc.getElementById('rn-preview-readonly-style')) {
+                  var css='*{user-select:none;-webkit-user-select:none;-ms-user-select:none} a, button, input, textarea, select, label, [role="button"], [contenteditable]{pointer-events:none !important;}';
+                  var s=doc.createElement('style'); s.id='rn-preview-readonly-style'; s.textContent=css; doc.head.appendChild(s);
+                }
+                Array.prototype.forEach.call(doc.querySelectorAll('input, textarea, select, button'), function(c){ try{ c.setAttribute('disabled','true'); c.setAttribute('readonly','true'); c.blur(); }catch(_){}});
+              }
+              function strip(){
+                stripDoc(document);
+                Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(frame){
+                  try { stripDoc(frame.contentDocument || frame.contentWindow && frame.contentWindow.document); } catch(_) {}
+                });
+              }
+              strip();
+              document.addEventListener('focusin', function(e){ try{ e.target && e.target.blur && e.target.blur(); }catch(_){} e.stopPropagation(); }, true);
+              document.addEventListener('keydown', function(e){ e.preventDefault(); e.stopPropagation(); }, true);
+              var mo = new MutationObserver(function(){ strip(); });
+              mo.observe(document.documentElement, { attributes:true, childList:true, subtree:true, attributeFilter:['contenteditable','data-rn-edit'] });
+              Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(frame){
+                try { frame.addEventListener('load', function(){ try { stripDoc(frame.contentDocument || frame.contentWindow && frame.contentWindow.document); } catch(_) {} }); } catch(_) {}
+              });
+            } catch (e) {}
+          })(); true;`}
+        />
         <View className="border-t border-gray-200 p-4">
           <ExportPDFButton template={tpl} />
         </View>
