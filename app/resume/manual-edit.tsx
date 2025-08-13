@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, BackHandler, ScrollView, ActionSheetIOS, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -197,7 +197,7 @@ export default function ManualHtmlEditScreen() {
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-                <View className="flex-row items-center" style={{ columnGap: 4 }}>
+                <View className="pl-2 flex-row items-center" style={{ columnGap: 4 }}>
                   {[{ key: 'undo', icon: 'arrow-undo-outline', cmd: 'undo' }, { key: 'redo', icon: 'arrow-redo-outline', cmd: 'redo' }].map((btn) => (
                     <TouchableOpacity
                       key={btn.key}
@@ -217,27 +217,27 @@ export default function ManualHtmlEditScreen() {
               <View className="mt-2 rounded-2xl bg-white" style={{ paddingHorizontal: 8, paddingVertical: 8, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 }}>
                 {selectedCat === 'text' && (
                   <View className="flex-row items-center" style={{ columnGap: 6 }}>
-                    {[{ key: 'bold', icon: 'text-outline', cmd: 'bold' }, { key: 'italic', icon: 'create-outline', cmd: 'italic' }, { key: 'underline', icon: 'remove-outline', cmd: 'underline' }].map((btn) => (
+                    {[{ key: 'bold', icon: 'bold', cmd: 'bold' }, { key: 'italic', icon: 'italic', cmd: 'italic' }, { key: 'underline', icon: 'underline', cmd: 'underline' }].map((btn) => (
                       <TouchableOpacity key={btn.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)} className="h-9 w-9 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
-                        <Ionicons name={btn.icon as any} size={18} color="#111827" />
+                        <FontAwesome6 name={btn.icon} size={18} color="#111827" />
                       </TouchableOpacity>
                     ))}
                   </View>
                 )}
                 {selectedCat === 'align' && (
                   <View className="flex-row items-center" style={{ columnGap: 6 }}>
-                    {[{ key: 'left', icon: 'reorder-three-outline', cmd: 'justifyLeft' }, { key: 'center', icon: 'reorder-two-outline', cmd: 'justifyCenter' }, { key: 'right', icon: 'menu-outline', cmd: 'justifyRight' }].map((btn) => (
+                    {[{ key: 'left', icon: 'align-left', cmd: 'justifyLeft' }, { key: 'center', icon: 'align-center', cmd: 'justifyCenter' }, { key: 'right', icon: 'align-right', cmd: 'justifyRight' }].map((btn) => (
                       <TouchableOpacity key={btn.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)} className="h-9 w-9 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
-                        <Ionicons name={btn.icon as any} size={18} color="#111827" />
+                        <FontAwesome6 name={btn.icon as any} size={18} color="#111827" />
                       </TouchableOpacity>
                     ))}
                   </View>
                 )}
                 {selectedCat === 'list' && (
                   <View className="flex-row items-center" style={{ columnGap: 6 }}>
-                    {[{ key: 'ul', icon: 'list-outline', cmd: 'insertUnorderedList' }, { key: 'ol', icon: 'list-circle-outline', cmd: 'insertOrderedList' }].map((btn) => (
+                    {[{ key: 'ul', icon: 'list-ol', cmd: 'insertUnorderedList' }, { key: 'ol', icon: 'list-ul', cmd: 'insertOrderedList' }].map((btn) => (
                       <TouchableOpacity key={btn.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)} className="h-9 w-9 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
-                        <Ionicons name={btn.icon as any} size={18} color="#111827" />
+                        <FontAwesome6 name={btn.icon as any} size={18} color="#111827" />
                       </TouchableOpacity>
                     ))}
                   </View>
