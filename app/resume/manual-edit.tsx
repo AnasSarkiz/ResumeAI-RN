@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, BackHandler, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, BackHandler, ScrollView, ActionSheetIOS, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
 import { useAuth } from '../../context/AuthContext';
-import { Ionicons } from '@expo/vector-icons';
 import { renderHTMLTemplate, TemplateId } from '../../services/templates';
 
 export default function ManualHtmlEditScreen() {
@@ -17,6 +17,7 @@ export default function ManualHtmlEditScreen() {
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState<boolean>(true);
   const webViewRef = useRef<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<'text' | 'align' | 'list' | 'heading' | 'color'>('text');
 
   // Lazy WebView import (avoid crash if not installed)
   let WebViewComp: any = null;
@@ -166,6 +167,103 @@ export default function ManualHtmlEditScreen() {
         </View>
       </View>
 
+      {/* Two-tier toolbar: categories on top with undo/redo, actions below */}
+      <View className="px-3 pb-1">
+        {(() => {
+          const [selectedCat, setSelectedCat] = [selectedCategory, setSelectedCategory];
+          return (
+            <View>
+              {/* Top bar: categories + undo/redo */}
+              <View
+                className="flex-row items-center justify-between rounded-full bg-white"
+                style={{ paddingHorizontal: 8, paddingVertical: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+              >
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ columnGap: 6, alignItems: 'center' }}>
+                  {[
+                    { key: 'text', label: 'Text', icon: 'text-outline' },
+                    { key: 'align', label: 'Align', icon: 'menu-outline' },
+                    { key: 'list', label: 'List', icon: 'list-outline' },
+                    { key: 'heading', label: 'Heading', icon: 'trail-sign-outline' },
+                    { key: 'color', label: 'Color', icon: 'color-palette-outline' },
+                  ].map((cat) => (
+                    <TouchableOpacity
+                      key={cat.key}
+                      onPress={() => setSelectedCat(cat.key as any)}
+                      className="flex-row items-center rounded-full px-3 h-9"
+                      style={{ backgroundColor: selectedCat === cat.key ? '#e5e7eb' : '#f3f4f6' }}
+                    >
+                      <Ionicons name={cat.icon as any} size={16} color="#111827" />
+                      <Text className="ml-1 text-gray-800" style={{ fontWeight: '600' }}>{cat.label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <View className="flex-row items-center" style={{ columnGap: 4 }}>
+                  {[{ key: 'undo', icon: 'arrow-undo-outline', cmd: 'undo' }, { key: 'redo', icon: 'arrow-redo-outline', cmd: 'redo' }].map((btn) => (
+                    <TouchableOpacity
+                      key={btn.key}
+                      onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)}
+                      className="h-9 w-9 rounded-full items-center justify-center"
+                      style={{ backgroundColor: '#e5e7eb' }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`hist-${btn.key}`}
+                    >
+                      <Ionicons name={btn.icon as any} size={18} color="#111827" />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Bottom bar: actions for selected category */}
+              <View className="mt-2 rounded-2xl bg-white" style={{ paddingHorizontal: 8, paddingVertical: 8, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 }}>
+                {selectedCat === 'text' && (
+                  <View className="flex-row items-center" style={{ columnGap: 6 }}>
+                    {[{ key: 'bold', icon: 'text-outline', cmd: 'bold' }, { key: 'italic', icon: 'create-outline', cmd: 'italic' }, { key: 'underline', icon: 'remove-outline', cmd: 'underline' }].map((btn) => (
+                      <TouchableOpacity key={btn.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)} className="h-9 w-9 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
+                        <Ionicons name={btn.icon as any} size={18} color="#111827" />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {selectedCat === 'align' && (
+                  <View className="flex-row items-center" style={{ columnGap: 6 }}>
+                    {[{ key: 'left', icon: 'reorder-three-outline', cmd: 'justifyLeft' }, { key: 'center', icon: 'reorder-two-outline', cmd: 'justifyCenter' }, { key: 'right', icon: 'menu-outline', cmd: 'justifyRight' }].map((btn) => (
+                      <TouchableOpacity key={btn.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)} className="h-9 w-9 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
+                        <Ionicons name={btn.icon as any} size={18} color="#111827" />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {selectedCat === 'list' && (
+                  <View className="flex-row items-center" style={{ columnGap: 6 }}>
+                    {[{ key: 'ul', icon: 'list-outline', cmd: 'insertUnorderedList' }, { key: 'ol', icon: 'list-circle-outline', cmd: 'insertOrderedList' }].map((btn) => (
+                      <TouchableOpacity key={btn.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)} className="h-9 w-9 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
+                        <Ionicons name={btn.icon as any} size={18} color="#111827" />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {selectedCat === 'heading' && (
+                  <View className="flex-row items-center" style={{ columnGap: 6 }}>
+                    {[{ key: 'p', label: 'P', val: 'P' }, { key: 'h1', label: 'H1', val: 'H1' }, { key: 'h2', label: 'H2', val: 'H2' }, { key: 'h3', label: 'H3', val: 'H3' }].map((b) => (
+                      <TouchableOpacity key={b.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('formatBlock', '${b.val}'); } }catch(e){} })(); true;`)} className="h-9 px-3 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
+                        <Text className="text-gray-800" style={{ fontWeight: '700' }}>{b.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {selectedCat === 'color' && (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ columnGap: 8 }}>
+                    {['#111827','#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#6b7280','#000000','#ffffff'].map((hex) => (
+                      <TouchableOpacity key={hex} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('foreColor', '${hex}'); } }catch(e){} })(); true;`)} style={{ width: 28, height: 28, borderRadius: 18, backgroundColor: hex, borderWidth: hex === '#ffffff' ? 1 : 0, borderColor: '#e5e7eb' }} />
+                    ))}
+                  </ScrollView>
+                )}
+              </View>
+            </View>
+          );
+        })()}
+      </View>
+
       <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
         <Text className="mb-2 text-sm text-gray-500">Tap text in the preview to edit</Text>
         <View className="mb-4 h-[520px] overflow-hidden rounded-lg bg-white">
@@ -213,6 +311,21 @@ export default function ManualHtmlEditScreen() {
                 window.__setEditMode = function(flag){
                   try { EDIT_MODE = !!flag; } catch(e){}
                   if(EDIT_MODE){ enableEditing(); } else { disableEditing(); }
+                };
+                // Bridge for formatting commands
+                window.__exec = function(cmd, val){
+                  try {
+                    // Ensure we are in edit mode so execCommand works
+                    if(!EDIT_MODE){ window.__setEditMode(true); }
+                    var command = String(cmd||'');
+                    var value = (typeof val!== 'undefined' ? val : null);
+                    if(command === 'formatBlock'){
+                      // WebKit expects a block tag name like H1/H2/H3
+                      document.execCommand('formatBlock', false, value || 'P');
+                    } else {
+                      document.execCommand(command, false, value);
+                    }
+                  } catch(e) {}
                 };
                 function post(html){
                   try{window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({type:'htmlUpdated', payload:{html:html}}));}catch(e){}
