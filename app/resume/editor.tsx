@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Keyboard, Modal } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
-import { useSubscription } from '../../context/SubscriptionContext';
-import { ResumeSectionCard } from '../../components/ResumeSectionCard';
+// subscription and old section tabs removed in step-based UI
 import { EditableTextInput } from '../../components/EditableTextInput';
-import { Experience, ResumeSection, ManualResumeInput, Education, Skill, LinkItem } from '../../types/resume';
+import { Experience, ManualResumeInput, Education, Skill, LinkItem } from '../../types/resume';
 import { validateManualResume } from '../../services/resume';
 import { useAuth } from '../../context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 
 export default function ResumeEditorScreen() {
@@ -15,12 +16,12 @@ export default function ResumeEditorScreen() {
   const { currentResume, updateResume, loading, loadResume } = useResume();
   const { user } = useAuth();
   const router = useRouter();
-  // const { isPro } = useSubscription();
-  const isPro = user?.isPro;
-  const [activeSection, setActiveSection] = useState<ResumeSection>('experience');
-  const [selectedText, setSelectedText] = useState('');
+  // step-based UI only
   const [draft, setDraft] = useState<ManualResumeInput | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [step, setStep] = useState(0);
+  const steps = ['Info', 'Links', 'Summary', 'Experience', 'Education', 'Skills'];
+  const progress = useMemo(() => (step / (steps.length - 1)) * 100, [step]);
   
 
   useEffect(() => {
@@ -61,23 +62,102 @@ export default function ResumeEditorScreen() {
     }
   };
 
-  // Preview should NOT save; only validate and navigate
-  const handlePreview = async () => {
-    if (!draft) return;
-    const { valid, errors: errs } = validateManualResume(draft);
-    setErrors(errs);
-    if (!valid) {
-      Alert.alert('Missing required fields', 'Please fill all required fields highlighted in red.');
-      return;
+  // Per-step lightweight validation (ensure basics early)
+  const validateCurrentStep = (): boolean => {
+    if (!draft) return false;
+    const e: Record<string, string> = {};
+    switch (step) {
+      case 0: // Info
+        if (!draft.title?.trim()) e.title = 'Title is required';
+        if (!draft.fullName?.trim()) e.fullName = 'Full name is required';
+        if (!draft.email?.trim()) e.email = 'Email is required';
+        break;
+      case 3: // Experience
+        draft.experience.forEach((exp, idx) => {
+          if (!exp.jobTitle?.trim()) e[`experience.${idx}.jobTitle`] = 'Job title is required';
+          if (!exp.company?.trim()) e[`experience.${idx}.company`] = 'Company is required';
+          if (!exp.startDate?.trim()) e[`experience.${idx}.startDate`] = 'Start date is required';
+        });
+        break;
+      case 4: // Education
+        draft.education.forEach((edu, idx) => {
+          if (!edu.institution?.trim()) e[`education.${idx}.institution`] = 'Institution is required';
+          if (!edu.degree?.trim()) e[`education.${idx}.degree`] = 'Degree is required';
+          if (!edu.startDate?.trim()) e[`education.${idx}.startDate`] = 'Start date is required';
+        });
+        break;
+      case 5: // Skills
+        draft.skills.forEach((skill, idx) => {
+          if (!skill.name?.trim()) e[`skills.${idx}.name`] = 'Skill name is required';
+        });
+        break;
     }
-    if (currentResume) {
-      router.push(`/resume/preview?id=${currentResume.id}`);
-    } else {
-      Alert.alert('Choose a template', 'Please choose a template to generate your resume before previewing.');
-      const payload = encodeURIComponent(JSON.stringify(draft));
-      router.push({ pathname: '/resume/templates', params: { draft: payload } });
-    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
+
+  const handleNext = () => {
+    if (!validateCurrentStep()) return;
+    setStep((s) => Math.min(s + 1, steps.length - 1));
+  };
+  const handleBack = () => setStep((s) => Math.max(s - 1, 0));
+
+  const canProceed = useMemo(() => {
+    if (!draft) return false;
+    switch (step) {
+      case 0: // Info
+        return !!draft.title?.trim() && !!draft.fullName?.trim() && !!draft.email?.trim();
+      case 3: // Experience
+        return draft.experience.every((exp) => exp.jobTitle?.trim() && exp.company?.trim() && exp.startDate?.trim());
+      case 4: // Education
+        return draft.education.every((edu) => edu.institution?.trim() && edu.degree?.trim() && edu.startDate?.trim());
+      case 5: // Skills
+        return draft.skills.every((skill) => skill.name?.trim());
+      default:
+        return true;
+    }
+  }, [step, draft]);
+
+  const StepIndicator = () => (
+    <View className="mb-4">
+      <View className="h-2 w-full rounded-full bg-gray-200">
+        <View style={{ width: `${progress}%` }} className="h-2 rounded-full overflow-hidden">
+          <LinearGradient colors={["#6366f1", "#a855f7"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ flex: 1 }} />
+        </View>
+      </View>
+      <View className="mt-2 flex-row items-center justify-between">
+        {steps.map((label, idx) => (
+          <View key={label} className="items-center">
+            <View className={`h-7 w-7 items-center justify-center rounded-full ${idx <= step ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+              <Text className="text-xs font-semibold text-white">{idx + 1}</Text>
+            </View>
+            <Text className={`mt-1 text-[10px] ${idx === step ? 'text-indigo-600' : 'text-gray-500'}`}>{label}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+
+  const FooterNav = () => (
+    <View className="mt-6 flex-row gap-3">
+      <TouchableOpacity onPress={step > 0 ? handleBack : () => router.back()} className="flex-1 flex-row items-center justify-center rounded-full border border-gray-300 bg-white py-3">
+        <Ionicons name="chevron-back" size={18} color="#374151" />
+        <Text className="ml-1 text-center font-medium text-gray-700">Back</Text>
+      </TouchableOpacity>
+      {step < steps.length - 1 ? (
+        <TouchableOpacity onPress={handleNext} disabled={!canProceed} className={`flex-1 flex-row items-center justify-center rounded-full py-3 ${canProceed ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+          <Text className="mr-1 text-center font-semibold text-white">Next</Text>
+          <Ionicons name="arrow-forward" size={18} color="#ffffff" />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity onPress={() => handleValidateAndSave()} className={`flex-1 flex-row items-center justify-center rounded-full py-3 bg-green-600`}>
+          <Ionicons name="checkmark-done" size={18} color="#ffffff" />
+          <Text className="ml-2 text-center font-semibold text-white">Save & Choose Template</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
 
   // Initialize an editable ManualResumeInput draft from scratch using user defaults.
   // If there is no currentResume (manual create flow), still initialize a local draft.
@@ -100,7 +180,7 @@ export default function ResumeEditorScreen() {
       education: [],
       skills: [],
       links: [],
-      phones: [],
+      phones: [{ id: Date.now().toString(), dial: '', number: '' }],
       temp: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -190,356 +270,122 @@ export default function ResumeEditorScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* Top header with Save */}
-      <View className="px-4 py-3 flex-row items-center justify-between border-b border-gray-200 bg-white">
-        <Text className="text-lg font-semibold text-gray-800">Edit Resume</Text>
-        <View className="flex-row items-center">
-          <TouchableOpacity
-            onPress={handlePreview}
-            className="rounded-full border border-gray-300 px-4 py-2 mr-2"
-          >
-            <Text className="text-gray-700">Preview</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleValidateAndSave()}
-            className="rounded-full border border-blue-500 px-4 py-2"
-          >
-            <Text className="text-blue-500">Save</Text>
-          </TouchableOpacity>
+    <ScrollView className="flex-1 bg-gray-50" keyboardShouldPersistTaps="handled">
+      <LinearGradient colors={["#eef2ff", "#faf5ff"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 24 }}>
+        <View style={{ marginBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View className="mr-2 rounded-full bg-white/70 p-2">
+              <Ionicons name="create-outline" size={20} color="#7c3aed" />
+            </View>
+            <Text className="text-2xl font-bold text-gray-900">Manual Editor</Text>
+          </View>
         </View>
-      </View>
+        <Text className="text-sm text-gray-600">Fill the steps to build your resume. On the last step, save and choose a template.</Text>
+        <View className="mt-4">
+          <StepIndicator />
+        </View>
+      </LinearGradient>
 
-      <ScrollView className="p-4" keyboardShouldPersistTaps="handled">
-        <View className="mb-6">
-          <EditableTextInput
-            label="Resume Title"
-            value={draft.title}
-            onChange={(text: string) => handleUpdate('title', text)}
-            placeholder="e.g. Senior iOS Engineer"
-            required
-            error={errors['title']}
-          />
-          {renderError('title')}
-
-          <Text className="mb-2 text-lg font-bold">Personal Information</Text>
-          <EditableTextInput
-            label="Full Name"
-            value={draft.fullName}
-            onChange={(text: string) => handleUpdate('fullName', text)}
-            autoCapitalize="words"
-            placeholder="e.g. Jane Doe"
-            required
-            error={errors['fullName']}
-          />
-          {renderError('fullName')}
-          <EditableTextInput
-            label="Email"
-            value={draft.email}
-            onChange={(text: string) => handleUpdate('email', text)}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholder="e.g. jane@example.com"
-            required
-            error={errors['email']}
-          />
-          {renderError('email')}
-          <View className="flex-row space-x-4 mt-2">
-            <EditableTextInput
-              label="Date of Birth"
-              value={draft.dateOfBirth || ''}
-              onChange={(text: string) => handleUpdate('dateOfBirth', text)}
-              placeholder="YYYY-MM-DD"
-              className="flex-1"
-            />
-            <EditableTextInput
-              label="Country"
-              value={draft.country || ''}
-              onChange={(text: string) => handleUpdate('country', text)}
-              placeholder="e.g. Germany"
-              className="flex-1"
-            />
-          </View>
-          {/* Phone Numbers */}
-          <View className="mt-2">
-            <View className="mb-2 flex-row items-center justify-between">
-              <Text className="text-lg font-bold">Phone Numbers</Text>
-              <TouchableOpacity
-                onPress={() =>
-                  setDraft((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          phones: [
-                            ...((prev.phones || []).length ? prev.phones! : (
-                              prev.phone ? [{ id: Date.now().toString(), dial: '', number: (prev.phone || '').trim() }] : []
-                            )),
-                            { id: (Date.now() + 1).toString(), dial: '', number: '' },
-                          ],
-                          // keep legacy phone untouched until save
-                        }
-                      : prev
-                  )
-                }
-              >
-                <Text className="text-blue-500">+ Add Phone</Text>
-              </TouchableOpacity>
-            </View>
-            {(draft.phones && draft.phones.length > 0
-              ? draft.phones
-              : (draft.phone ? [{ id: 'legacy', dial: '', number: (draft.phone || '').trim() }] : [])
-            ).map((p, idx) => (
-              <View key={p.id} className="mb-3 rounded-lg bg-white p-3">
-                <View className="mb-2 flex-row items-center">
-                  <EditableTextInput
-                    label="Dial Code"
-                    value={p.dial}
-                    onChange={(text: string) =>
-                      setDraft((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              phones: (prev.phones || (prev.phone ? [{ id: 'legacy', dial: p.dial, number: p.number }] : []))
-                                .map((it) => (it.id === p.id ? { ...it, dial: text } : it)),
-                            }
-                          : prev
-                      )
-                    }
-                    placeholder="+1"
-                    className="w-28 mr-2"
-                  />
-                  <EditableTextInput
-                    label={idx === 0 ? 'Phone Number' : 'Additional Phone'}
-                    value={p.number}
-                    onChange={(text: string) =>
-                      setDraft((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              phones: (prev.phones || (prev.phone ? [{ id: 'legacy', dial: p.dial, number: p.number }] : []))
-                                .map((it) => (it.id === p.id ? { ...it, number: text } : it)),
-                            }
-                          : prev
-                      )
-                    }
-                    keyboardType="phone-pad"
-                    placeholder="555 123 4567"
-                    className="flex-1"
-                    required={idx === 0}
-                    error={errors[idx === 0 ? 'phones.0.number' : `phones.${idx}.number`]}
-                  />
-                </View>
-                <View className="mt-1 items-end">
-                  {idx > 0 && (
-                    <TouchableOpacity
-                      onPress={() =>
-                        setDraft((prev) =>
-                          prev ? { ...prev, phones: (prev.phones || []).filter((it) => it.id !== p.id) } : prev
-                        )
-                      }
-                    >
-                      <Text className="text-red-500">Remove</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
+      <View className="space-y-4 p-4">
+        {step === 0 && (
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <Text className="mb-3 text-lg font-semibold text-gray-800">Personal Information</Text>
+            <EditableTextInput label="Resume Title *" value={draft.title} onChange={(t: string) => handleUpdate('title', t)} placeholder="e.g. Senior iOS Engineer" required error={errors['title']} />
+            {renderError('title')}
+            <EditableTextInput label="Full Name *" value={draft.fullName} onChange={(t: string) => handleUpdate('fullName', t)} autoCapitalize="words" placeholder="e.g. Jane Doe" required error={errors['fullName']} />
+            {renderError('fullName')}
+            <EditableTextInput label="Email *" value={draft.email} onChange={(t: string) => handleUpdate('email', t)} keyboardType="email-address" autoCapitalize="none" placeholder="e.g. jane@example.com" required error={errors['email']} />
+            {renderError('email')}
+            <View className="mt-2 flex-row gap-3">
+              <View className="flex-1">
+                <EditableTextInput label="Date of Birth" value={draft.dateOfBirth || ''} onChange={(t: string) => handleUpdate('dateOfBirth', t)} placeholder="YYYY-MM-DD" />
               </View>
-            ))}
-          </View>
-          <EditableTextInput
-            label="Website"
-            value={draft.website || ''}
-            onChange={(text: string) => handleUpdate('website', text)}
-            placeholder="e.g. janedoe.dev"
-          />
-
-          {/* Flexible Links */}
-          <View className="mt-4">
-            <View className="mb-2 flex-row items-center justify-between">
-              <Text className="text-lg font-bold">Links (Optional)</Text>
-              <TouchableOpacity
-                onPress={() =>
-                  setDraft((prev) =>
-                    prev
-                      ? { ...prev, links: [...(prev.links || []), { id: Date.now().toString(), label: '', url: '' } as LinkItem] }
-                      : prev
-                  )
-                }
-                className="p-2"
-              >
-                <Text className="text-blue-500">+ Add Link</Text>
-              </TouchableOpacity>
+              <View className="flex-1">
+                <EditableTextInput label="Country" value={draft.country || ''} onChange={(t: string) => handleUpdate('country', t)} placeholder="e.g. Germany" />
+              </View>
             </View>
+            <View className="mt-3">
+              <View className="mb-2 flex-row items-center justify-between">
+                <Text className="text-lg font-bold">Phone Numbers</Text>
+                <TouchableOpacity onPress={() => setDraft((prev) => prev ? { ...prev, phones: [...((prev.phones || []).length ? prev.phones! : (prev.phone ? [{ id: Date.now().toString(), dial: '', number: (prev.phone || '').trim() }] : [])), { id: (Date.now() + 1).toString(), dial: '', number: '' }], } : prev)}>
+                  <Text className="text-blue-500">+ Add Phone</Text>
+                </TouchableOpacity>
+              </View>
+              {(draft.phones && draft.phones.length > 0 ? draft.phones : (draft.phone ? [{ id: 'legacy', dial: '', number: (draft.phone || '').trim() }] : [])).map((p, idx) => (
+                <View key={p.id} className="mb-3 rounded-lg bg-white p-3">
+                  <View className="mb-2 flex-row items-center">
+                    <EditableTextInput label="Dial Code" value={p.dial} onChange={(t: string) => setDraft((prev) => prev ? { ...prev, phones: (prev.phones || (prev.phone ? [{ id: 'legacy', dial: p.dial, number: p.number }] : [])).map((it) => (it.id === p.id ? { ...it, dial: t } : it)) } : prev)} placeholder="+1" className="w-28 mr-2" />
+                    <EditableTextInput label={idx === 0 ? 'Phone Number' : 'Additional Phone'} value={p.number} onChange={(t: string) => setDraft((prev) => prev ? { ...prev, phones: (prev.phones || (prev.phone ? [{ id: 'legacy', dial: p.dial, number: p.number }] : [])).map((it) => (it.id === p.id ? { ...it, number: t } : it)) } : prev)} keyboardType="phone-pad" placeholder="555 123 4567" className="flex-1" required={idx === 0} error={errors[idx === 0 ? 'phones.0.number' : `phones.${idx}.number`]} />
+                  </View>
+                  <View className="mt-1 items-end">
+                    {idx > 0 && (
+                      <TouchableOpacity onPress={() => setDraft((prev) => prev ? { ...prev, phones: (prev.phones || []).filter((it) => it.id !== p.id) } : prev)}>
+                        <Text className="text-red-500">Remove</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </View>
+            <EditableTextInput label="Website" value={draft.website || ''} onChange={(t: string) => handleUpdate('website', t)} placeholder="e.g. janedoe.dev" />
+          </View>
+        )}
+
+        {step === 1 && (
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <Text className="mb-3 text-lg font-semibold text-gray-800">Links (Optional)</Text>
             {(draft.links || []).map((lnk, idx) => (
-              <View key={lnk.id} className="mb-3 rounded-lg bg-white p-3">
-                <EditableTextInput
-                  label="Platform/Domain (e.g., LinkedIn, Portfolio)"
-                  value={lnk.label}
-                  onChange={(text: string) =>
-                    setDraft((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            links: (prev.links || []).map((l) => (l.id === lnk.id ? { ...l, label: text } : l)),
-                          }
-                        : prev
-                    )
-                  }
-                />
+              <View key={lnk.id} className="mb-3">
+                <EditableTextInput label="Platform/Domain (e.g., LinkedIn, Portfolio)" value={lnk.label} onChange={(t: string) => setDraft((prev) => prev ? { ...prev, links: (prev.links || []).map((l) => (l.id === lnk.id ? { ...l, label: t } : l)) } : prev)} />
                 {renderError(`links.${idx}.label`)}
-                <EditableTextInput
-                  label="URL"
-                  value={lnk.url}
-                  onChange={(text: string) =>
-                    setDraft((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            links: (prev.links || []).map((l) => (l.id === lnk.id ? { ...l, url: text } : l)),
-                          }
-                        : prev
-                    )
-                  }
-                  placeholder="e.g. https://example.com/username"
-                />
+                <EditableTextInput label="URL" value={lnk.url} onChange={(t: string) => setDraft((prev) => prev ? { ...prev, links: (prev.links || []).map((l) => (l.id === lnk.id ? { ...l, url: t } : l)) } : prev)} placeholder="e.g. https://example.com/username" />
                 {renderError(`links.${idx}.url`)}
                 <View className="items-end mt-1">
-                  <TouchableOpacity
-                    onPress={() =>
-                      setDraft((prev) =>
-                        prev ? { ...prev, links: (prev.links || []).filter((l) => l.id !== lnk.id) } : prev
-                      )
-                    }
-                  >
+                  <TouchableOpacity onPress={() => setDraft((prev) => prev ? { ...prev, links: (prev.links || []).filter((l) => l.id !== lnk.id) } : prev)}>
                     <Text className="text-red-500">Remove</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ))}
-          </View>
-        </View>
-
-        <View className="mb-2">
-          <Text className="mb-2 text-lg font-bold">Sections</Text>
-          <ResumeSectionCard
-            title={`Summary${draft.summary ? '' : ''}`}
-            active={activeSection === 'summary'}
-            onPress={() => setActiveSection('summary')}
-          />
-          <ResumeSectionCard
-            title={`Experience (${draft.experience.length})`}
-            active={activeSection === 'experience'}
-            onPress={() => setActiveSection('experience')}
-          />
-          <ResumeSectionCard
-            title={`Education (${draft.education.length})`}
-            active={activeSection === 'education'}
-            onPress={() => setActiveSection('education')}
-          />
-          <ResumeSectionCard
-            title={`Skills (${draft.skills.length})`}
-            active={activeSection === 'skills'}
-            onPress={() => setActiveSection('skills')}
-          />
-          <View className="mt-3 items-end">
-            <TouchableOpacity
-              onPress={async () => {
-                await handleValidateAndSave();
-              }}
-              className="rounded-full bg-indigo-600 px-4 py-2"
-            >
-              <Text className="font-semibold text-white">Choose Template</Text>
+            <TouchableOpacity onPress={() => setDraft((prev) => prev ? { ...prev, links: [...(prev.links || []), { id: Date.now().toString(), label: '', url: '' } as LinkItem] } : prev)} className="mt-1 flex-row items-center">
+              <Ionicons name="add-circle" size={18} color="#6366f1" />
+              <Text className="ml-1 text-sm font-medium text-indigo-600">Add link</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        )}
 
-        {/* Per-section action bar directly below section tabs */}
-        <View className="mb-4">
-          {activeSection === 'experience' && (
-            <View className="flex-row items-center justify-end">
+        {step === 2 && (
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <Text className="mb-3 text-lg font-semibold text-gray-800">Professional Summary</Text>
+            <EditableTextInput value={draft.summary || ''} onChange={(t: string) => handleUpdate('summary', t)} multiline placeholder="Write a brief summary of your professional background..." label={''} />
+          </View>
+        )}
+
+        {step === 3 && (
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <View className="mb-2 flex-row items-center justify-between">
+              <Text className="text-lg font-semibold text-gray-800">Work Experience</Text>
               <TouchableOpacity onPress={handleAddExperience} className="p-2">
                 <Text className="text-blue-500">+ Add Experience</Text>
               </TouchableOpacity>
             </View>
-          )}
-          {activeSection === 'education' && (
-            <View className="flex-row items-center justify-end">
-              <TouchableOpacity onPress={handleAddEducation} className="p-2">
-                <Text className="text-blue-500">+ Add Education</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          {activeSection === 'skills' && (
-            <View className="flex-row items-center justify-end">
-              <TouchableOpacity onPress={handleAddSkill} className="p-2">
-                <Text className="text-blue-500">+ Add Skill</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
-        {activeSection === 'summary' && (
-          <View className="mb-6">
-            <Text className="mb-2 text-lg font-bold">Professional Summary</Text>
-            <EditableTextInput
-              value={draft.summary || ''}
-              onChange={(text: string) => handleUpdate('summary', text)}
-              multiline
-              placeholder="Write a brief summary of your professional background..."
-              label={''}
-            />
-          </View>
-        )}
-
-        {activeSection === 'experience' && (
-          <View className="mb-6">
-            <View className="mb-2 flex-row items-center justify-between">
-              <Text className="text-lg font-bold">Work Experience</Text>
-            </View>
-
             {draft.experience.map((exp, expIdx) => (
               <View key={exp.id} className="mb-4 rounded-lg bg-white p-4">
-                <EditableTextInput
-                  label="Job Title"
-                  value={exp.jobTitle}
-                  onChange={(text: string) => handleUpdateExperience(exp.id, { jobTitle: text })}
-                  required
-                  error={errors[`experience.${expIdx}.jobTitle`]}
-                />
+                <EditableTextInput label="Job Title" value={exp.jobTitle} onChange={(t: string) => handleUpdateExperience(exp.id, { jobTitle: t })} required error={errors[`experience.${expIdx}.jobTitle`]} />
                 {renderError(`experience.${expIdx}.jobTitle`)}
-                <EditableTextInput
-                  label="Company"
-                  value={exp.company}
-                  onChange={(text: string) => handleUpdateExperience(exp.id, { company: text })}
-                  required
-                  error={errors[`experience.${expIdx}.company`]}
-                />
+                <EditableTextInput label="Company" value={exp.company} onChange={(t: string) => handleUpdateExperience(exp.id, { company: t })} required error={errors[`experience.${expIdx}.company`]} />
                 {renderError(`experience.${expIdx}.company`)}
                 <View className="flex-row space-x-4">
-                  <EditableTextInput
-                    label="Start Date"
-                    value={exp.startDate}
-                    onChange={(text: string) => handleUpdateExperience(exp.id, { startDate: text })}
-                    className="flex-1"
-                    required
-                    error={errors[`experience.${expIdx}.startDate`]}
-                  />
+                  <EditableTextInput label="Start Date" value={exp.startDate} onChange={(t: string) => handleUpdateExperience(exp.id, { startDate: t })} className="flex-1" required error={errors[`experience.${expIdx}.startDate`]} />
                   {renderError(`experience.${expIdx}.startDate`)}
                   {!exp.current && (
-                    <EditableTextInput
-                      label="End Date"
-                      value={exp.endDate || ''}
-                      onChange={(text: string) => handleUpdateExperience(exp.id, { endDate: text })}
-                      className="flex-1"
-                    />
+                    <EditableTextInput label="End Date" value={exp.endDate || ''} onChange={(t: string) => handleUpdateExperience(exp.id, { endDate: t })} className="flex-1" />
                   )}
                 </View>
                 <View className="mb-2 flex-row items-center justify-between">
                   <View className="flex-row items-center">
                     <Text className="mr-2">Current Job</Text>
-                    <TouchableOpacity
-                      onPress={() => handleUpdateExperience(exp.id, { current: !exp.current })}
-                      className={`h-6 w-6 rounded-md border ${exp.current ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}
-                    >
+                    <TouchableOpacity onPress={() => handleUpdateExperience(exp.id, { current: !exp.current })} className={`h-6 w-6 rounded-md border ${exp.current ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
                       {exp.current && <Text className="text-center text-white">✓</Text>}
                     </TouchableOpacity>
                   </View>
@@ -547,29 +393,18 @@ export default function ResumeEditorScreen() {
                     <Text className="text-red-500">Remove</Text>
                   </TouchableOpacity>
                 </View>
-
                 <Text className="mb-1 text-sm font-medium text-gray-700">Description</Text>
                 {exp.description.map((point, idx) => (
-                  <EditableTextInput
-                    key={idx}
-                    value={point}
-                    onChange={(text: string) => {
-                      const newDescription = [...exp.description];
-                      newDescription[idx] = text;
-                      setDraft((prev) => (prev ? { ...prev, experience: prev.experience.map((e) => (e.id === exp.id ? { ...e, description: newDescription } : e)) } : prev));
-                    }}
-                    multiline
-                    className="mb-2"
-                    label={''}
-                  />
-                ))}
-                <TouchableOpacity
-                  onPress={() => {
-                    const newDescription = [...exp.description, ''];
+                  <EditableTextInput key={idx} value={point} onChange={(t: string) => {
+                    const newDescription = [...exp.description];
+                    newDescription[idx] = t;
                     setDraft((prev) => (prev ? { ...prev, experience: prev.experience.map((e) => (e.id === exp.id ? { ...e, description: newDescription } : e)) } : prev));
-                  }}
-                  className="py-1"
-                >
+                  }} multiline className="mb-2" label={''} />
+                ))}
+                <TouchableOpacity onPress={() => {
+                  const newDescription = [...exp.description, ''];
+                  setDraft((prev) => (prev ? { ...prev, experience: prev.experience.map((e) => (e.id === exp.id ? { ...e, description: newDescription } : e)) } : prev));
+                }} className="py-1">
                   <Text className="text-blue-500">+ Add bullet point</Text>
                 </TouchableOpacity>
               </View>
@@ -577,58 +412,31 @@ export default function ResumeEditorScreen() {
           </View>
         )}
 
-        {activeSection === 'education' && (
-          <View className="mb-6">
+        {step === 4 && (
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <View className="mb-2 flex-row items-center justify-between">
-              <Text className="text-lg font-bold">Education</Text>
+              <Text className="text-lg font-semibold text-gray-800">Education</Text>
+              <TouchableOpacity onPress={handleAddEducation} className="p-2">
+                <Text className="text-blue-500">+ Add Education</Text>
+              </TouchableOpacity>
             </View>
-
             {draft.education.map((edu: Education, eduIdx: number) => (
               <View key={edu.id} className="mb-4 rounded-lg bg-white p-4">
-                <EditableTextInput
-                  label="Institution"
-                  value={edu.institution}
-                  onChange={(text: string) => handleUpdateEducation(edu.id, { institution: text })}
-                  required
-                  error={errors[`education.${eduIdx}.institution`]}
-                />
+                <EditableTextInput label="Institution" value={edu.institution} onChange={(t: string) => handleUpdateEducation(edu.id, { institution: t })} required error={errors[`education.${eduIdx}.institution`]} />
                 {renderError(`education.${eduIdx}.institution`)}
-                <EditableTextInput
-                  label="Degree"
-                  value={edu.degree}
-                  onChange={(text: string) => handleUpdateEducation(edu.id, { degree: text })}
-                />
-                <EditableTextInput
-                  label="Field of Study"
-                  value={edu.fieldOfStudy || ''}
-                  onChange={(text: string) => handleUpdateEducation(edu.id, { fieldOfStudy: text })}
-                />
+                <EditableTextInput label="Degree" value={edu.degree} onChange={(t: string) => handleUpdateEducation(edu.id, { degree: t })} />
+                <EditableTextInput label="Field of Study" value={edu.fieldOfStudy || ''} onChange={(t: string) => handleUpdateEducation(edu.id, { fieldOfStudy: t })} />
                 <View className="flex-row space-x-4">
-                  <EditableTextInput
-                    label="Start Date"
-                    value={edu.startDate}
-                    onChange={(text: string) => handleUpdateEducation(edu.id, { startDate: text })}
-                    className="flex-1"
-                    required
-                    error={errors[`education.${eduIdx}.startDate`]}
-                  />
+                  <EditableTextInput label="Start Date" value={edu.startDate} onChange={(t: string) => handleUpdateEducation(edu.id, { startDate: t })} className="flex-1" required error={errors[`education.${eduIdx}.startDate`]} />
                   {renderError(`education.${eduIdx}.startDate`)}
                   {!edu.current && (
-                    <EditableTextInput
-                      label="End Date"
-                      value={edu.endDate || ''}
-                      onChange={(text: string) => handleUpdateEducation(edu.id, { endDate: text })}
-                      className="flex-1"
-                    />
+                    <EditableTextInput label="End Date" value={edu.endDate || ''} onChange={(t: string) => handleUpdateEducation(edu.id, { endDate: t })} className="flex-1" />
                   )}
                 </View>
                 <View className="mb-2 flex-row items-center justify-between">
                   <View className="flex-row items-center">
                     <Text className="mr-2">Currently Studying</Text>
-                    <TouchableOpacity
-                      onPress={() => handleUpdateEducation(edu.id, { current: !edu.current })}
-                      className={`h-6 w-6 rounded-md border ${edu.current ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}
-                    >
+                    <TouchableOpacity onPress={() => handleUpdateEducation(edu.id, { current: !edu.current })} className={`h-6 w-6 rounded-md border ${edu.current ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
                       {edu.current && <Text className="text-center text-white">✓</Text>}
                     </TouchableOpacity>
                   </View>
@@ -636,40 +444,25 @@ export default function ResumeEditorScreen() {
                     <Text className="text-red-500">Remove</Text>
                   </TouchableOpacity>
                 </View>
-                <EditableTextInput
-                  label="Description"
-                  value={edu.description || ''}
-                  onChange={(text: string) => handleUpdateEducation(edu.id, { description: text })}
-                  multiline
-                />
+                <EditableTextInput label="Description" value={edu.description || ''} onChange={(t: string) => handleUpdateEducation(edu.id, { description: t })} multiline />
               </View>
             ))}
           </View>
         )}
 
-        {activeSection === 'skills' && (
-          <View className="mb-6">
+        {step === 5 && (
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
             <View className="mb-2 flex-row items-center justify-between">
-              <Text className="text-lg font-bold">Skills</Text>
+              <Text className="text-lg font-semibold text-gray-800">Skills</Text>
+              <TouchableOpacity onPress={handleAddSkill} className="p-2">
+                <Text className="text-blue-500">+ Add Skill</Text>
+              </TouchableOpacity>
             </View>
-
             {draft.skills.map((sk: Skill) => (
               <View key={sk.id} className="mb-4 rounded-lg bg-white p-4">
-                <EditableTextInput
-                  label="Skill"
-                  value={sk.name}
-                  onChange={(text: string) => handleUpdateSkill(sk.id, { name: text })}
-                />
-                <EditableTextInput
-                  label="Category"
-                  value={sk.category || ''}
-                  onChange={(text: string) => handleUpdateSkill(sk.id, { category: text })}
-                />
-                <EditableTextInput
-                  label="Proficiency (beginner/intermediate/advanced/expert)"
-                  value={sk.proficiency || ''}
-                  onChange={(text: string) => handleUpdateSkill(sk.id, { proficiency: text as any })}
-                />
+                <EditableTextInput label="Skill" value={sk.name} onChange={(t: string) => handleUpdateSkill(sk.id, { name: t })} />
+                <EditableTextInput label="Category" value={sk.category || ''} onChange={(t: string) => handleUpdateSkill(sk.id, { category: t })} />
+                <EditableTextInput label="Proficiency (beginner/intermediate/advanced/expert)" value={sk.proficiency || ''} onChange={(t: string) => handleUpdateSkill(sk.id, { proficiency: t as any })} />
                 <View className="items-end">
                   <TouchableOpacity onPress={() => handleRemoveSkill(sk.id)}>
                     <Text className="text-red-500">Remove</Text>
@@ -680,10 +473,9 @@ export default function ResumeEditorScreen() {
           </View>
         )}
 
-      </ScrollView>
-
-      {/* bottom toolbar removed; Save moved to header */}
-    </View>
+        <FooterNav />
+      </View>
+    </ScrollView>
   );
 }
 

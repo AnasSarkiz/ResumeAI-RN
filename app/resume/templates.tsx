@@ -48,6 +48,7 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
   const { user } = useAuth();
   const { createResume } = useResume();
   const [selected, setSelected] = useState<TemplateId | undefined>(template as TemplateId | undefined);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Determine the draft to use: prop overrides param; otherwise none
   let effectiveDraft: ManualResumeInput | undefined = resume;
@@ -67,18 +68,12 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
   };
 
   const handleSave = async () => {
-    if (!effectiveDraft) {
-      Alert.alert('No draft', 'Please return to the editor and provide your details first.');
+    if (!effectiveDraft || !selected || !user?.id) {
+      if (!selected) Alert.alert('Select a template', 'Please choose a template to continue.');
       return;
     }
-    if (!selected) {
-      Alert.alert('Select a template', 'Please choose a template to continue.');
-      return;
-    }
-    if (!user?.id) {
-      Alert.alert('Please log in', 'You must be logged in to save a resume.');
-      return;
-    }
+
+    setIsSaving(true);
     try {
       const html = renderHTMLTemplate(effectiveDraft, selected);
       const title = (effectiveDraft.title && effectiveDraft.title.trim()) ? effectiveDraft.title : `${effectiveDraft.fullName || 'Resume'}${effectiveDraft.title ? '' : ''}`;
@@ -90,16 +85,11 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
         updatedAt: new Date(),
         createdAt: new Date(),
       });
-      Alert.alert('Saved', 'Your resume has been saved.', [
-        {
-          text: 'Preview',
-          onPress: () => router.replace({ pathname: '/resume/preview', params: { id: String(created.id) } }),
-        },
-        { text: 'OK' },
-      ]);
+      router.replace({ pathname: '/resume/preview', params: { id: String(created.id) } });
     } catch (e) {
       console.error('Failed to save resume', e);
       Alert.alert('Error', 'Failed to save your resume. Please try again.');
+      setIsSaving(false);
     }
   };
 
@@ -171,10 +161,14 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
       <View className="px-4 pb-6">
         <TouchableOpacity
           onPress={handleSave}
-          className={`mb-3 rounded-full py-3 ${selected ? 'bg-indigo-600' : 'bg-gray-300'}`}
-          disabled={!selected}
+          className={`mb-3 flex-row items-center justify-center rounded-full py-3 ${selected && !isSaving ? 'bg-indigo-600' : 'bg-gray-300'}`}
+          disabled={!selected || isSaving}
         >
-          <Text className="text-center font-medium text-white">Save</Text>
+          {isSaving ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text className="text-center font-medium text-white">Save & Preview</Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.back()}
