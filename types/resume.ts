@@ -43,12 +43,25 @@ export interface PhoneItem {
   label?: string; // e.g., Mobile, Work
 }
 
-export interface Resume {
+// NEW: Unified persisted resume entity. Stores final HTML. Metadata is embedded inside the HTML
+// (for example within a <script type="application/json" id="resume-metadata">{...}</script> block).
+export interface SavedResume {
+  id: string;
+  userId: string;
+  title: string;
+  html: string; // Final rendered HTML
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// LEGACY: Kept for backward compatibility with existing UI flows and DB entries.
+// The app will continue to use this shape in form editors, but persistence will
+// store HTML in SavedResume format and mirror minimal legacy fields for compatibility.
+export interface ManualResumeInput {
   id: string;
   userId: string;
   title: string;
   // Discriminator for storage/rendering strategy. Defaults to 'manual' if missing
-  kind?: 'manual' | 'ai';
   fullName: string;
   email: string;
   phone?: string; // legacy single phone, kept for backward compat
@@ -64,21 +77,12 @@ export interface Resume {
   skills: Skill[];
   links?: LinkItem[];
   phones?: PhoneItem[];
-  // Selected HTML template ID for rendering/printing (free plan templates)
-  template?: string;
-  // Flag: using a pre-built template from the app (free plan)
   temp?: boolean;
-  // When kind === 'ai', the full HTML for the resume is stored here.
-  // Manual resumes should leave this undefined.
-  aiHtml?: string;
-  // Optional AI generation metadata for audit/debug.
-  aiPrompt?: string;
-  aiModel?: string; // e.g., gemini-2.0-flash-lite
-  aiTemplateName?: string; // human-friendly template label if AI picked a style
   createdAt: Date;
   updatedAt: Date;
 }
 
+// Deprecated in the new storage model, but kept for backward compatibility.
 export interface CoverLetter {
   id: string;
   resumeId: string;
@@ -103,3 +107,25 @@ export interface AIResponse {
   output: string;
   createdAt: Date;
 }
+
+// NEW: Input types for generation flows
+export interface AIResumeInput {
+  fullName: string;
+  email: string;
+  countryCode: string;
+  phone: string;
+  dateOfBirth?: string;
+  country?: string;
+  summary?: string;
+  jobTitle?: string;
+  experience: string[];
+  education: string[];
+  skills: string[];
+  targetRole?: string;
+  industry?: string;
+  designInstructions?: string;
+  links?: { label: string; url: string }[];
+  aiPrompt?: string;
+  aiModel?: string; // e.g., gemini-2.0-flash-lite
+}
+

@@ -1,6 +1,6 @@
 import * as Print from 'expo-print';
-import { Resume } from '../types/resume';
-import { renderHTMLTemplate, TemplateId } from './templates';
+import { SavedResume } from '../types/resume';
+// import { renderHTMLTemplate, TemplateId } from './templates';
 
 // Ensure HTML is wrapped with A4 print CSS
 const ensureA4HTML = (html: string): string => {
@@ -46,13 +46,10 @@ export const exportHTMLToPDF = async (html: string): Promise<string> => {
 };
 
 export const exportResumeToPDF = async (
-  resume: Resume,
-  template: TemplateId = 'classic'
+  resume: SavedResume,
 ): Promise<string> => {
   try {
-    const html = resume.kind === 'ai' && resume.aiHtml
-      ? resume.aiHtml
-      : renderHTMLTemplate(resume, template);
+    const html = resume.html;
     const file = await Print.printToFileAsync({ html: ensureA4HTML(html) });
     // file.uri is a 'file://' URI suitable for sharing
     return file.uri;

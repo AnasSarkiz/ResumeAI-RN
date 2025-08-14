@@ -11,9 +11,10 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
 import { EditableTextInput } from '../../components/EditableTextInput';
-import { generateFullHTMLResume, AIGeneratorInput } from '../../services/ai';
+import { generateFullHTMLResume } from '../../services/ai';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { AIResumeInput } from '../../types/resume';
 
 export default function AIGeneratorScreen() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function AIGeneratorScreen() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
 
-  const [formData, setFormData] = useState<AIGeneratorInput>({
+  const [formData, setFormData] = useState<AIResumeInput>({
     fullName: user?.name || '',
     email: user?.email || '',
     countryCode: '+',
@@ -31,12 +32,14 @@ export default function AIGeneratorScreen() {
     country: '',
     summary: '',
     jobTitle: '',
-    experience: '',
-    education: '',
-    skills: '',
+    experience: [],
+    education: [],
+    skills: [],
     targetRole: '',
     industry: '',
     designInstructions: '',
+    aiPrompt: '',
+    aiModel: 'gemini-2.0-flash-lite',
   });
 
   // Multi-item fields state
@@ -48,7 +51,7 @@ export default function AIGeneratorScreen() {
   type LinkItem = { label: string; url: string };
   const [links, setLinks] = useState<LinkItem[]>([{ label: '', url: '' }]);
 
-  const handleInputChange = (field: keyof AIGeneratorInput, value: string) => {
+  const handleInputChange = (field: keyof AIResumeInput, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field as string]) {
       setErrors((prev) => ({ ...prev, [field as string]: '' }));
@@ -79,30 +82,42 @@ export default function AIGeneratorScreen() {
     }
     setLoading(true);
     try {
-      // Compose multi-item fields into strings for the AI generator
-      const composed: AIGeneratorInput = {
-        ...formData,
-        education: educations.filter((s) => s && s.trim()).join('\n'),
+      // Compose multi-item fields into strings for the AI generator service
+      const composedForAI = {
+        fullName: formData.fullName,
+        email: formData.email,
+        countryCode: formData.countryCode,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        country: formData.country,
+        summary: formData.summary,
+        jobTitle: formData.jobTitle,
         experience: experiences.filter((s) => s && s.trim()).join('\n'),
+        education: educations.filter((s) => s && s.trim()).join('\n'),
         skills: skillsList.filter((s) => s && s.trim()).join(', '),
+        targetRole: formData.targetRole,
+        industry: formData.industry,
+        designInstructions: formData.designInstructions,
         links: links
           .filter((l) => (l.label?.trim() || l.url?.trim()))
           .map((l) => `${l.label?.trim() || 'Link'} - ${l.url?.trim()}`)
           .join('\n'),
-      };
-      const html = await generateFullHTMLResume(composed);
-      const title = `${formData.fullName}'s Resume${formData.jobTitle ? ' - ' + formData.jobTitle : ''}`;
-      const created = await createResume(user.id, title);
-      await updateResume(created.id, {
-        id: created.id,
+      } as any; // matches AIGeneratorInput expected by services/ai
+
+      const html = await generateFullHTMLResume(composedForAI);
+
+      // Persist as SavedResume: store generated HTML directly
+      const derivedTitle = [formData.fullName || '', formData.jobTitle || 'Resume']
+        .filter(Boolean)
+        .join(' - ');
+      const created = await createResume({
+        id: `${user.id}-${Date.now()}`,
         userId: user.id,
-        title,
-        kind: 'ai' as const,
-        aiHtml: html,
-        aiModel: 'gemini-2.0-flash-lite',
-        aiTemplateName: 'custom-ai',
+        title: derivedTitle,
+        html,
         updatedAt: new Date(),
-      } as any);
+        createdAt: new Date(),
+      });
       Alert.alert('Success', 'Your AI resume is ready!', [
         {
           text: 'Preview',

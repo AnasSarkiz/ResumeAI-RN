@@ -9,7 +9,7 @@ import {
   getDocs,
   deleteDoc,
 } from 'firebase/firestore';
-import { Resume, CoverLetter } from '../types/resume';
+import { ManualResumeInput, CoverLetter ,SavedResume, AIResumeInput } from '../types/resume';
 
 // Recursively remove undefined values (Firestore does not allow undefined)
 const cleanForFirestore = (value: any): any => {
@@ -51,15 +51,8 @@ const isValidUrl = (v?: string) => {
   }
 };
 
-export const validateResume = (resume: Resume): ValidationResult => {
+export const validateManualResume = (resume: ManualResumeInput): ValidationResult => {
   const errors: Record<string, string> = {};
-
-  // Allow AI resumes to skip structural validation; they store full HTML.
-  if (resume.kind === 'ai') {
-    if (!isNonEmpty(resume.title)) errors['title'] = 'Title is required';
-    if (!isNonEmpty(resume.aiHtml)) errors['aiHtml'] = 'AI HTML is required';
-    return { valid: Object.keys(errors).length === 0, errors };
-  }
 
   // Required top-level fields
   if (!isNonEmpty(resume.title)) errors['title'] = 'Title is required';
@@ -108,15 +101,26 @@ export const validateResume = (resume: Resume): ValidationResult => {
   return { valid: Object.keys(errors).length === 0, errors };
 };
 
-export const saveResume = async (resume: Resume): Promise<Resume> => {
-  const id = resume.id && resume.id.trim().length > 0 ? resume.id : doc(collection(db, 'resumes')).id;
-  const toSave: Resume = { ...resume, id };
-  const cleaned = cleanForFirestore(toSave);
-  await setDoc(doc(db, 'resumes', id), cleaned);
-  return cleaned as Resume;
+export const validateAIResume = (resume: AIResumeInput): ValidationResult => {
+  const errors: Record<string, string> = {};
+  if (!isNonEmpty(resume.fullName)) errors['fullName'] = 'Full name is required';
+  if (!isNonEmpty(resume.email)) errors['email'] = 'Email is required';
+  if (!isNonEmpty(resume.countryCode)) errors['countryCode'] = 'Country code is required';
+  if (!isNonEmpty(resume.phone)) errors['phone'] = 'Phone is required';
+  if (!isNonEmpty(resume.aiPrompt)) errors['aiPrompt'] = 'AI Prompt is required';
+  if (!isNonEmpty(resume.aiModel)) errors['aiModel'] = 'AI Model is required';
+  return { valid: Object.keys(errors).length === 0, errors };
 };
 
-export const getResumeById = async (resumeId: string): Promise<Resume> => {
+export const saveResume = async (resume: SavedResume): Promise<SavedResume> => {
+  const id = resume.id && resume.id.trim().length > 0 ? resume.id : doc(collection(db, 'resumes')).id;
+  const toSave: SavedResume = { ...resume, id };
+  const cleaned = cleanForFirestore(toSave);
+  await setDoc(doc(db, 'resumes', id), cleaned);
+  return cleaned as SavedResume;
+};
+
+export const getResumeById = async (resumeId: string): Promise<SavedResume> => {
   const docRef = doc(db, 'resumes', resumeId);
   const docSnap = await getDoc(docRef);
 
@@ -135,57 +139,14 @@ export const getResumeById = async (resumeId: string): Promise<Resume> => {
   return {
     id: docSnap.id,
     userId: data.userId,
-    title: data.title,
-    kind: data.kind,
-    fullName: data.fullName,
-    email: data.email,
-    phone: data.phone,
-    dateOfBirth: data.dateOfBirth,
-    country: data.country,
-    website: data.website,
-    linkedIn: data.linkedIn,
-    github: data.github,
-    summary: data.summary,
-    template: data.template,
-    temp: data.temp,
-    experience: (data.experience || []).map((exp: any) => ({
-      id: exp.id,
-      jobTitle: exp.jobTitle,
-      company: exp.company,
-      location: exp.location,
-      startDate: exp.startDate,
-      endDate: exp.endDate,
-      current: exp.current,
-      description: exp.description,
-    })),
-    education: (data.education || []).map((edu: any) => ({
-      id: edu.id,
-      institution: edu.institution,
-      degree: edu.degree,
-      fieldOfStudy: edu.fieldOfStudy,
-      startDate: edu.startDate,
-      endDate: edu.endDate,
-      current: edu.current,
-      description: edu.description,
-    })),
-    skills: (data.skills || []).map((skill: any) => ({
-      id: skill.id,
-      name: skill.name,
-      proficiency: skill.proficiency,
-      category: skill.category,
-    })),
-    links: data.links,
-    phones: data.phones,
-    aiHtml: data.aiHtml,
-    aiPrompt: data.aiPrompt,
-    aiModel: data.aiModel,
-    aiTemplateName: data.aiTemplateName,
+    title: data.title || '',
+    html: data.html,
     createdAt: toJsDate(data.createdAt),
     updatedAt: toJsDate(data.updatedAt),
   };
 };
 
-export const getResumes = async (userId: string): Promise<Resume[]> => {
+export const getResumes = async (userId: string): Promise<SavedResume[]> => {
   const q = query(collection(db, 'resumes'), where('userId', '==', userId));
   const querySnapshot = await getDocs(q);
 
@@ -201,28 +162,8 @@ export const getResumes = async (userId: string): Promise<Resume[]> => {
     return {
       id: doc.id,
       userId: data.userId,
-      title: data.title,
-      kind: data.kind,
-      fullName: data.fullName,
-      email: data.email,
-      phone: data.phone,
-      dateOfBirth: data.dateOfBirth,
-      country: data.country,
-      website: data.website,
-      linkedIn: data.linkedIn,
-      github: data.github,
-      summary: data.summary,
-      template: data.template,
-      temp: data.temp,
-      experience: data.experience || [],
-      education: data.education || [],
-      skills: data.skills || [],
-      links: data.links,
-      phones: data.phones,
-      aiHtml: data.aiHtml,
-      aiPrompt: data.aiPrompt,
-      aiModel: data.aiModel,
-      aiTemplateName: data.aiTemplateName,
+      title: data.title || '',
+      html: data.html,
       createdAt: toJsDate(data.createdAt),
       updatedAt: toJsDate(data.updatedAt),
     };

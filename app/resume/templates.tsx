@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
 import { listHTMLTemplates, TemplateId, TEMPLATE_NAMES, renderHTMLTemplate } from '../../services/templates';
+import { ManualResumeInput } from 'types/resume';
 
 // Load WebView at runtime to avoid crashes if unavailable
 let WebViewComp: any = null;
@@ -40,32 +42,65 @@ function enforceFixedViewport(html: string): string {
   return out;
 }
 
-export default function TemplateSelectorScreen() {
-  const { id, template } = useLocalSearchParams<{ id?: string; template?: TemplateId }>();
+export default function TemplateSelectorScreen({ resume }: { resume?: ManualResumeInput }) {
+  const { template, draft: draftParam } = useLocalSearchParams<{ id?: string; template?: TemplateId; draft?: string }>();
   const router = useRouter();
-  const { currentResume, updateResume, loadResume, loading } = useResume();
+  const { user } = useAuth();
+  const { createResume } = useResume();
   const [selected, setSelected] = useState<TemplateId | undefined>(template as TemplateId | undefined);
 
-  useEffect(() => {
-    if (id && typeof id === 'string') {
-      loadResume(id);
+  // Determine the draft to use: prop overrides param; otherwise none
+  let effectiveDraft: ManualResumeInput | undefined = resume;
+  if (!effectiveDraft && typeof draftParam === 'string' && draftParam.length > 0) {
+    try {
+      const parsed = JSON.parse(decodeURIComponent(draftParam));
+      effectiveDraft = parsed as ManualResumeInput;
+    } catch (e) {
+      console.warn('Failed to parse draft from params', e);
     }
-  }, [id]);
+  }
 
   const items = listHTMLTemplates();
 
-  const handleSelect = async (tpl: TemplateId) => {
-    if ((currentResume as any)?.kind === 'ai') return; // no-op for AI resumes
+  const handleSelect = (tpl: TemplateId) => {
     setSelected(tpl);
-    // Persist selection with temp flag
-    if (currentResume?.id) {
-      try {
-        await updateResume(currentResume.id, { template: tpl, temp: true } as any);
-      } catch (e) {
-        console.error('Failed to save template selection', e);
-      }
+  };
+
+  const handleSave = async () => {
+    if (!effectiveDraft) {
+      Alert.alert('No draft', 'Please return to the editor and provide your details first.');
+      return;
     }
-    // Selection only; do not navigate to preview
+    if (!selected) {
+      Alert.alert('Select a template', 'Please choose a template to continue.');
+      return;
+    }
+    if (!user?.id) {
+      Alert.alert('Please log in', 'You must be logged in to save a resume.');
+      return;
+    }
+    try {
+      const html = renderHTMLTemplate(effectiveDraft, selected);
+      const title = (effectiveDraft.title && effectiveDraft.title.trim()) ? effectiveDraft.title : `${effectiveDraft.fullName || 'Resume'}${effectiveDraft.title ? '' : ''}`;
+      const created = await createResume({
+        id: `${user.id}-${Date.now()}`,
+        userId: user.id,
+        title,
+        html,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+      });
+      Alert.alert('Saved', 'Your resume has been saved.', [
+        {
+          text: 'Preview',
+          onPress: () => router.replace({ pathname: '/resume/preview', params: { id: String(created.id) } }),
+        },
+        { text: 'OK' },
+      ]);
+    } catch (e) {
+      console.error('Failed to save resume', e);
+      Alert.alert('Error', 'Failed to save your resume. Please try again.');
+    }
   };
 
   return (
@@ -75,79 +110,72 @@ export default function TemplateSelectorScreen() {
         <Text className="mt-1 text-sm text-gray-600">Select one of the 5 free templates for your resume.</Text>
       </View>
 
-      {loading && (!currentResume) ? (
-        <View className="mt-10 items-center">
-          <ActivityIndicator />
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={{ padding: 6 }}>
-          <View className="flex-row flex-wrap justify-between">
-          {items.map(({ id: tplId, name }) => {
-            const isAI = (currentResume as any)?.kind === 'ai';
-            const rawHtml = currentResume
-              ? (isAI && (currentResume as any).aiHtml)
-                ? (currentResume as any).aiHtml
-                : renderHTMLTemplate(currentResume, tplId)
-              : null;
-            const html = rawHtml ? enforceFixedViewport(rawHtml) : null;
-            return (
-              <View
-                key={tplId}
-                className={`mb-6 h-[360px] w-[49.5%] rounded-xl border ${selected === tplId ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}
-              >
-                <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
-                  <View>
-                    <Text className="text-sm font-semibold text-purple-900">{name}</Text>
-                    <Text className="text-xs text-gray-600">ID: {tplId}</Text>
+      <ScrollView contentContainerStyle={{ padding: 6 }}>
+        <View className="flex-row flex-wrap justify-between">
+        {items.map(({ id: tplId, name }) => {
+          const rawHtml = effectiveDraft ? renderHTMLTemplate(effectiveDraft, tplId) : null;
+          const html = rawHtml ? enforceFixedViewport(rawHtml) : null;
+          return (
+            <View
+              key={tplId}
+              className={`mb-6 h-[360px] w-[49.5%] rounded-xl border ${selected === tplId ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}
+            >
+              <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
+                <View>
+                  <Text className="text-sm font-semibold text-purple-900">{name}</Text>
+                  <Text className="text-xs text-gray-600">ID: {tplId}</Text>
+                </View>
+                {selected === tplId && (
+                  <View className="rounded-full bg-blue-500 px-3 py-1">
+                    <Text className="text-xs font-semibold text-white">Selected</Text>
                   </View>
-                  {selected === tplId && (
-                    <View className="rounded-full bg-blue-500 px-3 py-1">
-                      <Text className="text-xs font-semibold text-white">Selected</Text>
-                    </View>
-                  )}
-                </View>
-
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => id && router.push({ pathname: '/resume/preview', params: { id: String(id), template: tplId } })}
-                  className="mx-1 mb-2 absolute bottom-14 left-0 right-0 overflow-hidden rounded-lg"
-                  style={{ height: 240, backgroundColor: '#fff' }}
-                >
-                  {WebViewComp && html ? (
-                    <WebViewComp
-                      key={`${tplId}`}
-                      originWhitelist={["*"]}
-                      source={{ html }}
-                      style={{ flex: 1 }}
-                    />
-                  ) : (
-                    <View className="flex-1 items-center justify-center">
-                      <Text className="text-gray-500 text-sm">
-                        {WebViewComp ? 'No resume data to preview.' : 'Install react-native-webview to enable previews.'}
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-
-                <View className="px-4 absolute bottom-0 left-0 right-0 pb-4">
-                  <TouchableOpacity
-                    onPress={() => handleSelect(tplId)}
-                    disabled={(currentResume as any)?.kind === 'ai'}
-                    className={`rounded-full px-2 py-2 ${((currentResume as any)?.kind === 'ai') ? 'bg-gray-300' : 'bg-blue-600'}`}
-                  >
-                    <Text className="text-center text-xs font-semibold text-white">
-                      {((currentResume as any)?.kind === 'ai') ? 'Templates unavailable for AI resumes' : 'Use This Template'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                )}
               </View>
-            );
-          })}
-          </View>
-        </ScrollView>
-      )}
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => handleSelect(tplId)}
+                className="mx-1 mb-2 absolute bottom-14 left-0 right-0 overflow-hidden rounded-lg"
+                style={{ height: 240, backgroundColor: '#fff' }}
+              >
+                {WebViewComp && html ? (
+                  <WebViewComp
+                    key={`${tplId}`}
+                    originWhitelist={["*"]}
+                    source={{ html }}
+                    style={{ flex: 1 }}
+                  />
+                ) : (
+                  <View className="flex-1 items-center justify-center">
+                    <Text className="text-gray-500 text-sm">
+                      {WebViewComp ? 'No resume data to preview.' : 'Install react-native-webview to enable previews.'}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <View className="px-4 absolute bottom-0 left-0 right-0 pb-4">
+                <TouchableOpacity
+                  onPress={() => handleSelect(tplId)}
+                  className={`rounded-full px-2 py-2 ${selected === tplId ? 'bg-blue-700' : 'bg-blue-600'}`}
+                >
+                  <Text className="text-center text-xs font-semibold text-white">Use This Template</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+        </View>
+      </ScrollView>
 
       <View className="px-4 pb-6">
+        <TouchableOpacity
+          onPress={handleSave}
+          className={`mb-3 rounded-full py-3 ${selected ? 'bg-indigo-600' : 'bg-gray-300'}`}
+          disabled={!selected}
+        >
+          <Text className="text-center font-medium text-white">Save</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.back()}
           className="rounded-full border border-gray-300 bg-white py-3"

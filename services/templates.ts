@@ -1,4 +1,4 @@
-import { Resume } from '../types/resume';
+import { ManualResumeInput } from '../types/resume';
 import {layeredPaper,artDecoRevival} from './templates-part3';
 import {circularOrbit,verticalRibbon} from './templates-part2';
 export type TemplateId =
@@ -65,7 +65,7 @@ const escape = (s: string) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-const renderContact = (r: Resume) => `
+const renderContact = (r: ManualResumeInput) => `
   <div class="contact">
     <span>${escape(r.email)}</span>
     ${r.phone ? `<span>• ${escape(r.phone)}</span>` : ''}
@@ -74,7 +74,7 @@ const renderContact = (r: Resume) => `
     ${r.website ? `<span>• ${escape(r.website)}</span>` : ''}
   </div>`;
 
-const renderExperience = (r: Resume) => `
+const renderExperience = (r: ManualResumeInput) => `
   ${r.experience
     .map(
       (e) => `
@@ -88,7 +88,7 @@ const renderExperience = (r: Resume) => `
     .join('')}
 `;
 
-const renderEducation = (r: Resume) => `
+const renderEducation = (r: ManualResumeInput) => `
   ${r.education
     .map(
       (e) => `
@@ -102,14 +102,14 @@ const renderEducation = (r: Resume) => `
     .join('')}
 `;
 
-const renderSkills = (r: Resume) => `
+const renderSkills = (r: ManualResumeInput) => `
   <div class="chips">
     ${r.skills.map((s) => `<span class="chip">${escape(s.name)}${s.proficiency ? ` (${escape(s.proficiency)})` : ''}</span>`).join('')}
   </div>
 `;
 
 // 1) Classic Professional
-const classic = (r: Resume) => `
+const classic = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -152,7 +152,7 @@ const classic = (r: Resume) => `
 </html>`;
 
 // 2) Modern Minimal
-const modern = (r: Resume) => `
+const modern = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -210,7 +210,7 @@ const modern = (r: Resume) => `
 </html>`;
 
 // 3) Elegant Serif
-const elegant = (r: Resume) => `
+const elegant = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -255,7 +255,7 @@ const elegant = (r: Resume) => `
 </html>`;
 
 // 4) Bold Sidebar
-const sidebar = (r: Resume) => `
+const sidebar = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -320,7 +320,7 @@ const sidebar = (r: Resume) => `
 </html>`;
 
 // 5) Timeline Focused
-const timeline = (r: Resume) => `
+const timeline = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -379,7 +379,7 @@ const timeline = (r: Resume) => `
 </body>
 </html>`;
 // 6) Compact Grid
-const compactGrid = (r: Resume) => `
+const compactGrid = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -426,7 +426,7 @@ const compactGrid = (r: Resume) => `
 </html>`;
 
 // 7) Creative Gradient
-const creativeGradient = (r: Resume) => `
+const creativeGradient = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -469,7 +469,7 @@ const creativeGradient = (r: Resume) => `
 </html>`;
 
 //  8) Futuristic Dark Mode
-const futuristicDarkMode = (r: Resume) => `
+const futuristicDarkMode = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -511,7 +511,7 @@ const futuristicDarkMode = (r: Resume) => `
 </html>`;
 
 // 9) Photo Header
-const photoHeader = (r: Resume) => `
+const photoHeader = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -556,7 +556,7 @@ const photoHeader = (r: Resume) => `
 </html>`;
 
 // 10) Soft Pastel
-const softPastel = (r: Resume) => `
+const softPastel = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -595,7 +595,7 @@ const softPastel = (r: Resume) => `
 </html>`;
 
 // 11) Minimalist Columns
-const minimalistColumns = (r: Resume) => `
+const minimalistColumns = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -641,7 +641,7 @@ const minimalistColumns = (r: Resume) => `
 </html>`;
 
 // 12) Bold Accent Line
-const boldAccentLine = (r: Resume) => `
+const boldAccentLine = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -681,7 +681,7 @@ const boldAccentLine = (r: Resume) => `
 </html>`;
 
 // 13) Split Banner
-const splitBanner = (r: Resume) => `
+const splitBanner = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -727,7 +727,7 @@ const splitBanner = (r: Resume) => `
 </html>`;
 
 // 14) Modern Card Blocks
-const modernCardBlocks = (r: Resume) => `
+const modernCardBlocks = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -774,7 +774,7 @@ const modernCardBlocks = (r: Resume) => `
 </html>`;
 
 // 15) Elegant Monochrome
-const elegantMonochrome = (r: Resume) => `
+const elegantMonochrome = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -817,7 +817,7 @@ const elegantMonochrome = (r: Resume) => `
 </html>`;
 
 // 16. Magazine Editorial
-const magazineEditorial = (r: Resume) => `
+const magazineEditorial = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -1041,7 +1041,7 @@ const magazineEditorial = (r: Resume) => `
 </html>`;
 
 // 17. Infographic Minimal
-const infographicMinimal = (r: Resume) => `
+const infographicMinimal = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -1298,7 +1298,7 @@ const infographicMinimal = (r: Resume) => `
 </html>`;
 
 // 18. Asymmetric Layout
-const asymmetricLayout = (r: Resume) => `
+const asymmetricLayout = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -1548,7 +1548,7 @@ const asymmetricLayout = (r: Resume) => `
 </html>`;
 
 // 19. Typographic Emphasis
-const typographicEmphasis = (r: Resume) => `
+const typographicEmphasis = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -1785,7 +1785,7 @@ const typographicEmphasis = (r: Resume) => `
 </html>`;
 
 // 20. Geometric Minimalism
-const geometricMinimalism = (r: Resume) => `
+const geometricMinimalism = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -2048,7 +2048,7 @@ const geometricMinimalism = (r: Resume) => `
 `;
 
 // 21. Hexagonal Grid
-const hexagonalGrid = (r: Resume) => `
+const hexagonalGrid = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -2335,7 +2335,7 @@ const hexagonalGrid = (r: Resume) => `
 `;
 
 // 22. Diagonal Split
-const diagonalSplit = (r: Resume) => `
+const diagonalSplit = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -2658,7 +2658,7 @@ const diagonalSplit = (r: Resume) => `
 </html>
 `;
 
-export const renderHTMLTemplate = (resume: Resume, template: TemplateId): string => {
+export const renderHTMLTemplate = (resume: ManualResumeInput, template: TemplateId): string => {
     switch (template) {
       case 'classic': return classic(resume);
       case 'modern': return modern(resume);

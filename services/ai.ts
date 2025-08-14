@@ -1,6 +1,6 @@
 // services/geminiService.ts
 import axios from 'axios';
-import { Resume } from '../types/resume';
+import { AIResumeInput , SavedResume } from '../types/resume';
 import type { TemplateId } from './templates';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
@@ -32,30 +32,11 @@ const callGemini = async (prompt: string): Promise<string> => {
   }
 };
 
-// New: Multi-step AI HTML generator input and function
-export interface AIGeneratorInput {
-  fullName: string;
-  email: string;
-  countryCode?: string;
-  phone?: string;
-  dateOfBirth?: string;
-  country?: string;
-  links?: string; // newline-separated entries like "Label - URL"
-  summary?: string;
-  jobTitle?: string;
-  experience?: string; // free-text experience
-  education?: string; // free-text education
-  skills?: string; // comma-separated skills
-  targetRole?: string;
-  industry?: string;
-  designInstructions?: string; // user style guidance
-}
-
 /**
  * Generate a complete, self-contained HTML resume based on user inputs and design instructions.
  * Returns a valid HTML string (with <!DOCTYPE html>) suitable for WebView and PDF printing.
  */
-export const generateFullHTMLResume = async (input: AIGeneratorInput): Promise<string> => {
+export const generateFullHTMLResume = async (input: AIResumeInput): Promise<string> => {
   const base = `You are a senior resume designer and front-end stylist.
 Create a COMPLETE, PRODUCTION-READY resume as a single HTML document suitable for WebView and PDF export.
 
@@ -157,147 +138,147 @@ const sanitizeBullet = (line: string): string => {
   return s.trim();
 };
 
-export const generateBulletPoints = async (
-  jobTitle: string,
-  context: string
-): Promise<string[]> => {
-  let prompt: string;
-  // Try to parse structured context to craft a richer prompt
-  try {
-    const parsed = JSON.parse(context);
-    const resume = parsed?.resume || parsed; // support passing entire resume directly
-    const targetId = parsed?.targetExperienceId;
-    if (resume && typeof resume === 'object') {
-      const fullName = resume.fullName || '';
-      const summary = resume.summary || '';
-      const skills = Array.isArray(resume.skills)
-        ? resume.skills.map((s: any) => s?.name).filter(Boolean).join(', ')
-        : '';
-      const experiences = Array.isArray(resume.experience) ? resume.experience : [];
-      const targetExp = experiences.find((e: any) => e?.id === targetId) || experiences[experiences.length - 1];
-      const targetTitle = targetExp?.jobTitle || jobTitle;
-      const targetCompany = targetExp?.company || '';
-      const targetDesc = Array.isArray(targetExp?.description) ? targetExp.description.join(' | ') : '';
+// export const generateBulletPoints = async (
+//   jobTitle: string,
+//   context: string
+// ): Promise<string[]> => {
+//   let prompt: string;
+//   // Try to parse structured context to craft a richer prompt
+//   try {
+//     const parsed = JSON.parse(context);
+//     const resume = parsed?.resume || parsed; // support passing entire resume directly
+//     const targetId = parsed?.targetExperienceId;
+//     if (resume && typeof resume === 'object') {
+//       const fullName = resume.fullName || '';
+//       const summary = resume.summary || '';
+//       const skills = Array.isArray(resume.skills)
+//         ? resume.skills.map((s: any) => s?.name).filter(Boolean).join(', ')
+//         : '';
+//       const experiences = Array.isArray(resume.experience) ? resume.experience : [];
+//       const targetExp = experiences.find((e: any) => e?.id === targetId) || experiences[experiences.length - 1];
+//       const targetTitle = targetExp?.jobTitle || jobTitle;
+//       const targetCompany = targetExp?.company || '';
+//       const targetDesc = Array.isArray(targetExp?.description) ? targetExp.description.join(' | ') : '';
 
-      const previousHighlights = experiences
-        .filter((e: any) => e && e !== targetExp)
-        .map((e: any) => `${e.jobTitle || ''} at ${e.company || ''}`.trim())
-        .filter(Boolean)
-        .slice(0, 5)
-        .join('; ');
+//       const previousHighlights = experiences
+//         .filter((e: any) => e && e !== targetExp)
+//         .map((e: any) => `${e.jobTitle || ''} at ${e.company || ''}`.trim())
+//         .filter(Boolean)
+//         .slice(0, 5)
+//         .join('; ');
 
-      prompt = `You are writing resume bullets for ${fullName}. Generate 5 high-impact, achievement-oriented bullet points for the role "${targetTitle}"${
-        targetCompany ? ` at ${targetCompany}` : ''
-      }.
+//       prompt = `You are writing resume bullets for ${fullName}. Generate 5 high-impact, achievement-oriented bullet points for the role "${targetTitle}"${
+//         targetCompany ? ` at ${targetCompany}` : ''
+//       }.
 
-User summary: ${summary}
-Skills: ${skills}
-Target experience current bullets (if any): ${targetDesc}
-Other roles: ${previousHighlights}
+// User summary: ${summary}
+// Skills: ${skills}
+// Target experience current bullets (if any): ${targetDesc}
+// Other roles: ${previousHighlights}
 
-Guidelines:
-- Start with strong action verbs and vary verbs across bullets.
-- Use STAR thinking; focus on outcomes, scope, key technologies, and measurable impact.
-- Include realistic metrics (%/$/time/scale) when possible; never use placeholders.
-- Be concise (12–22 words) and specific; remove fluff.
-- Output plain sentences only (no list markers or markdown).
-`;
-    } else {
-      prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}".
-Here's some context about the user: ${context}. Make the points achievement-oriented and quantifiable where possible. Avoid markdown and placeholders.`;
-    }
-  } catch {
-    prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}".
-Here's some context about the user: ${context}. Make the points achievement-oriented and quantifiable where possible. Avoid markdown and placeholders.`;
-  }
+// Guidelines:
+// - Start with strong action verbs and vary verbs across bullets.
+// - Use STAR thinking; focus on outcomes, scope, key technologies, and measurable impact.
+// - Include realistic metrics (%/$/time/scale) when possible; never use placeholders.
+// - Be concise (12–22 words) and specific; remove fluff.
+// - Output plain sentences only (no list markers or markdown).
+// `;
+//     } else {
+//       prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}".
+// Here's some context about the user: ${context}. Make the points achievement-oriented and quantifiable where possible. Avoid markdown and placeholders.`;
+//     }
+//   } catch {
+//     prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}".
+// Here's some context about the user: ${context}. Make the points achievement-oriented and quantifiable where possible. Avoid markdown and placeholders.`;
+//   }
 
-  const text = await callGemini(prompt);
-  return text
-    .split('\n')
-    .map((line) => sanitizeBullet(line))
-    .filter((l) => l.length > 0);
-};
+//   const text = await callGemini(prompt);
+//   return text
+//     .split('\n')
+//     .map((line) => sanitizeBullet(line))
+//     .filter((l) => l.length > 0);
+// };
 
-export const rewordText = async (text: string): Promise<string> => {
-  const prompt = `Rewrite the following text to be more impactful, concise, and resume-ready.
+// export const rewordText = async (text: string): Promise<string> => {
+//   const prompt = `Rewrite the following text to be more impactful, concise, and resume-ready.
 
-Rules:
-- Use professional tone and active voice.
-- Prefer outcomes and metrics where appropriate.
-- Avoid first-person and filler words.
+// Rules:
+// - Use professional tone and active voice.
+// - Prefer outcomes and metrics where appropriate.
+// - Avoid first-person and filler words.
 
-Text:
-"${text}"`;
-  const result = await callGemini(prompt);
-  return result || text;
-};
+// Text:
+// "${text}"`;
+//   const result = await callGemini(prompt);
+//   return result || text;
+// };
 
-export const generateCoverLetter = async (
-  resume: Resume,
-  company?: string,
-  position?: string
-): Promise<string> => {
-  const prompt = `Write a professional, results-focused cover letter for the following resume targeting ${
-    position ? `the ${position} position` : 'a job'
-  }${company ? ` at ${company}` : ''}. Here's the resume data:
+// export const generateCoverLetter = async (
+//   resume: Resume,
+//   company?: string,
+//   position?: string
+// ): Promise<string> => {
+//   const prompt = `Write a professional, results-focused cover letter for the following resume targeting ${
+//     position ? `the ${position} position` : 'a job'
+//   }${company ? ` at ${company}` : ''}. Here's the resume data:
 
-Name: ${resume.fullName}
-Email: ${resume.email}
-Experience: ${resume.experience.map((exp) => `${exp.jobTitle} at ${exp.company}`).join(', ')}
-Education: ${resume.education.map((edu) => `${edu.degree} from ${edu.institution}`).join(', ')}
-Skills: ${resume.skills.map((skill) => skill.name).join(', ')}
+// Name: ${resume.fullName}
+// Email: ${resume.email}
+// Experience: ${resume.experience.map((exp) => `${exp.jobTitle} at ${exp.company}`).join(', ')}
+// Education: ${resume.education.map((edu) => `${edu.degree} from ${edu.institution}`).join(', ')}
+// Skills: ${resume.skills.map((skill) => skill.name).join(', ')}
 
-Requirements:
-- 3–4 concise paragraphs (intro, 1–2 value paragraphs, closing call-to-action).
-- Tailor to the role/company; emphasize relevant achievements and quantified outcomes.
-- Use professional tone, no placeholders, no first-person pronouns overuse.
-`;
+// Requirements:
+// - 3–4 concise paragraphs (intro, 1–2 value paragraphs, closing call-to-action).
+// - Tailor to the role/company; emphasize relevant achievements and quantified outcomes.
+// - Use professional tone, no placeholders, no first-person pronouns overuse.
+// `;
 
-  return await callGemini(prompt);
-};
+//   return await callGemini(prompt);
+// };
 
-export const tailorResume = async (resume: Resume, jobDescription: string): Promise<Resume> => {
-  const prompt = `Optimize the following resume for this job description:
-${jobDescription}
+// export const tailorResume = async (resume: Resume, jobDescription: string): Promise<Resume> => {
+//   const prompt = `Optimize the following resume for this job description:
+// ${jobDescription}
 
-Rules:
-- Keep the exact JSON schema of the project's Resume interface; do not add unknown fields.
-- Improve wording for impact and clarity; prioritize relevant skills and achievements.
-- Reorder experiences and skills for best fit; keep dates and facts realistic.
-- Add realistic, non-placeholder metrics only if implied by context; otherwise omit.
+// Rules:
+// - Keep the exact JSON schema of the project's Resume interface; do not add unknown fields.
+// - Improve wording for impact and clarity; prioritize relevant skills and achievements.
+// - Reorder experiences and skills for best fit; keep dates and facts realistic.
+// - Add realistic, non-placeholder metrics only if implied by context; otherwise omit.
 
-Current resume JSON:
-${JSON.stringify(resume, null, 2)}
+// Current resume JSON:
+// ${JSON.stringify(resume, null, 2)}
 
-Return ONLY the optimized resume JSON.`;
+// Return ONLY the optimized resume JSON.`;
 
-  const text = await callGemini(prompt);
-  try {
-    return JSON.parse(text);
-  } catch (err) {
-    console.error('Failed to parse Gemini JSON response:', err);
-    return resume;
-  }
-};
+//   const text = await callGemini(prompt);
+//   try {
+//     return JSON.parse(text);
+//   } catch (err) {
+//     console.error('Failed to parse Gemini JSON response:', err);
+//     return resume;
+//   }
+// };
 
-export const improveSummary = async (summary: string): Promise<string> => {
-  const prompt = `Improve this resume summary to be more compelling, keyword-rich, and concise (2–3 sentences).
+// export const improveSummary = async (summary: string): Promise<string> => {
+//   const prompt = `Improve this resume summary to be more compelling, keyword-rich, and concise (2–3 sentences).
 
-Guidelines:
-- Lead with role/years/value proposition; follow with core strengths and differentiators.
-- Use industry keywords naturally (no buzzword stuffing).
-- Maintain professional tone; avoid first-person.
+// Guidelines:
+// - Lead with role/years/value proposition; follow with core strengths and differentiators.
+// - Use industry keywords naturally (no buzzword stuffing).
+// - Maintain professional tone; avoid first-person.
 
-Summary:
-"${summary}"`;
-  const result = await callGemini(prompt);
-  return result || summary;
-};
+// Summary:
+// "${summary}"`;
+//   const result = await callGemini(prompt);
+//   return result || summary;
+// };
 
-/**
- * Edit an existing full HTML resume using natural-language instructions.
- * The model must return ONLY raw HTML (no markdown fences) and preserve A4/print-friendly structure.
- */
+// /**
+//  * Edit an existing full HTML resume using natural-language instructions.
+//  * The model must return ONLY raw HTML (no markdown fences) and preserve A4/print-friendly structure.
+//  */
 export const editHTMLResume = async (
   currentHtml: string,
   instructions: string
@@ -340,24 +321,5 @@ ${currentHtml}
   return `<!DOCTYPE html>\n<html><head><meta name="viewport" content="width=device-width, initial-scale=1" /></head><body>${cleaned}</body></html>`;
 };
 
-// New function to generate complete CVs with different designs
-export interface CVTemplate {
-  id: string;
-  name: string;
-  description: string;
-  preferredTemplate?: TemplateId;
-  resume: Resume;
-}
 
-export interface UserInputFields {
-  fullName: string;
-  email: string;
-  phone?: string;
-  summary?: string;
-  jobTitle?: string;
-  experience?: string;
-  education?: string;
-  skills?: string;
-  targetRole?: string;
-  industry?: string;
-}
+

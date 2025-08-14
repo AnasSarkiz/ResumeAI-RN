@@ -1,4 +1,4 @@
-import { Resume } from '../types/resume';
+import { ManualResumeInput } from '../types/resume';
 
 const escape = (s: string) =>
   s
@@ -9,7 +9,7 @@ const escape = (s: string) =>
     .replace(/'/g, '&#39;');
 
 // 25. Layered Paper
-export const layeredPaper = (r: Resume) => `
+export const layeredPaper = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -328,7 +328,7 @@ export const layeredPaper = (r: Resume) => `
 `;
 
 // 26. Art Deco Revival
-export const artDecoRevival = (r: Resume) => `
+export const artDecoRevival = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>

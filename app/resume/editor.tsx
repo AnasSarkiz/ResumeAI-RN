@@ -5,21 +5,21 @@ import { useResume } from '../../context/ResumeContext';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { ResumeSectionCard } from '../../components/ResumeSectionCard';
 import { EditableTextInput } from '../../components/EditableTextInput';
-import { Experience, ResumeSection, Resume, Education, Skill, LinkItem } from '../../types/resume';
-import { validateResume } from '../../services/resume';
+import { Experience, ResumeSection, ManualResumeInput, Education, Skill, LinkItem } from '../../types/resume';
+import { validateManualResume } from '../../services/resume';
 import { useAuth } from '../../context/AuthContext';
 
 
 export default function ResumeEditorScreen() {
   const { id } = useLocalSearchParams();
-  const { currentResume, updateResume, loading, loadResume, saving } = useResume();
+  const { currentResume, updateResume, loading, loadResume } = useResume();
   const { user } = useAuth();
   const router = useRouter();
   // const { isPro } = useSubscription();
   const isPro = user?.isPro;
   const [activeSection, setActiveSection] = useState<ResumeSection>('experience');
   const [selectedText, setSelectedText] = useState('');
-  const [draft, setDraft] = useState<Resume | null>(null);
+  const [draft, setDraft] = useState<ManualResumeInput | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
 
@@ -33,41 +33,83 @@ export default function ResumeEditorScreen() {
     errors[key] ? <Text className="mt-1 text-xs text-red-500">{errors[key]}</Text> : null;
 
   const handleValidateAndSave = async (opts?: { goPreview?: boolean }) => {
-    if (!draft || !currentResume) return;
-    const { valid, errors: errs } = validateResume(draft);
+    if (!draft) return;
+    const { valid, errors: errs } = validateManualResume(draft);
     setErrors(errs);
     if (!valid) {
       Alert.alert('Missing required fields', 'Please fill all required fields highlighted in red.');
       return;
     }
-    // Backward compat: write legacy phone from first phones[] if present
-    const toSave = (() => {
-      if (Array.isArray((draft as any).phones) && (draft as any).phones.length > 0) {
-        const first = (draft as any).phones[0];
-        return { ...draft, phone: `${first.dial} ${first.number}`.trim() } as Resume;
+    // If we have an existing SavedResume, persist updates; otherwise go choose template
+    if (currentResume) {
+      // Backward compat: write legacy phone from first phones[] if present
+      const toSave = (() => {
+        if (Array.isArray((draft as any).phones) && (draft as any).phones.length > 0) {
+          const first = (draft as any).phones[0];
+          return { ...draft, phone: `${first.dial} ${first.number}`.trim() } as ManualResumeInput;
+        }
+        return draft;
+      })();
+      await updateResume(currentResume.id, toSave);
+      if (opts?.goPreview) {
+        router.push(`/resume/preview?id=${currentResume.id}`);
       }
-      return draft;
-    })();
-    await updateResume(currentResume.id, toSave);
-    if (opts?.goPreview) {
-      router.push(`/resume/preview?id=${currentResume.id}`);
+    } else {
+      // No SavedResume yet: proceed to template selection with the draft
+      const payload = encodeURIComponent(JSON.stringify(draft));
+      router.push({ pathname: '/resume/templates', params: { draft: payload } });
     }
   };
 
-  useEffect(() => {
-    if (currentResume) {
-      let merged = currentResume;
-      if ((!merged.fullName || merged.fullName.trim().length === 0) && user?.name) {
-        merged = { ...merged, fullName: user.name } as Resume;
-      }
-      if ((!merged.email || merged.email.trim().length === 0) && user?.email) {
-        merged = { ...merged, email: user.email } as Resume;
-      }
-      setDraft(merged);
+  // Preview should NOT save; only validate and navigate
+  const handlePreview = async () => {
+    if (!draft) return;
+    const { valid, errors: errs } = validateManualResume(draft);
+    setErrors(errs);
+    if (!valid) {
+      Alert.alert('Missing required fields', 'Please fill all required fields highlighted in red.');
+      return;
     }
+    if (currentResume) {
+      router.push(`/resume/preview?id=${currentResume.id}`);
+    } else {
+      Alert.alert('Choose a template', 'Please choose a template to generate your resume before previewing.');
+      const payload = encodeURIComponent(JSON.stringify(draft));
+      router.push({ pathname: '/resume/templates', params: { draft: payload } });
+    }
+  };
+
+  // Initialize an editable ManualResumeInput draft from scratch using user defaults.
+  // If there is no currentResume (manual create flow), still initialize a local draft.
+  // Do not derive fields from SavedResume directly (it stores HTML only).
+  useEffect(() => {
+    const baseDraft: ManualResumeInput = {
+      id: currentResume ? String(currentResume.id) : `${user?.id || 'local'}-${Date.now()}`,
+      userId: currentResume ? String(currentResume.userId) : String(user?.id || ''),
+      title: '',
+      fullName: user?.name || '',
+      email: user?.email || '',
+      phone: '',
+      dateOfBirth: '',
+      country: '',
+      website: '',
+      linkedIn: '',
+      github: '',
+      summary: '',
+      experience: [],
+      education: [],
+      skills: [],
+      links: [],
+      phones: [],
+      temp: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    setDraft(baseDraft);
   }, [currentResume, user]);
 
-  if (loading || !currentResume || !draft) {
+  // Show loading only if we are actually fetching a specific resume by id.
+  if ((id && loading) || (id && !currentResume) || !draft) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" />
@@ -75,7 +117,7 @@ export default function ResumeEditorScreen() {
     );
   }
 
-  const handleUpdate = (field: keyof Resume, value: any) => {
+  const handleUpdate = (field: keyof ManualResumeInput, value: any) => {
     setDraft((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
@@ -154,7 +196,7 @@ export default function ResumeEditorScreen() {
         <Text className="text-lg font-semibold text-gray-800">Edit Resume</Text>
         <View className="flex-row items-center">
           <TouchableOpacity
-            onPress={() => handleValidateAndSave({ goPreview: true })}
+            onPress={handlePreview}
             className="rounded-full border border-gray-300 px-4 py-2 mr-2"
           >
             <Text className="text-gray-700">Preview</Text>
@@ -179,9 +221,6 @@ export default function ResumeEditorScreen() {
             error={errors['title']}
           />
           {renderError('title')}
-          {saving && (
-            <Text className="mt-1 text-xs text-gray-500">Saving…</Text>
-          )}
 
           <Text className="mb-2 text-lg font-bold">Personal Information</Text>
           <EditableTextInput
@@ -382,7 +421,7 @@ export default function ResumeEditorScreen() {
         <View className="mb-2">
           <Text className="mb-2 text-lg font-bold">Sections</Text>
           <ResumeSectionCard
-            title={`Summary${currentResume.summary ? '' : ''}`}
+            title={`Summary${draft.summary ? '' : ''}`}
             active={activeSection === 'summary'}
             onPress={() => setActiveSection('summary')}
           />
@@ -405,9 +444,6 @@ export default function ResumeEditorScreen() {
             <TouchableOpacity
               onPress={async () => {
                 await handleValidateAndSave();
-                if (currentResume?.id) {
-                  router.push(`/resume/templates?id=${currentResume.id}`);
-                }
               }}
               className="rounded-full bg-indigo-600 px-4 py-2"
             >

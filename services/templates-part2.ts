@@ -1,4 +1,4 @@
-import { Resume } from '../types/resume';
+import { ManualResumeInput } from '../types/resume';
 
 const escape = (s: string) =>
   s
@@ -10,7 +10,7 @@ const escape = (s: string) =>
 
 // 23. Circular Orbit
 
-export const circularOrbit = (r: Resume) => `
+export const circularOrbit = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -230,7 +230,7 @@ export const circularOrbit = (r: Resume) => `
 
 
 // 24. Vertical Ribbon
-export const verticalRibbon = (r: Resume) => `
+export const verticalRibbon = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>

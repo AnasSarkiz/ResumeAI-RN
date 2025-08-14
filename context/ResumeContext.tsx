@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { Resume, CoverLetter } from '../types/resume';
+import { CoverLetter, SavedResume } from '../types/resume';
 import {
   getResumes,
   getResumeById,
@@ -9,16 +9,16 @@ import {
 } from '../services/resume';
 
 interface ResumeContextType {
-  resumes: Resume[];
-  currentResume: Resume | null;
+  resumes: SavedResume[];
+  currentResume: SavedResume | null;
   currentCoverLetter: CoverLetter | null;
   loading: boolean;
   saving: boolean;
   error: string | null;
   loadResumes: (userId: string) => Promise<void>;
   loadResume: (resumeId: string) => Promise<void>;
-  createResume: (userId: string, title: string) => Promise<Resume>;
-  updateResume: (resumeId: string, updates: Partial<Resume>) => Promise<void>;
+  createResume: (resume: SavedResume) => Promise<SavedResume>;
+  updateResume: (resumeId: string, updates: Partial<SavedResume>) => Promise<void>;
   deleteResume: (resumeId: string) => Promise<void>;
   loadCoverLetter: (resumeId: string) => Promise<void>;
   generateCoverLetter: (
@@ -26,7 +26,7 @@ interface ResumeContextType {
     company?: string,
     position?: string
   ) => Promise<CoverLetter>;
-  saveNow: (resume: Resume) => Promise<void>;
+  saveNow: (resume: SavedResume) => Promise<void>;
 }
 
 const ResumeContext = createContext<ResumeContextType>({
@@ -42,11 +42,7 @@ const ResumeContext = createContext<ResumeContextType>({
     id: '',
     userId: '',
     title: '',
-    fullName: '',
-    email: '',
-    experience: [],
-    education: [],
-    skills: [],
+    html: '',
     createdAt: new Date(),
     updatedAt: new Date(),
   }),
@@ -64,8 +60,8 @@ const ResumeContext = createContext<ResumeContextType>({
 });
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [resumes, setResumes] = useState<Resume[]>([]);
-  const [currentResume, setCurrentResume] = useState<Resume | null>(null);
+  const [resumes, setResumes] = useState<SavedResume[]>([]);
+  const [currentResume, setCurrentResume] = useState<SavedResume | null>(null);
   const [currentCoverLetter, setCurrentCoverLetter] = useState<CoverLetter | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -73,17 +69,17 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Debounce timers per resumeId to batch saves
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
-  const currentResumeRef = useRef<Resume | null>(null);
+  const currentResumeRef = useRef<SavedResume | null>(null);
   useEffect(() => {
     currentResumeRef.current = currentResume;
   }, [currentResume]);
 
   // Simple in-memory caches and request coalescing
   const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
-  const cacheResumesByUser = useRef<Record<string, { ts: number; data: Resume[] }>>({});
-  const cacheResumeById = useRef<Record<string, { ts: number; data: Resume }>>({});
-  const inflightResumesByUser = useRef<Record<string, Promise<Resume[]>>>({});
-  const inflightResumeById = useRef<Record<string, Promise<Resume>>>({});
+  const cacheResumesByUser = useRef<Record<string, { ts: number; data: SavedResume[] }>>({});
+  const cacheResumeById = useRef<Record<string, { ts: number; data: SavedResume }>>({});
+  const inflightResumesByUser = useRef<Record<string, Promise<SavedResume[]>>>({});
+  const inflightResumeById = useRef<Record<string, Promise<SavedResume>>>({});
 
   const loadResumes = async (userId: string) => {
     // Try cached
@@ -119,7 +115,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Immediate save that bypasses debounce, used for explicit Save buttons
-  const saveNow = async (resume: Resume) => {
+  const saveNow = async (resume: SavedResume) => {
     const resumeId = resume.id;
     try {
       setSaving(true);
@@ -184,28 +180,16 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const createResume = async (userId: string, title: string) => {
+  const createResume = async (resume: SavedResume) => {
     setLoading(true);
     try {
-      const newResume = await saveResume({
-        userId,
-        title,
-        kind: 'manual',
-        fullName: '',
-        email: '',
-        experience: [],
-        education: [],
-        skills: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        id: '',
-      });
+      const newResume = await saveResume(resume);
       setResumes((prev) => [...prev, newResume]);
       // update caches
       cacheResumeById.current[newResume.id] = { ts: Date.now(), data: newResume };
-      if (userId) {
-        const curr = cacheResumesByUser.current[userId]?.data || [];
-        cacheResumesByUser.current[userId] = { ts: Date.now(), data: [...curr, newResume] };
+      if (newResume.userId) {
+        const curr = cacheResumesByUser.current[newResume.userId]?.data || [];
+        cacheResumesByUser.current[newResume.userId] = { ts: Date.now(), data: [...curr, newResume] };
       }
       return newResume;
     } catch (err) {
@@ -217,10 +201,10 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const updateResume = async (resumeId: string, updates: Partial<Resume>) => {
+  const updateResume = async (resumeId: string, updates: Partial<SavedResume>) => {
     // Optimistic update to keep UI responsive without global loading spinner
-    const optimistic: Resume = {
-      ...(currentResume as Resume),
+    const optimistic: SavedResume = {
+      ...(currentResume as SavedResume),
       ...updates,
       id: resumeId,
       updatedAt: new Date(),
@@ -247,7 +231,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     setSaving(true);
     saveTimers.current[resumeId] = setTimeout(async () => {
       try {
-        const latest = currentResumeRef.current as Resume;
+        const latest = currentResumeRef.current as SavedResume;
         if (!latest) return;
         const saved = await saveResume(latest);
         setCurrentResume(saved);
@@ -314,13 +298,27 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Helper to extract minimal metadata from SavedResume.html
+  const extractMetaFromHtml = (html: string): Record<string, any> => {
+    try {
+      // Look for <script id="resume-metadata">{...}</script>
+      const match = html.match(/<script[^>]*id=["']resume-metadata["'][^>]*>([\s\S]*?)<\/script>/i);
+      if (match && match[1]) {
+        return JSON.parse(match[1].trim());
+      }
+    } catch {}
+    return {};
+  };
+
   const generateCoverLetter = async (resumeId: string, company?: string, position?: string) => {
     setLoading(true);
     try {
       // const { generateCoverLetter } = await import('../services/ai');
       const resume = currentResume || (await getResumeById(resumeId));
+      const meta = extractMetaFromHtml(resume.html);
+      const displayName = meta.fullName || meta.name || 'Candidate';
       // const content = await generateCoverLetter(resume, company, position);
-      const content = `Cover letter content for ${resume.fullName} applying to ${position || 'a position'} at ${company || 'the company'}.`; // Placeholder for actual AI generation logic
+      const content = `Cover letter content for ${displayName} applying to ${position || 'a position'} at ${company || 'the company'}.`; // Placeholder for actual AI generation logic
 
       const coverLetter: CoverLetter = {
         id: `${resumeId}-${Date.now()}`,

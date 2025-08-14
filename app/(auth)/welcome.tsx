@@ -17,11 +17,9 @@ export default function WelcomeScreen() {
 
       <View className="space-y-4">
         {user ? (
-          <Link href="../(main)/home" asChild>
-            <TouchableOpacity className="rounded-full bg-blue-500 py-3">
+            <TouchableOpacity className="rounded-full bg-blue-500 py-3" onPress={() => router.push('/(main)/home')}>
               <Text className="text-center text-lg font-medium text-white">Continue to App</Text>
             </TouchableOpacity>
-          </Link>
         ) : (
           <>
             <TouchableOpacity

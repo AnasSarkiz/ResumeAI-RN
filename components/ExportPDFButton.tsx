@@ -25,7 +25,7 @@ export const ExportPDFButton: React.FC<{ template?: TemplateId }> = ({ template 
 
     setLoading(true);
     try {
-      const pdfUri = await exportResumeToPDF(currentResume, template);
+      const pdfUri = await exportResumeToPDF(currentResume);
       await Share.share({
         url: pdfUri,
         title: `Resume - ${currentResume.title}`,

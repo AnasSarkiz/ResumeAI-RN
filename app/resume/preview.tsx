@@ -3,7 +3,7 @@ import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
 import { ExportPDFButton } from '../../components/ExportPDFButton';
-import { TemplateId, TEMPLATE_NAMES, renderHTMLTemplate } from '../../services/templates';
+import { TemplateId } from '../../services/templates';
 
 // Try to load WebView at runtime to avoid crashing if it's not installed yet.
 let WebViewComp: any = null;
@@ -61,90 +61,13 @@ export default function PreviewScreen() {
     );
   }
 
-  // If this is an AI resume, render stored HTML directly
-  const kind = (currentResume as any)?.kind;
-  if (kind === 'ai') {
-    const aiHtml = (currentResume as any)?.aiHtml as string | undefined;
-    if (WebViewComp && aiHtml) {
-      return (
-        <View className="flex-1 bg-white">
-          <WebViewComp
-            key={(currentResume.updatedAt?.toISOString?.() || '') + ':' + currentResume.id}
-            originWhitelist={["*"]}
-            source={{ html: enforceFixedViewport(aiHtml) }}
-            style={{ flex: 1 }}
-            javaScriptEnabled
-            injectedJavaScriptBeforeContentLoaded={`(function(){
-              try {
-                function preStrip(){
-                  try { document.designMode = 'off'; } catch(e) {}
-                }
-                preStrip();
-              } catch (e) {}
-            })(); true;`}
-            injectedJavaScript={`(function(){
-              try {
-                function stripDoc(doc){
-                  if(!doc) return;
-                  // Remove any edit attributes/styles if present
-                  doc.querySelectorAll('[contenteditable], [data-rn-edit]')
-                    .forEach(function(el){ el.removeAttribute('data-rn-edit'); el.setAttribute('contenteditable','false'); });
-                  var st = doc.getElementById('rn-edit-focus-style');
-                  if (st && st.parentNode) st.parentNode.removeChild(st);
-                  // Force design mode off and body non-editable
-                  try { document.designMode = 'off'; } catch(e) {}
-                  doc.body && doc.body.setAttribute && doc.body.setAttribute('contenteditable','false');
-                  // Disable selection with CSS
-                  if (!doc.getElementById('rn-preview-readonly-style')) {
-                    var css = '*{user-select:none;-webkit-user-select:none;-ms-user-select:none} a, button, input, textarea, select, label, [role="button"], [contenteditable]{pointer-events:none !important;}';
-                    var s = doc.createElement('style'); s.id='rn-preview-readonly-style'; s.textContent = css; doc.head.appendChild(s);
-                  }
-                  // Disable form controls explicitly
-                  Array.prototype.forEach.call(doc.querySelectorAll('input, textarea, select, button'), function(c){ try{ c.setAttribute('disabled','true'); c.setAttribute('readonly','true'); c.blur(); }catch(_){}});
-                }
-                function strip(){
-                  stripDoc(document);
-                  // Also attempt to strip inside any iframes
-                  Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(frame){
-                    try { stripDoc(frame.contentDocument || frame.contentWindow && frame.contentWindow.document); } catch(_) {}
-                  });
-                }
-                strip();
-                // Block focus and key inputs
-                document.addEventListener('focusin', function(e){ try{ e.target && e.target.blur && e.target.blur(); }catch(_){} e.stopPropagation(); }, true);
-                document.addEventListener('keydown', function(e){ e.preventDefault(); e.stopPropagation(); }, true);
-                var mo = new MutationObserver(function(){ strip(); });
-                mo.observe(document.documentElement, { attributes:true, childList:true, subtree:true, attributeFilter:['contenteditable','data-rn-edit'] });
-                // Observe iframes loading new content
-                Array.prototype.forEach.call(document.querySelectorAll('iframe'), function(frame){
-                  try {
-                    frame.addEventListener('load', function(){ try { stripDoc(frame.contentDocument || frame.contentWindow && frame.contentWindow.document); } catch(_) {} });
-                  } catch(_) {}
-                });
-              } catch (e) {}
-            })(); true;`}
-          />
-          <View className="border-t border-gray-200 p-4">
-            <ExportPDFButton />
-          </View>
-        </View>
-      );
-    }
-    return (
-      <View className="flex-1 items-center justify-center p-6">
-        <Text className="mb-2 text-lg font-semibold">Preview unavailable</Text>
-        <Text className="text-center text-gray-600">Install react-native-webview to preview AI resumes, or try exporting to PDF.</Text>
-      </View>
-    );
-  }
-
-  // If a template is chosen and WebView is available, render the real HTML template preview
-  if (tpl && WebViewComp && currentResume) {
-    const html = enforceFixedViewport(renderHTMLTemplate(currentResume, tpl));
+  // Render stored SavedResume HTML in a WebView if available
+  if (WebViewComp && currentResume?.html) {
+    const html = enforceFixedViewport(currentResume.html);
     return (
       <View className="flex-1 bg-white">
         <WebViewComp
-          key={tpl}
+          key={(currentResume.updatedAt?.toISOString?.() || '') + ':' + currentResume.id}
           originWhitelist={["*"]}
           source={{ html }}
           style={{ flex: 1 }}
@@ -197,87 +120,12 @@ export default function PreviewScreen() {
     );
   }
 
+  // Fallback if WebView not available
   return (
-    <View className="flex-1 bg-white">
-      <ScrollView className="p-6">
-        <View className="mb-6">
-          <Text className="text-2xl font-bold">{currentResume.fullName}</Text>
-          <Text className="text-gray-600">
-            {currentResume.email} | {currentResume.phone}
-          </Text>
-          {tpl && (
-            <Text className="mt-1 text-xs text-gray-500">
-              Template: {TEMPLATE_NAMES[tpl] || tpl} {WebViewComp ? '' : '(Install react-native-webview for full preview)'}
-            </Text>
-          )}
-          {currentResume.linkedIn && (
-            <Text className="text-blue-500">LinkedIn: {currentResume.linkedIn}</Text>
-          )}
-          {currentResume.github && (
-            <Text className="text-blue-500">GitHub: {currentResume.github}</Text>
-          )}
-          {currentResume.website && (
-            <Text className="text-blue-500">Website: {currentResume.website}</Text>
-          )}
-        </View>
-
-        {currentResume.summary && (
-          <View className="mb-6">
-            <Text className="mb-2 text-xl font-bold">Summary</Text>
-            <Text className="text-gray-700">{currentResume.summary}</Text>
-          </View>
-        )}
-
-        <View className="mb-6">
-          <Text className="mb-2 text-xl font-bold">Experience</Text>
-          {currentResume.experience.map((exp, idx) => (
-            <View key={idx} className="mb-4">
-              <Text className="text-lg font-semibold">{exp.jobTitle}</Text>
-              <Text className="text-gray-600">
-                {exp.company} | {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
-              </Text>
-              <View className="mt-2">
-                {exp.description.map((point, i) => (
-                  <Text key={i} className="mb-1">
-                    • {point}
-                  </Text>
-                ))}
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <View className="mb-6">
-          <Text className="mb-2 text-xl font-bold">Education</Text>
-          {currentResume.education.map((edu, idx) => (
-            <View key={idx} className="mb-4">
-              <Text className="text-lg font-semibold">{edu.degree}</Text>
-              <Text className="text-gray-600">
-                {edu.institution} | {edu.startDate} - {edu.current ? 'Present' : edu.endDate}
-              </Text>
-              {edu.fieldOfStudy && (
-                <Text className="text-gray-600">Field of Study: {edu.fieldOfStudy}</Text>
-              )}
-              {edu.description && <Text className="mt-1 text-gray-700">{edu.description}</Text>}
-            </View>
-          ))}
-        </View>
-
-        <View className="mb-6">
-          <Text className="mb-2 text-xl font-bold">Skills</Text>
-          <View className="flex-row flex-wrap">
-            {currentResume.skills.map((skill, idx) => (
-              <View key={idx} className="mb-2 mr-2 rounded-full bg-gray-100 px-3 py-1">
-                <Text className="text-gray-800">
-                  {skill.name} {skill.proficiency && `(${skill.proficiency})`}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </ScrollView>
-
-      <View className="border-t border-gray-200 p-4">
+    <View className="flex-1 items-center justify-center p-6">
+      <Text className="mb-2 text-lg font-semibold">Preview unavailable</Text>
+      <Text className="text-center text-gray-600">Install react-native-webview to preview resumes, or try exporting to PDF.</Text>
+      <View className="mt-4 w-full px-6">
         <ExportPDFButton template={tpl} />
       </View>
     </View>
