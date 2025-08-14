@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { EditableTextInput } from '../../components/EditableTextInput';
 import { editHTMLResume } from '../../services/ai';
 import { renderHTMLTemplate, TemplateId } from '../../services/templates';
+import { SavedResume } from 'types/resume';
 
 export default function AIHtmlEditScreen() {
   const { id } = useLocalSearchParams();
@@ -96,12 +97,7 @@ export default function AIHtmlEditScreen() {
 
   const baseHtml = useMemo(() => {
     if (!currentResume) return '';
-    const tpl = (currentResume as any).template as TemplateId | undefined;
-    const isAI = (currentResume as any).kind === 'ai' && (currentResume as any).aiHtml;
-    const html = isAI
-      ? (currentResume as any).aiHtml
-      : renderHTMLTemplate(currentResume as any, (tpl || 'classic') as TemplateId);
-    return enforceFixedViewport(html);
+    return enforceFixedViewport(currentResume.html);
   }, [currentResume]);
 
   const htmlToPreview = editedHtml ? enforceFixedViewport(editedHtml) : baseHtml;
@@ -154,16 +150,10 @@ export default function AIHtmlEditScreen() {
     try {
       await updateResume(currentResume.id, {
         ...currentResume,
-        kind: 'ai',
-        aiHtml: editedHtml,
-        aiPrompt: instructions,
-        aiModel: 'gemini-2.0-flash-lite',
+        html: editedHtml,
         updatedAt: new Date(),
-      } as any);
-      Alert.alert('Saved', 'Your AI edits have been saved.', [
-        { text: 'Preview', onPress: () => router.push({ pathname: '/resume/preview', params: { id: String(currentResume.id) } }) },
-        { text: 'Done', style: 'cancel' },
-      ]);
+      } as SavedResume);
+      router.replace({ pathname: '/resume/preview', params: { id: String(currentResume.id) } });
       setInstructions('');
       setEditedHtml('');
     } catch (e) {

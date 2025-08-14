@@ -96,12 +96,7 @@ export default function ManualHtmlEditScreen() {
 
   const baseHtml = useMemo(() => {
     if (!currentResume) return '';
-    const tpl = (currentResume as any).template as TemplateId | undefined;
-    const isAI = (currentResume as any).kind === 'ai' && (currentResume as any).aiHtml;
-    const html = isAI
-      ? (currentResume as any).aiHtml
-      : renderHTMLTemplate(currentResume as any, (tpl || 'classic') as TemplateId);
-    return enforceFixedViewport(html);
+    return enforceFixedViewport(currentResume.html);
   }, [currentResume]);
 
   // Remove any editing artifacts before persisting
