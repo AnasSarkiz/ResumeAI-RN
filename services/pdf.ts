@@ -3,13 +3,17 @@ import { SavedResume } from '../types/resume';
 // import { renderHTMLTemplate, TemplateId } from './templates';
 
 // Ensure HTML is wrapped with A4 print CSS
-const ensureA4HTML = (html: string): string => {
+export const ensureA4HTML = (html: string): string => {
   const a4Style = `
     <style>
-      @page { size: A4; margin: 12mm; }
-      html, body { width: 210mm; }
-      body { margin: 0 auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { width: 210mm; min-height: 297mm; }
+      /* Global A4 page setup */
+      @page { size: A4; margin: 15mm; }
+      html, body { width: 210mm; height: 297mm; }
+      body { margin: 0 auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; box-sizing: border-box; }
+      /* Constrain content to a single A4 page in both preview and print */
+      body, .page { width: 210mm; height: 297mm; max-height: 297mm; overflow: hidden; box-sizing: border-box; }
+      /* Avoid internal breaks for common blocks */
+      .section, .item, .card, .container, .content { break-inside: avoid; page-break-inside: avoid; }
     </style>
   `;
   const hasHtmlTag = /<html[\s\S]*?>/i.test(html);

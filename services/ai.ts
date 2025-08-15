@@ -1,7 +1,6 @@
 // services/geminiService.ts
 import axios from 'axios';
-import { AIResumeInput, SavedResume } from '../types/resume';
-import type { TemplateId } from './templates';
+import { AIResumeInput } from '../types/resume';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -45,9 +44,10 @@ Strict requirements:
 - The HTML must be self-contained (inline <style>, no external links or fonts).
 - Use responsive, print-friendly CSS with A4-focused layout.
 - Include explicit print CSS to enforce A4:
-  - @page { size: A4; margin: 12mm; }
-  - html, body width: 210mm; main content min-height: 297mm.
-  - Wrap content in <div class="page"> sized for A4.
+  - @page { size: A4; margin: 15mm; }
+  - html, body width: 210mm; main content height: 297mm.
+  - Wrap content in <div class="page"> sized for A4 and ensure the entire resume fits on ONE SINGLE A4 PAGE (no additional pages).
+  - If content risks overflow, REDUCE spacing (margins/paddings), font sizes, and LIMIT bullets per role (3–5) to keep within one page.
   - Preserve colors in print: -webkit-print-color-adjust: exact; print-color-adjust: exact.
 - Use semantic structure, accessible markup, and consistent heading hierarchy.
 - Absolutely NO placeholders like [X] or {metric}. If unsure, omit rather than fabricate.
@@ -56,7 +56,7 @@ Voice and content:
 - Write powerful, achievement-driven text with clear outcomes, scope, and impact.
 - Prefer STAR-style bullets (Situation-Task-Action-Result) distilled to a single, punchy sentence.
 - Quantify results realistically (%, $, time saved, scale) when context allows; avoid exaggeration.
-- Keep bullets concise (12–22 words), vary strong action verbs, avoid first-person.
+- Keep bullets concise (12–20 words), vary strong action verbs, avoid first-person.
 
 Design & creativity:
 - Produce a tasteful, modern visual design while remaining ATS-friendly.
@@ -87,7 +87,7 @@ ${input.skills || ''}
 
 Data parsing notes:
 - Treat each EDUCATION line as one item: Degree — Institution (Years).
-- Treat each EXPERIENCE line as one role: Role — Company (Dates) with 3–6 impact bullets inferred from text.
+- Treat each EXPERIENCE line as one role: Role — Company (Dates) with 3–5 impact bullets inferred from text.
 - Parse SKILLS by comma, dedupe and render cleanly (tags or compact list).
 
 Design instructions from user: ${input.designInstructions || 'Clean, modern, ATS-friendly with tasteful accents.'}
@@ -97,7 +97,7 @@ Output:
 - A visually distinctive but professional resume in a single HTML file with inline CSS.
 - Sections: Summary, Experience, Education, Skills when content exists.
 - Top contact block: prominent name, then email/phone (with country code), and LINKS as labeled anchors.
-- Ensure the final HTML adheres to A4 rules and uses the <div class="page"> wrapper.
+- Ensure the final HTML adheres to A4 rules, uses the <div class="page"> wrapper, and FITS WITHIN ONE SINGLE A4 PAGE with 15mm margins.
 `;
 
   try {
@@ -137,95 +137,6 @@ const sanitizeBullet = (line: string): string => {
   s = s.replace(/^\(|\)$/g, '');
   return s.trim();
 };
-
-// export const generateBulletPoints = async (
-//   jobTitle: string,
-//   context: string
-// ): Promise<string[]> => {
-//   let prompt: string;
-//   // Try to parse structured context to craft a richer prompt
-//   try {
-//     const parsed = JSON.parse(context);
-//     const resume = parsed?.resume || parsed; // support passing entire resume directly
-//     const targetId = parsed?.targetExperienceId;
-//     if (resume && typeof resume === 'object') {
-//       const fullName = resume.fullName || '';
-//       const summary = resume.summary || '';
-//       const skills = Array.isArray(resume.skills)
-//         ? resume.skills.map((s: any) => s?.name).filter(Boolean).join(', ')
-//         : '';
-//       const experiences = Array.isArray(resume.experience) ? resume.experience : [];
-//       const targetExp = experiences.find((e: any) => e?.id === targetId) || experiences[experiences.length - 1];
-//       const targetTitle = targetExp?.jobTitle || jobTitle;
-//       const targetCompany = targetExp?.company || '';
-//       const targetDesc = Array.isArray(targetExp?.description) ? targetExp.description.join(' | ') : '';
-
-//       const previousHighlights = experiences
-//         .filter((e: any) => e && e !== targetExp)
-//         .map((e: any) => `${e.jobTitle || ''} at ${e.company || ''}`.trim())
-//         .filter(Boolean)
-//         .slice(0, 5)
-//         .join('; ');
-
-//       prompt = `You are writing resume bullets for ${fullName}. Generate 5 high-impact, achievement-oriented bullet points for the role "${targetTitle}"${
-//         targetCompany ? ` at ${targetCompany}` : ''
-//       }.
-
-// User summary: ${summary}
-// Skills: ${skills}
-// Target experience current bullets (if any): ${targetDesc}
-// Other roles: ${previousHighlights}
-
-// Guidelines:
-// - Start with strong action verbs and vary verbs across bullets.
-// - Use STAR thinking; focus on outcomes, scope, key technologies, and measurable impact.
-// - Include realistic metrics (%/$/time/scale) when possible; never use placeholders.
-// - Be concise (12–22 words) and specific; remove fluff.
-// - Output plain sentences only (no list markers or markdown).
-// `;
-//     } else {
-//       prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}".
-// Here's some context about the user: ${context}. Make the points achievement-oriented and quantifiable where possible. Avoid markdown and placeholders.`;
-//     }
-//   } catch {
-//     prompt = `Generate 5 professional bullet points for a resume based on the job title "${jobTitle}".
-// Here's some context about the user: ${context}. Make the points achievement-oriented and quantifiable where possible. Avoid markdown and placeholders.`;
-//   }
-
-//   const text = await callGemini(prompt);
-//   return text
-//     .split('\n')
-//     .map((line) => sanitizeBullet(line))
-//     .filter((l) => l.length > 0);
-// };
-
-// export const rewordText = async (text: string): Promise<string> => {
-//   const prompt = `Rewrite the following text to be more impactful, concise, and resume-ready.
-
-// Rules:
-// - Use professional tone and active voice.
-// - Prefer outcomes and metrics where appropriate.
-// - Avoid first-person and filler words.
-
-// Text:
-// "${text}"`;
-//   const result = await callGemini(prompt);
-//   return result || text;
-// };
-
-// export const improveSummary = async (summary: string): Promise<string> => {
-//   const prompt = `Improve this resume summary to be more compelling, keyword-rich, and concise (2–3 sentences).
-
-// Guidelines:
-// - Lead with role/years/value proposition; follow with core strengths and differentiators.
-// - Use industry keywords naturally (no buzzword stuffing).
-// - Maintain professional tone; avoid first-person.
-
-// Summary:
-// "${summary}"`;
-//   const result = await callGemini(prompt);
-//   return result || summary;
-// };
 
 // /**
 //  * Edit an existing full HTML resume using natural-language instructions.

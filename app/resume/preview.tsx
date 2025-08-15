@@ -5,6 +5,7 @@ import { useResume } from '../../context/ResumeContext';
 import { ExportPDFButton } from '../../components/ExportPDFButton';
 import { TemplateId } from '../../services/templates';
 import WebView from 'react-native-webview';
+import { ensureA4HTML } from '../../services/pdf';
 
 // Try to load WebView at runtime to avoid crashing if it's not installed yet.
 let WebViewComp: any = null;
@@ -65,7 +66,7 @@ export default function PreviewScreen() {
 
   // Render stored SavedResume HTML in a WebView if available
   if (WebViewComp && currentResume?.html) {
-    const html = enforceFixedViewport(currentResume.html);
+    const html = enforceFixedViewport(ensureA4HTML(currentResume.html));
     return (
       <View className="flex-1 bg-white">
         <WebViewComp

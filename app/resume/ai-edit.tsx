@@ -16,6 +16,7 @@ import { EditableTextInput } from '../../components/EditableTextInput';
 import { editHTMLResume } from '../../services/ai';
 import { renderHTMLTemplate, TemplateId } from '../../services/templates';
 import { SavedResume } from 'types/resume';
+import { ensureA4HTML } from '../../services/pdf';
 
 export default function AIHtmlEditScreen() {
   const { id } = useLocalSearchParams();
@@ -113,10 +114,13 @@ export default function AIHtmlEditScreen() {
 
   const baseHtml = useMemo(() => {
     if (!currentResume) return '';
-    return enforceFixedViewport(currentResume.html);
+    // Ensure single A4 page constraints in preview
+    return enforceFixedViewport(ensureA4HTML(currentResume.html));
   }, [currentResume]);
 
-  const htmlToPreview = editedHtml ? enforceFixedViewport(editedHtml) : baseHtml;
+  const htmlToPreview = editedHtml
+    ? enforceFixedViewport(ensureA4HTML(editedHtml))
+    : baseHtml;
 
   // Initialize versions with the original snapshot once resume is loaded
   useEffect(() => {

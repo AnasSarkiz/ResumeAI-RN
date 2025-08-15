@@ -77,7 +77,7 @@ export default function ManualHtmlEditScreen() {
   // Prevent leaving screen with unsaved edits
   useEffect(() => {
     const hasUnsaved =
-      !!editedHtml && (!!currentResume ? (currentResume as any).aiHtml !== editedHtml : true);
+      !!editedHtml && (!!currentResume ? (currentResume).html !== editedHtml : true);
     const onAttemptLeave = (proceed: () => void) => {
       if (!hasUnsaved) {
         proceed();
@@ -139,9 +139,7 @@ export default function ManualHtmlEditScreen() {
   };
 
   const baseHtml = useMemo(() => {
-    if (!currentResume) return '';
-    const html = (currentResume as any).aiHtml || currentResume.html;
-    return enforceFixedViewport(html);
+    return enforceFixedViewport(currentResume?.html || '');
   }, [currentResume]);
 
   // Remove any editing artifacts before persisting
@@ -155,6 +153,8 @@ export default function ManualHtmlEditScreen() {
     // remove drag markers and inline transform/drag styles we added
     out = out.replace(/\sdata-rn-drag=\"?1\"?/gi, '');
     out = out.replace(/\sdata-rn-dragging=\"?1\"?/gi, '');
+    // remove selection markers
+    out = out.replace(/\sdata-rn-selected=\"?1\"?/gi, '');
     // strip inline transform used by dragging (keep other styles)
     out = out.replace(/style=\"([^\"]*)\"/gi, (m, css) => {
       try {
@@ -170,6 +170,9 @@ export default function ManualHtmlEditScreen() {
     });
     // remove focus style block we injected
     out = out.replace(/<style[^>]*id=["']rn-edit-focus-style["'][\s\S]*?<\/style>/i, '');
+    // remove selection style block and marquee overlay if any slipped in
+    out = out.replace(/<style[^>]*id=["']rn-select-style["'][\s\S]*?<\/style>/i, '');
+    out = out.replace(/<div[^>]*id=["']rn-marquee["'][\s\S]*?<\/div>/i, '');
     return out;
   };
 
@@ -205,10 +208,7 @@ export default function ManualHtmlEditScreen() {
     try {
       const toSave = {
         ...currentResume,
-        kind: 'ai',
-        // Persist to both fields to be compatible with readers using `html`
         html: html,
-        aiHtml: html,
         updatedAt: new Date(),
       } as any;
       await saveNow(toSave);
@@ -232,23 +232,23 @@ export default function ManualHtmlEditScreen() {
   return (
     <View className="flex-1 bg-[#f9f9f9]">
       <View className="flex-row items-center justify-between px-4 pb-2 pt-4">
-        <Text className="text-2xl font-bold text-gray-800">Manual Edit</Text>
+        <Text className="text-xl font-bold text-gray-800">Manual Edit</Text>
         <View className="flex-row items-center">
           <TouchableOpacity
             onPress={() => setEditMode((v) => !v)}
             className={`mr-2 rounded-md px-3 py-2 ${editMode ? 'bg-amber-600' : 'bg-amber-500'}`}>
-            <Text className="text-white">{editMode ? 'Editing On' : 'Text Edit Mode'}</Text>
+            <Text className="text-white text-sm">{editMode ? 'Editing On' : 'Text Edit Mode'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setMoveMode((v) => !v)}
             className={`mr-2 rounded-md px-3 py-2 ${moveMode ? 'bg-purple-600' : 'bg-purple-500'}`}>
-            <Text className="text-white">{moveMode ? 'Drag On' : 'Drag Mode'}</Text>
+            <Text className="text-white text-sm">{moveMode ? 'Drag On' : 'Drag Mode'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onSave}
             disabled={saving}
             className={`rounded-md px-3 py-2 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
-            {saving ? <ActivityIndicator color="#fff" /> : <Text className="text-white">Save</Text>}
+            {saving ? <ActivityIndicator color="#fff" /> : <Text className="text-white text-sm">Save</Text>}
           </TouchableOpacity>
         </View>
       </View>
@@ -490,14 +490,24 @@ export default function ManualHtmlEditScreen() {
                 var MOVE_MODE = false;
                 var SELECTORS = 'p, li, h1, h2, h3, h4, h5, h6, span, a, strong, em, div';
                 var FOCUS_STYLE_ID = 'rn-edit-focus-style';
+                var SELECT_STYLE_ID = 'rn-select-style';
+                var MARQUEE_ID = 'rn-marquee';
+                var TAP_THRESHOLD = 6; // px
                 function addFocusStyle(){
                   if(document.getElementById(FOCUS_STYLE_ID)) return;
                   var st=document.createElement('style');
                   st.id=FOCUS_STYLE_ID; st.textContent='[contenteditable="true"]:focus{outline:1.5px dashed #92c5ff; outline-offset:2px;}';
                   document.head.appendChild(st);
                 }
+                function addSelectStyle(){
+                  if(document.getElementById(SELECT_STYLE_ID)) return;
+                  var st=document.createElement('style');
+                  st.id=SELECT_STYLE_ID; st.textContent='[data-rn-selected="1"]{outline:2px solid #3b82f6 !important; outline-offset:2px !important;}';
+                  document.head.appendChild(st);
+                }
                 function enableEditing(){
                   addFocusStyle();
+                  addSelectStyle();
                   // Prefer known selectors, but also heuristically enable on texty elements
                   var setEditable = function(el){
                     try{
@@ -525,50 +535,177 @@ export default function ManualHtmlEditScreen() {
                   if(EDIT_MODE){ enableEditing(); } else { disableEditing(); }
                 };
                 // Drag/Move mode
-                var dragState = {el:null, startX:0, startY:0, curX:0, curY:0};
+                var dragState = {el:null, startX:0, startY:0, curX:0, curY:0, group:null, isDragging:false, mod:false};
+                var marqueeState = {active:false, startX:0, startY:0};
+                function rectFromPoints(x1,y1,x2,y2){
+                  var left = Math.min(x1,x2), top = Math.min(y1,y2);
+                  var width = Math.abs(x2-x1), height = Math.abs(y2-y1);
+                  return {left: left, top: top, width: width, height: height, right:left+width, bottom: top+height};
+                }
+                function getMarquee(){
+                  var el = document.getElementById(MARQUEE_ID);
+                  if(!el){
+                    el = document.createElement('div');
+                    el.id = MARQUEE_ID;
+                    el.setAttribute('data-rn-marquee','1');
+                    el.style.position='fixed';
+                    el.style.pointerEvents='none';
+                    el.style.zIndex='999999';
+                    el.style.border='1.5px dashed #60a5fa';
+                    el.style.background='rgba(96,165,250,0.12)';
+                    el.style.display='none';
+                    document.body.appendChild(el);
+                  }
+                  return el;
+                }
+                function clearSelection(){
+                  document.querySelectorAll('[data-rn-selected="1"]').forEach(function(el){ el.removeAttribute('data-rn-selected'); });
+                }
+                function setSelectionForRect(r){
+                  clearSelection();
+                  var nodes = document.querySelectorAll('[contenteditable="true"]');
+                  nodes.forEach(function(el){
+                    var b = el.getBoundingClientRect();
+                    var intersects = !(r.right < b.left || r.left > b.right || r.bottom < b.top || r.top > b.bottom);
+                    if(intersects){ el.setAttribute('data-rn-selected','1'); }
+                  });
+                }
+                function currentSelected(){
+                  return Array.prototype.slice.call(document.querySelectorAll('[data-rn-selected="1"]'));
+                }
                 function onPointerDown(e){
                   if(!MOVE_MODE) return;
                   var t = e.target;
-                  var el = t && (t.closest('[contenteditable="true"]') || t);
-                  if(!el) return;
+                  var el = t && (t.closest('[contenteditable="true"]'));
+                  var isTouch = ('touches' in e);
+                  var pt = isTouch ? e.touches[0] : e;
+                  dragState.mod = (!!e.metaKey || !!e.ctrlKey || !!e.shiftKey || (isTouch && e.touches && e.touches.length>1));
+                  if(!el){
+                    // Start marquee selection from empty space
+                    marqueeState.active = true;
+                    marqueeState.startX = pt.clientX; marqueeState.startY = pt.clientY;
+                    var mq = getMarquee();
+                    mq.style.display='block';
+                    mq.style.left = pt.clientX + 'px';
+                    mq.style.top = pt.clientY + 'px';
+                    mq.style.width = '0px';
+                    mq.style.height = '0px';
+                    e.preventDefault();
+                    return;
+                  }
+                  // If clicked on an element
                   dragState.el = el;
-                  var pt = ('touches' in e) ? e.touches[0] : e;
                   dragState.startX = pt.clientX; dragState.startY = pt.clientY;
                   dragState.curX = 0; dragState.curY = 0;
-                  el.setAttribute('data-rn-drag','1');
-                  el.style.willChange = 'transform';
-                  el.style.userSelect = 'none';
-                  el.style.cursor = 'grabbing';
+                  dragState.isDragging = false;
+                  var selected = currentSelected();
+                  var isElSelected = el.hasAttribute('data-rn-selected');
+                  if(dragState.mod){
+                    // Modifier pressed: toggle selection state of this element
+                    if(isElSelected){ el.removeAttribute('data-rn-selected'); }
+                    else { el.setAttribute('data-rn-selected','1'); }
+                  } else if(!isElSelected){
+                    // No modifier and clicked outside selection: single select
+                    clearSelection(); el.setAttribute('data-rn-selected','1');
+                  }
+                  selected = currentSelected();
+                  if(selected.length>1){
+                    // Group drag
+                    dragState.group = selected.map(function(node){
+                      var cs = getComputedStyle(node);
+                      var left = parseFloat(cs.left||'0')||0;
+                      var top = parseFloat(cs.top||'0')||0;
+                      return { node: node, left: left, top: top };
+                    });
+                  } else {
+                    dragState.group = null;
+                    el.setAttribute('data-rn-drag','1');
+                    el.style.willChange = 'transform';
+                    el.style.userSelect = 'none';
+                    el.style.cursor = 'grabbing';
+                  }
                   e.preventDefault();
                 }
                 function onPointerMove(e){
-                  if(!MOVE_MODE || !dragState.el) return;
+                  if(!MOVE_MODE) return;
                   var pt = ('touches' in e) ? e.touches[0] : e;
+                  if(marqueeState.active){
+                    var r = rectFromPoints(marqueeState.startX, marqueeState.startY, pt.clientX, pt.clientY);
+                    var mq = getMarquee();
+                    mq.style.left = r.left + 'px';
+                    mq.style.top = r.top + 'px';
+                    mq.style.width = r.width + 'px';
+                    mq.style.height = r.height + 'px';
+                    setSelectionForRect(r);
+                    e.preventDefault();
+                    return;
+                  }
+                  if(!dragState.el) return;
                   var dx = pt.clientX - dragState.startX;
                   var dy = pt.clientY - dragState.startY;
                   dragState.curX = dx; dragState.curY = dy;
-                  try { dragState.el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; } catch(err){}
+                  if(!dragState.isDragging && (Math.abs(dx) > TAP_THRESHOLD || Math.abs(dy) > TAP_THRESHOLD)){
+                    dragState.isDragging = true;
+                  }
+                  if(dragState.group && dragState.group.length>0){
+                    dragState.group.forEach(function(item){
+                      try{ item.node.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; }catch(err){}
+                    });
+                  } else {
+                    try { dragState.el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; } catch(err){}
+                  }
                 }
                 function onPointerUp(){
-                  if(!dragState.el) return;
+                  if(marqueeState.active){
+                    marqueeState.active = false;
+                    var mq = document.getElementById(MARQUEE_ID);
+                    if(mq){ mq.style.display='none'; mq.style.width='0px'; mq.style.height='0px'; }
+                    schedule();
+                    return;
+                  }
+                  if(!dragState.el){
+                    // Tap on empty space clears selection
+                    clearSelection();
+                    schedule();
+                    return;
+                  }
+                  // If it was a tap (not a drag) and no modifier, treat as select-only
+                  if(!dragState.isDragging && !dragState.mod){
+                    // Already selected single element stays; otherwise selection already set in pointerDown
+                    schedule();
+                    dragState.el = null; dragState.group = null; // stop here
+                    return;
+                  }
                   // Persist via inline style left/top relative to current position
                   try {
-                    var el = dragState.el;
-                    var rect = el.getBoundingClientRect();
-                    var parent = el.offsetParent || el.parentElement || document.body;
-                    if(parent && parent !== document.body){ parent.style.position = parent.style.position || 'relative'; }
-                    el.style.transform = '';
-                    var currentLeft = parseFloat(getComputedStyle(el).left || '0') || 0;
-                    var currentTop = parseFloat(getComputedStyle(el).top || '0') || 0;
-                    el.style.position = 'relative';
-                    el.style.left = (currentLeft + dragState.curX) + 'px';
-                    el.style.top = (currentTop + dragState.curY) + 'px';
-                    el.style.willChange = '';
-                    el.style.userSelect = '';
-                    el.style.cursor = '';
-                    el.setAttribute('data-rn-dragging','1');
+                    if(dragState.group && dragState.group.length>0){
+                      dragState.group.forEach(function(item){
+                        var node = item.node;
+                        node.style.transform = '';
+                        var currentLeft = parseFloat(getComputedStyle(node).left || '0') || 0;
+                        var currentTop = parseFloat(getComputedStyle(node).top || '0') || 0;
+                        node.style.position = 'relative';
+                        node.style.left = (currentLeft + dragState.curX) + 'px';
+                        node.style.top = (currentTop + dragState.curY) + 'px';
+                        node.setAttribute('data-rn-dragging','1');
+                      });
+                    } else {
+                      var el = dragState.el;
+                      var parent = el.offsetParent || el.parentElement || document.body;
+                      if(parent && parent !== document.body){ parent.style.position = parent.style.position || 'relative'; }
+                      el.style.transform = '';
+                      var currentLeft = parseFloat(getComputedStyle(el).left || '0') || 0;
+                      var currentTop = parseFloat(getComputedStyle(el).top || '0') || 0;
+                      el.style.position = 'relative';
+                      el.style.left = (currentLeft + dragState.curX) + 'px';
+                      el.style.top = (currentTop + dragState.curY) + 'px';
+                      el.style.willChange = '';
+                      el.style.userSelect = '';
+                      el.style.cursor = '';
+                      el.setAttribute('data-rn-dragging','1');
+                    }
                   } catch(err){}
-                  dragState.el = null;
+                  dragState.el = null; dragState.group = null;
                   schedule();
                 }
                 function attachMove(){
@@ -619,8 +756,12 @@ export default function ManualHtmlEditScreen() {
                     document.querySelectorAll('[data-rn-edit="1"]').forEach(function(el){ el.removeAttribute('data-rn-edit'); });
                     document.querySelectorAll('[data-rn-drag="1"]').forEach(function(el){ el.removeAttribute('data-rn-drag'); });
                     document.querySelectorAll('[data-rn-dragging="1"]').forEach(function(el){ el.removeAttribute('data-rn-dragging'); });
+                    document.querySelectorAll('[data-rn-selected="1"]').forEach(function(el){ el.removeAttribute('data-rn-selected'); });
+                    var mq = document.getElementById(MARQUEE_ID); var prevDisplay='';
+                    if(mq){ prevDisplay = mq.style.display; mq.style.display='none'; }
                     var html=document.documentElement.outerHTML;
                     document.querySelectorAll(SELECTORS).forEach(function(el){ if(el.hasAttribute('contenteditable')) el.setAttribute('data-rn-edit','1'); });
+                    if(mq){ mq.style.display = prevDisplay; }
                     post(html);
                   }, DEBOUNCE);
                 }
@@ -630,8 +771,12 @@ export default function ManualHtmlEditScreen() {
                     document.querySelectorAll('[data-rn-edit="1"]').forEach(function(el){ el.removeAttribute('data-rn-edit'); });
                     document.querySelectorAll('[data-rn-drag="1"]').forEach(function(el){ el.removeAttribute('data-rn-drag'); });
                     document.querySelectorAll('[data-rn-dragging="1"]').forEach(function(el){ el.removeAttribute('data-rn-dragging'); });
+                    document.querySelectorAll('[data-rn-selected="1"]').forEach(function(el){ el.removeAttribute('data-rn-selected'); });
+                    var mq = document.getElementById(MARQUEE_ID); var prevDisplay='';
+                    if(mq){ prevDisplay = mq.style.display; mq.style.display='none'; }
                     var html=document.documentElement.outerHTML;
                     document.querySelectorAll(SELECTORS).forEach(function(el){ if(el.hasAttribute('contenteditable')) el.setAttribute('data-rn-edit','1'); });
+                    if(mq){ mq.style.display = prevDisplay; }
                     postFlush(html);
                   }catch(e){}
                 };

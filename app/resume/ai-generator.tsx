@@ -111,18 +111,8 @@ export default function AIGeneratorScreen() {
         updatedAt: new Date(),
         createdAt: new Date(),
       });
-      Alert.alert('Success', 'Your AI resume is ready!', [
-        {
-          text: 'Preview',
-          onPress: () =>
-            router.push({ pathname: '/resume/preview', params: { id: String(created.id) } }),
-        },
-        {
-          text: 'Go to Home',
-          style: 'cancel',
-          onPress: () => router.back(),
-        },
-      ]);
+      router.replace({ pathname: '/resume/preview', params: { id: String(created.id) } })
+
     } catch (err) {
       console.error(err);
       Alert.alert(
