@@ -14,7 +14,9 @@ export const initializeRevenueCat = () => {
   }
   // Prevent using secret keys in the app bundle
   if (apiKey.startsWith('sk_')) {
-    console.warn('[RevenueCat] Secret API key detected. Do not use secret keys in the app. Skipping configure.');
+    console.warn(
+      '[RevenueCat] Secret API key detected. Do not use secret keys in the app. Skipping configure.'
+    );
     purchasesConfigured = false;
     return;
   }
@@ -36,21 +38,17 @@ export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
     }
     const offerings = await Purchases.getOfferings();
     const current = offerings.current;
-    
+
     if (!current) return [];
-    
-    return current.availablePackages.map(pkg => ({
+
+    return current.availablePackages.map((pkg) => ({
       id: pkg.identifier,
       name: pkg.product.title,
       description: pkg.product.description,
       price: pkg.product.price,
       currency: pkg.product.priceString.replace(/[0-9.,]/g, ''),
       interval: pkg.packageType === 'MONTHLY' ? 'month' : 'year',
-      features: [
-        'Unlimited resumes',
-        'AI-powered suggestions',
-        'PDF export',
-      ],
+      features: ['Unlimited resumes', 'AI-powered suggestions', 'PDF export'],
     }));
   } catch (error) {
     console.error('Error getting subscription plans:', error);
@@ -65,25 +63,23 @@ export const purchaseSubscription = async (planId: string) => {
     }
     const offerings = await Purchases.getOfferings();
     const current = offerings.current;
-    
+
     if (!current) {
       throw new Error('No subscription plans available');
     }
-    
-    const packageToPurchase = current.availablePackages.find(
-      pkg => pkg.identifier === planId
-    );
-    
+
+    const packageToPurchase = current.availablePackages.find((pkg) => pkg.identifier === planId);
+
     if (!packageToPurchase) {
       throw new Error('Requested subscription plan not found');
     }
-    
+
     const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
-    
+
     if (!customerInfo.entitlements.active.pro) {
       throw new Error('Purchase was not successful');
     }
-    
+
     return customerInfo;
   } catch (error) {
     console.error('Purchase error:', error);

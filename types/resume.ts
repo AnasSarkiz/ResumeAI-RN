@@ -116,4 +116,3 @@ export interface AIResumeInput {
   aiPrompt?: string;
   aiModel?: string; // e.g., gemini-2.0-flash-lite
 }
-

@@ -6,8 +6,8 @@ export default function WelcomeScreen() {
   const { user } = useAuth();
 
   return (
-    <View className="flex-1 justify-center bg-f0f0f0 p-6">
-      <View className="mb-12 -mt-36 items-center">
+    <View className="bg-f0f0f0 flex-1 justify-center p-6">
+      <View className="-mt-36 mb-12 items-center">
         <Image source={require('../../assets/logo.png')} className="h-96 w-96 " />
         {/* <Text className="mb-2 text-3xl font-bold text-gray-800">ResumeAI</Text> */}
         <Text className="text-center text-lg text-gray-600">
@@ -17,9 +17,11 @@ export default function WelcomeScreen() {
 
       <View className="space-y-4">
         {user ? (
-            <TouchableOpacity className="rounded-full bg-blue-500 py-3" onPress={() => router.push('/(main)/home')}>
-              <Text className="text-center text-lg font-medium text-white">Continue to App</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            className="rounded-full bg-blue-500 py-3"
+            onPress={() => router.push('/(main)/home')}>
+            <Text className="text-center text-lg font-medium text-white">Continue to App</Text>
+          </TouchableOpacity>
         ) : (
           <>
             <TouchableOpacity

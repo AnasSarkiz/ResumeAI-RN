@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Check if we have a stored session
         const storedSession = await storageService.getUserSession();
         const isSessionValid = await storageService.isSessionValid();
-        
+
         if (storedSession && isSessionValid) {
           // Restore user from stored session
           setUser({
@@ -45,9 +45,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             name: storedSession.name,
             isPro: storedSession.isPro || false,
             createdAt: new Date(storedSession.lastLogin),
-            lastLogin: new Date()
+            lastLogin: new Date(),
           });
-          
+
           // Update last activity
           await storageService.updateLastActivity();
           console.log('Session restored from storage');
@@ -68,14 +68,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           const userData = await getUser(firebaseUser.uid);
           setUser(userData);
-          
+
           // Save session to storage
           const sessionData: StoredSession = {
             userId: userData.id || firebaseUser.uid,
             email: userData.email,
             name: userData.name || '',
             isPro: userData.isPro || false,
-            lastLogin: new Date().toISOString()
+            lastLogin: new Date().toISOString(),
           };
           await storageService.saveUserSession(sessionData);
           console.log('Session saved to storage');

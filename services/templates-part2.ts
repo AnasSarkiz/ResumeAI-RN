@@ -200,34 +200,37 @@ export const circularOrbit = (r: ManualResumeInput) => `
     <div class="content">
       <div class="orbit-bg"></div>
 
-      ${r.summary ? `
+      ${
+        r.summary
+          ? `
       <div class="section">
         <h2 class="section-title"><span>Summary</span></h2>
         <div class="summary-circle">
           <div>${escape(r.summary)}</div>
         </div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
 
       <div class="section">
         <h2 class="section-title"><span>Experience</span></h2>
-        ${r.experience.map(e => `
+        ${r.experience
+          .map(
+            (e) => `
           <div class="experience-item">
             <div class="job-title">${escape(e.jobTitle)}</div>
             <div class="company">${escape(e.company)}</div>
             <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
           </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
     </div>
   </div>
 </body>
 </html>
 `;
-
-
-
-
-
 
 // 24. Vertical Ribbon
 export const verticalRibbon = (r: ManualResumeInput) => `
@@ -523,52 +526,80 @@ export const verticalRibbon = (r: ManualResumeInput) => `
         ${r.title ? `<h1 class="job-title">${escape(r.title)}</h1>` : ''}
       </div>
       
-      ${r.summary ? `
+      ${
+        r.summary
+          ? `
       <div class="section">
         <h2 class="section-title">Summary</h2>
         <div class="summary-ribbon">
           ${escape(r.summary)}
         </div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
       
       <div class="section">
         <h2 class="section-title">Experience</h2>
-        ${r.experience.map(e => `
+        ${r.experience
+          .map(
+            (e) => `
           <div class="experience-item">
             <div class="job-role">${escape(e.jobTitle)}</div>
             <div class="company">${escape(e.company)}</div>
             <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
-            ${e.description?.length ? `
+            ${
+              e.description?.length
+                ? `
               <div class="description">
-                <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
+                <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
       
-      ${r.education?.length ? `
+      ${
+        r.education?.length
+          ? `
       <div class="section">
         <h2 class="section-title">Education</h2>
-        ${r.education.map(edu => `
+        ${r.education
+          .map(
+            (edu) => `
           <div class="experience-item">
             <div class="job-role">${escape(edu.degree)}</div>
             <div class="company">${escape(edu.institution)}</div>
             <div class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
             ${edu.description ? `<div class="description">${escape(edu.description)}</div>` : ''}
           </div>
-        `).join('')}
-      </div>` : ''}
+        `
+          )
+          .join('')}
+      </div>`
+          : ''
+      }
       
-      ${r.skills?.length ? `
+      ${
+        r.skills?.length
+          ? `
       <div class="section">
         <h2 class="section-title">Skills</h2>
         <div class="skills-ribbon">
-          ${r.skills.map(s => `
+          ${r.skills
+            .map(
+              (s) => `
             <div class="skill-tag">${escape(s.name)}</div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
     </div>
   </div>
 </body>

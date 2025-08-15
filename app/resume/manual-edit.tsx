@@ -1,10 +1,21 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, BackHandler, ScrollView, ActionSheetIOS, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  BackHandler,
+  ScrollView,
+  ActionSheetIOS,
+  Platform,
+} from 'react-native';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter, useNavigation, Redirect } from 'expo-router';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
 import { useAuth } from '../../context/AuthContext';
 import { renderHTMLTemplate, TemplateId } from '../../services/templates';
+import WebView from 'react-native-webview';
 
 export default function ManualHtmlEditScreen() {
   const { id } = useLocalSearchParams();
@@ -19,13 +30,14 @@ export default function ManualHtmlEditScreen() {
   const [moveMode, setMoveMode] = useState<boolean>(false);
   const webViewRef = useRef<any>(null);
   const flushWaiter = useRef<null | ((html: string) => void)>(null);
-  const [selectedCategory, setSelectedCategory] = useState<'text' | 'align' | 'list' | 'heading' | 'color'>('text');
+  const [selectedCategory, setSelectedCategory] = useState<
+    'text' | 'align' | 'list' | 'heading' | 'color'
+  >('text');
 
   // Lazy WebView import (avoid crash if not installed)
   let WebViewComp: any = null;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    WebViewComp = require('react-native-webview').WebView;
+    WebViewComp = WebView;
   } catch {}
 
   useEffect(() => {
@@ -38,7 +50,9 @@ export default function ManualHtmlEditScreen() {
   useEffect(() => {
     try {
       if (webViewRef.current?.injectJavaScript) {
-        webViewRef.current.injectJavaScript(`window.__setEditMode(${editMode ? 'true' : 'false'}); true;`);
+        webViewRef.current.injectJavaScript(
+          `window.__setEditMode(${editMode ? 'true' : 'false'}); true;`
+        );
       }
     } catch {}
   }, [editMode]);
@@ -47,10 +61,14 @@ export default function ManualHtmlEditScreen() {
   useEffect(() => {
     try {
       if (webViewRef.current?.injectJavaScript) {
-        webViewRef.current.injectJavaScript(`window.__setMoveMode(${moveMode ? 'true' : 'false'}); true;`);
+        webViewRef.current.injectJavaScript(
+          `window.__setMoveMode(${moveMode ? 'true' : 'false'}); true;`
+        );
         if (!moveMode) {
           // On leaving drag mode, force a flush so "Save" right after will persist positions
-          webViewRef.current.injectJavaScript(`(function(){ try{ if(window.__flush){ window.__flush(); } }catch(e){} })(); true;`);
+          webViewRef.current.injectJavaScript(
+            `(function(){ try{ if(window.__flush){ window.__flush(); } }catch(e){} })(); true;`
+          );
         }
       }
     } catch {}
@@ -58,22 +76,32 @@ export default function ManualHtmlEditScreen() {
 
   // Prevent leaving screen with unsaved edits
   useEffect(() => {
-    const hasUnsaved = !!editedHtml && (!!currentResume ? (currentResume as any).aiHtml !== editedHtml : true);
+    const hasUnsaved =
+      !!editedHtml && (!!currentResume ? (currentResume as any).aiHtml !== editedHtml : true);
     const onAttemptLeave = (proceed: () => void) => {
-      if (!hasUnsaved) { proceed(); return; }
+      if (!hasUnsaved) {
+        proceed();
+        return;
+      }
       Alert.alert('Unsaved changes', 'Save or discard your edits before leaving.', [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Discard', style: 'destructive', onPress: () => {
+          text: 'Discard',
+          style: 'destructive',
+          onPress: () => {
             setEditedHtml('');
             proceed();
-          }
+          },
         },
         {
-          text: 'Save', onPress: async () => {
-            try { await onSave(); proceed(); } catch {}
-          }
-        }
+          text: 'Save',
+          onPress: async () => {
+            try {
+              await onSave();
+              proceed();
+            } catch {}
+          },
+        },
       ]);
     };
 
@@ -98,7 +126,8 @@ export default function ManualHtmlEditScreen() {
   const enforceFixedViewport = (html: string): string => {
     if (!html) return html;
     const FIXED_META = `\n    <meta name="viewport" content="width=794, initial-scale=0.42, user-scalable=false" />\n  `;
-    const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
+    const FIXED_STYLE =
+      '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
     let out = html.replace(/<meta[^>]*name=["']viewport["'][^>]*>/i, FIXED_META);
     if (!/name=["']viewport["']/i.test(out)) {
       out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_META}`);
@@ -135,7 +164,9 @@ export default function ManualHtmlEditScreen() {
           .replace(/\buser-select\s*:\s*none\s*;?/gi, '')
           .replace(/\bcursor\s*:\s*(?:grabbing|grab)\s*;?/gi, '');
         return `style=\"${cleaned.trim()}\"`;
-      } catch { return m; }
+      } catch {
+        return m;
+      }
     });
     // remove focus style block we injected
     out = out.replace(/<style[^>]*id=["']rn-edit-focus-style["'][\s\S]*?<\/style>/i, '');
@@ -162,7 +193,9 @@ export default function ManualHtmlEditScreen() {
         resolve(html || editedHtml || baseHtml);
       };
       try {
-        webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__flush){ window.__flush(); } }catch(e){} })(); true;`);
+        webViewRef.current?.injectJavaScript(
+          `(function(){ try{ if(window.__flush){ window.__flush(); } }catch(e){} })(); true;`
+        );
       } catch {
         // fallback to current editedHtml if inject fails
       }
@@ -198,22 +231,23 @@ export default function ManualHtmlEditScreen() {
 
   return (
     <View className="flex-1 bg-[#f9f9f9]">
-      <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
+      <View className="flex-row items-center justify-between px-4 pb-2 pt-4">
         <Text className="text-2xl font-bold text-gray-800">Manual Edit</Text>
         <View className="flex-row items-center">
           <TouchableOpacity
             onPress={() => setEditMode((v) => !v)}
-            className={`mr-2 rounded-md px-3 py-2 ${editMode ? 'bg-amber-600' : 'bg-amber-500'}`}
-          >
+            className={`mr-2 rounded-md px-3 py-2 ${editMode ? 'bg-amber-600' : 'bg-amber-500'}`}>
             <Text className="text-white">{editMode ? 'Editing On' : 'Text Edit Mode'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setMoveMode((v) => !v)}
-            className={`mr-2 rounded-md px-3 py-2 ${moveMode ? 'bg-purple-600' : 'bg-purple-500'}`}
-          >
+            className={`mr-2 rounded-md px-3 py-2 ${moveMode ? 'bg-purple-600' : 'bg-purple-500'}`}>
             <Text className="text-white">{moveMode ? 'Drag On' : 'Drag Mode'}</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={onSave} disabled={saving} className={`rounded-md px-3 py-2 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
+          <TouchableOpacity
+            onPress={onSave}
+            disabled={saving}
+            className={`rounded-md px-3 py-2 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
             {saving ? <ActivityIndicator color="#fff" /> : <Text className="text-white">Save</Text>}
           </TouchableOpacity>
         </View>
@@ -228,9 +262,19 @@ export default function ManualHtmlEditScreen() {
               {/* Top bar: categories + undo/redo */}
               <View
                 className="flex-row items-center justify-between rounded-full bg-white"
-                style={{ paddingHorizontal: 8, paddingVertical: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-              >
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ columnGap: 6, alignItems: 'center' }}>
+                style={{
+                  paddingHorizontal: 8,
+                  paddingVertical: 6,
+                  shadowColor: '#000',
+                  shadowOpacity: 0.08,
+                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 4 },
+                  elevation: 2,
+                }}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ columnGap: 6, alignItems: 'center' }}>
                   {[
                     { key: 'text', label: 'Text', icon: 'text-outline' },
                     { key: 'align', label: 'Align', icon: 'menu-outline' },
@@ -241,24 +285,31 @@ export default function ManualHtmlEditScreen() {
                     <TouchableOpacity
                       key={cat.key}
                       onPress={() => setSelectedCat(cat.key as any)}
-                      className="flex-row items-center rounded-full px-3 h-9"
-                      style={{ backgroundColor: selectedCat === cat.key ? '#e5e7eb' : '#f3f4f6' }}
-                    >
+                      className="h-9 flex-row items-center rounded-full px-3"
+                      style={{ backgroundColor: selectedCat === cat.key ? '#e5e7eb' : '#f3f4f6' }}>
                       <Ionicons name={cat.icon as any} size={16} color="#111827" />
-                      <Text className="ml-1 text-gray-800" style={{ fontWeight: '600' }}>{cat.label}</Text>
+                      <Text className="ml-1 text-gray-800" style={{ fontWeight: '600' }}>
+                        {cat.label}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-                <View className="pl-2 flex-row items-center" style={{ columnGap: 4 }}>
-                  {[{ key: 'undo', icon: 'arrow-undo-outline', cmd: 'undo' }, { key: 'redo', icon: 'arrow-redo-outline', cmd: 'redo' }].map((btn) => (
+                <View className="flex-row items-center pl-2" style={{ columnGap: 4 }}>
+                  {[
+                    { key: 'undo', icon: 'arrow-undo-outline', cmd: 'undo' },
+                    { key: 'redo', icon: 'arrow-redo-outline', cmd: 'redo' },
+                  ].map((btn) => (
                     <TouchableOpacity
                       key={btn.key}
-                      onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)}
-                      className="h-9 w-9 rounded-full items-center justify-center"
+                      onPress={() =>
+                        webViewRef.current?.injectJavaScript(
+                          `(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`
+                        )
+                      }
+                      className="h-9 w-9 items-center justify-center rounded-full"
                       style={{ backgroundColor: '#e5e7eb' }}
                       accessibilityRole="button"
-                      accessibilityLabel={`hist-${btn.key}`}
-                    >
+                      accessibilityLabel={`hist-${btn.key}`}>
                       <Ionicons name={btn.icon as any} size={18} color="#111827" />
                     </TouchableOpacity>
                   ))}
@@ -266,11 +317,33 @@ export default function ManualHtmlEditScreen() {
               </View>
 
               {/* Bottom bar: actions for selected category */}
-              <View className="mt-2 rounded-2xl bg-white" style={{ paddingHorizontal: 8, paddingVertical: 8, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 }}>
+              <View
+                className="mt-2 rounded-2xl bg-white"
+                style={{
+                  paddingHorizontal: 8,
+                  paddingVertical: 8,
+                  shadowColor: '#000',
+                  shadowOpacity: 0.06,
+                  shadowRadius: 6,
+                  shadowOffset: { width: 0, height: 2 },
+                  elevation: 1,
+                }}>
                 {selectedCat === 'text' && (
                   <View className="flex-row items-center" style={{ columnGap: 6 }}>
-                    {[{ key: 'bold', icon: 'bold', cmd: 'bold' }, { key: 'italic', icon: 'italic', cmd: 'italic' }, { key: 'underline', icon: 'underline', cmd: 'underline' }].map((btn) => (
-                      <TouchableOpacity key={btn.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)} className="h-9 w-9 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
+                    {[
+                      { key: 'bold', icon: 'bold', cmd: 'bold' },
+                      { key: 'italic', icon: 'italic', cmd: 'italic' },
+                      { key: 'underline', icon: 'underline', cmd: 'underline' },
+                    ].map((btn) => (
+                      <TouchableOpacity
+                        key={btn.key}
+                        onPress={() =>
+                          webViewRef.current?.injectJavaScript(
+                            `(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`
+                          )
+                        }
+                        className="h-9 w-9 items-center justify-center rounded-full"
+                        style={{ backgroundColor: '#f3f4f6' }}>
                         <FontAwesome6 name={btn.icon} size={18} color="#111827" />
                       </TouchableOpacity>
                     ))}
@@ -278,8 +351,20 @@ export default function ManualHtmlEditScreen() {
                 )}
                 {selectedCat === 'align' && (
                   <View className="flex-row items-center" style={{ columnGap: 6 }}>
-                    {[{ key: 'left', icon: 'align-left', cmd: 'justifyLeft' }, { key: 'center', icon: 'align-center', cmd: 'justifyCenter' }, { key: 'right', icon: 'align-right', cmd: 'justifyRight' }].map((btn) => (
-                      <TouchableOpacity key={btn.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)} className="h-9 w-9 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
+                    {[
+                      { key: 'left', icon: 'align-left', cmd: 'justifyLeft' },
+                      { key: 'center', icon: 'align-center', cmd: 'justifyCenter' },
+                      { key: 'right', icon: 'align-right', cmd: 'justifyRight' },
+                    ].map((btn) => (
+                      <TouchableOpacity
+                        key={btn.key}
+                        onPress={() =>
+                          webViewRef.current?.injectJavaScript(
+                            `(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`
+                          )
+                        }
+                        className="h-9 w-9 items-center justify-center rounded-full"
+                        style={{ backgroundColor: '#f3f4f6' }}>
                         <FontAwesome6 name={btn.icon as any} size={18} color="#111827" />
                       </TouchableOpacity>
                     ))}
@@ -287,8 +372,19 @@ export default function ManualHtmlEditScreen() {
                 )}
                 {selectedCat === 'list' && (
                   <View className="flex-row items-center" style={{ columnGap: 6 }}>
-                    {[{ key: 'ul', icon: 'list-ol', cmd: 'insertUnorderedList' }, { key: 'ol', icon: 'list-ul', cmd: 'insertOrderedList' }].map((btn) => (
-                      <TouchableOpacity key={btn.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`)} className="h-9 w-9 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
+                    {[
+                      { key: 'ul', icon: 'list-ol', cmd: 'insertUnorderedList' },
+                      { key: 'ol', icon: 'list-ul', cmd: 'insertOrderedList' },
+                    ].map((btn) => (
+                      <TouchableOpacity
+                        key={btn.key}
+                        onPress={() =>
+                          webViewRef.current?.injectJavaScript(
+                            `(function(){ try{ if(window.__exec){ __exec('${btn.cmd}'); } }catch(e){} })(); true;`
+                          )
+                        }
+                        className="h-9 w-9 items-center justify-center rounded-full"
+                        style={{ backgroundColor: '#f3f4f6' }}>
                         <FontAwesome6 name={btn.icon as any} size={18} color="#111827" />
                       </TouchableOpacity>
                     ))}
@@ -296,17 +392,61 @@ export default function ManualHtmlEditScreen() {
                 )}
                 {selectedCat === 'heading' && (
                   <View className="flex-row items-center" style={{ columnGap: 6 }}>
-                    {[{ key: 'p', label: 'P', val: 'P' }, { key: 'h1', label: 'H1', val: 'H1' }, { key: 'h2', label: 'H2', val: 'H2' }, { key: 'h3', label: 'H3', val: 'H3' }].map((b) => (
-                      <TouchableOpacity key={b.key} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('formatBlock', '${b.val}'); } }catch(e){} })(); true;`)} className="h-9 px-3 rounded-full items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
-                        <Text className="text-gray-800" style={{ fontWeight: '700' }}>{b.label}</Text>
+                    {[
+                      { key: 'p', label: 'P', val: 'P' },
+                      { key: 'h1', label: 'H1', val: 'H1' },
+                      { key: 'h2', label: 'H2', val: 'H2' },
+                      { key: 'h3', label: 'H3', val: 'H3' },
+                    ].map((b) => (
+                      <TouchableOpacity
+                        key={b.key}
+                        onPress={() =>
+                          webViewRef.current?.injectJavaScript(
+                            `(function(){ try{ if(window.__exec){ __exec('formatBlock', '${b.val}'); } }catch(e){} })(); true;`
+                          )
+                        }
+                        className="h-9 items-center justify-center rounded-full px-3"
+                        style={{ backgroundColor: '#f3f4f6' }}>
+                        <Text className="text-gray-800" style={{ fontWeight: '700' }}>
+                          {b.label}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
                 )}
                 {selectedCat === 'color' && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ columnGap: 8 }}>
-                    {['#111827','#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#6b7280','#000000','#ffffff'].map((hex) => (
-                      <TouchableOpacity key={hex} onPress={() => webViewRef.current?.injectJavaScript(`(function(){ try{ if(window.__exec){ __exec('foreColor', '${hex}'); } }catch(e){} })(); true;`)} style={{ width: 28, height: 28, borderRadius: 18, backgroundColor: hex, borderWidth: hex === '#ffffff' ? 1 : 0, borderColor: '#e5e7eb' }} />
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ columnGap: 8 }}>
+                    {[
+                      '#111827',
+                      '#ef4444',
+                      '#f59e0b',
+                      '#10b981',
+                      '#3b82f6',
+                      '#8b5cf6',
+                      '#ec4899',
+                      '#6b7280',
+                      '#000000',
+                      '#ffffff',
+                    ].map((hex) => (
+                      <TouchableOpacity
+                        key={hex}
+                        onPress={() =>
+                          webViewRef.current?.injectJavaScript(
+                            `(function(){ try{ if(window.__exec){ __exec('foreColor', '${hex}'); } }catch(e){} })(); true;`
+                          )
+                        }
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 18,
+                          backgroundColor: hex,
+                          borderWidth: hex === '#ffffff' ? 1 : 0,
+                          borderColor: '#e5e7eb',
+                        }}
+                      />
                     ))}
                   </ScrollView>
                 )}
@@ -316,13 +456,16 @@ export default function ManualHtmlEditScreen() {
         })()}
       </View>
 
-      <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        className="flex-1 p-4"
+        contentContainerStyle={{ paddingBottom: 24 }}
+        keyboardShouldPersistTaps="handled">
         <Text className="mb-2 text-sm text-gray-500">Tap text in the preview to edit</Text>
         <View className="mb-4 h-[520px] overflow-hidden rounded-lg bg-white">
           {WebViewComp ? (
             <WebViewComp
               ref={webViewRef}
-              originWhitelist={["*"]}
+              originWhitelist={['*']}
               source={{ html: htmlToPreview }}
               style={{ flex: 1 }}
               scrollEnabled={true}
@@ -336,7 +479,8 @@ export default function ManualHtmlEditScreen() {
                   }
                   if (data?.type === 'flushAck' && typeof data?.payload?.html === 'string') {
                     setEditedHtml(data.payload.html);
-                    const cb = flushWaiter.current; flushWaiter.current = null;
+                    const cb = flushWaiter.current;
+                    flushWaiter.current = null;
                     cb && cb(data.payload.html);
                   }
                 } catch {}

@@ -10,9 +10,7 @@
       "tsconfigPaths": true
     },
     "scheme": "resumeai",
-    "plugins": [
-      "expo-router"
-    ],
+    "plugins": ["expo-router"],
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",

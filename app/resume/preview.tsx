@@ -4,12 +4,12 @@ import { useLocalSearchParams } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
 import { ExportPDFButton } from '../../components/ExportPDFButton';
 import { TemplateId } from '../../services/templates';
+import WebView from 'react-native-webview';
 
 // Try to load WebView at runtime to avoid crashing if it's not installed yet.
 let WebViewComp: any = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  WebViewComp = require('react-native-webview').WebView;
+  WebViewComp = WebView;
 } catch (e) {
   WebViewComp = null;
 }
@@ -19,8 +19,10 @@ try {
 function enforceFixedViewport(html: string): string {
   if (!html) return html;
 
-  const FIXED_META = '<meta name="viewport" content="width=794, initial-scale=0.5, minimum-scale=0.1, maximum-scale=5, user-scalable=yes" />';
-  const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
+  const FIXED_META =
+    '<meta name="viewport" content="width=794, initial-scale=0.5, minimum-scale=0.1, maximum-scale=5, user-scalable=yes" />';
+  const FIXED_STYLE =
+    '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
 
   // Replace existing viewport meta if present
   let out = html.replace(/<meta[^>]*name=["']viewport["'][^>]*>/i, FIXED_META);
@@ -41,7 +43,7 @@ function enforceFixedViewport(html: string): string {
 export default function PreviewScreen() {
   const { id, template } = useLocalSearchParams();
   const { currentResume, loading, loadResume } = useResume();
-  const tpl = (template as TemplateId | undefined);
+  const tpl = template as TemplateId | undefined;
 
   // Ensure the resume is loaded when arriving from Home
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function PreviewScreen() {
       <View className="flex-1 bg-white">
         <WebViewComp
           key={(currentResume.updatedAt?.toISOString?.() || '') + ':' + currentResume.id}
-          originWhitelist={["*"]}
+          originWhitelist={['*']}
           source={{ html }}
           style={{ flex: 1 }}
           javaScriptEnabled
@@ -124,7 +126,9 @@ export default function PreviewScreen() {
   return (
     <View className="flex-1 items-center justify-center p-6">
       <Text className="mb-2 text-lg font-semibold">Preview unavailable</Text>
-      <Text className="text-center text-gray-600">Install react-native-webview to preview resumes, or try exporting to PDF.</Text>
+      <Text className="text-center text-gray-600">
+        Install react-native-webview to preview resumes, or try exporting to PDF.
+      </Text>
       <View className="mt-4 w-full px-6">
         <ExportPDFButton template={tpl} />
       </View>

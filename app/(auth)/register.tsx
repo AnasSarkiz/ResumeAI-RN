@@ -80,11 +80,11 @@ export default function RegisterScreen() {
           {loading ? 'Creating Account...' : 'Sign Up'}
         </Text>
       </TouchableOpacity>
-        <TouchableOpacity className="py-3" onPress={() => router.replace('/login')}>
-          <Text className="text-center font-medium text-blue-500">
-            Already have an account? Log in
-          </Text>
-        </TouchableOpacity>
+      <TouchableOpacity className="py-3" onPress={() => router.replace('/login')}>
+        <Text className="text-center font-medium text-blue-500">
+          Already have an account? Log in
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }

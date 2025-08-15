@@ -47,19 +47,17 @@ export default function LoginScreen() {
         />
       </View>
 
-      <TouchableOpacity
-        onPress={handleLogin}
-        className="mb-4 rounded-full bg-blue-500 py-3">
+      <TouchableOpacity onPress={handleLogin} className="mb-4 rounded-full bg-blue-500 py-3">
         <Text className="text-center text-lg font-medium text-white">
           {loading ? 'Logging In...' : 'Log In'}
         </Text>
       </TouchableOpacity>
 
-        <TouchableOpacity className="py-3" onPress={()=> router.replace("./register")}>
-          <Text className="text-center font-medium text-blue-500">
-            Don not have an account? Sign up
-          </Text>
-        </TouchableOpacity>
+      <TouchableOpacity className="py-3" onPress={() => router.replace('./register')}>
+        <Text className="text-center font-medium text-blue-500">
+          Don not have an account? Sign up
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }

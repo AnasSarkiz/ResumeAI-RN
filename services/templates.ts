@@ -1,6 +1,6 @@
 import { ManualResumeInput } from '../types/resume';
-import {layeredPaper,artDecoRevival} from './templates-part3';
-import {circularOrbit,verticalRibbon} from './templates-part2';
+import { layeredPaper, artDecoRevival } from './templates-part3';
+import { circularOrbit, verticalRibbon } from './templates-part2';
 export type TemplateId =
   | 'classic'
   | 'modern'
@@ -27,7 +27,7 @@ export type TemplateId =
   | 'circularOrbit'
   | 'verticalRibbon'
   | 'diagonalSplit'
-  | 'hexagonalGrid'
+  | 'hexagonalGrid';
 
 export const TEMPLATE_NAMES: Record<TemplateId, string> = {
   classic: 'Classic Professional',
@@ -299,17 +299,25 @@ const sidebar = (r: ManualResumeInput) => `
           ${r.website ? `<div>${escape(r.website)}</div>` : ''}
         </div>
       </div>
-      ${r.skills?.length ? `<div class="section"><h3>Skills</h3>${r.skills
-        .map((s) => `<span class="chip">${escape(s.name)}</span>`)
-        .join('')}</div>` : ''}
-      ${r.education?.length ? `<div class="section"><h3>Education</h3>${r.education
-        .map(
-          (e) => `<div>
+      ${
+        r.skills?.length
+          ? `<div class="section"><h3>Skills</h3>${r.skills
+              .map((s) => `<span class="chip">${escape(s.name)}</span>`)
+              .join('')}</div>`
+          : ''
+      }
+      ${
+        r.education?.length
+          ? `<div class="section"><h3>Education</h3>${r.education
+              .map(
+                (e) => `<div>
             <div>${escape(e.degree)}</div>
             <div class="meta">${escape(e.institution)}</div>
           </div>`
-        )
-        .join('')}</div>` : ''}
+              )
+              .join('')}</div>`
+          : ''
+      }
     </aside>
     <main class="right">
       ${r.summary ? `<div class="section"><h2>Profile</h2><p>${escape(r.summary)}</p></div>` : ''}
@@ -761,12 +769,16 @@ const modernCardBlocks = (r: ManualResumeInput) => `
     <h1>${escape(r.fullName)}</h1>
     ${renderContact(r)}
     ${r.summary ? `<div class="section"><h2>Summary</h2><div class="card"><p>${escape(r.summary)}</p></div></div>` : ''}
-    <div class="section"><h2>Experience</h2>${r.experience.map(e => `<div class="card">
+    <div class="section"><h2>Experience</h2>${r.experience
+      .map(
+        (e) => `<div class="card">
       <div class="role">${escape(e.jobTitle)}</div>
       <div class="meta">${escape(e.company)}${e.location ? ` • ${escape(e.location)}` : ''}</div>
       <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
-      ${e.description?.length ? `<ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>` : ''}
-    </div>`).join('')}</div>
+      ${e.description?.length ? `<ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>` : ''}
+    </div>`
+      )
+      .join('')}</div>
     <div class="section"><h2>Education</h2>${renderEducation(r)}</div>
     <div class="section"><h2>Skills</h2>${renderSkills(r)}</div>
   </div>
@@ -991,50 +1003,78 @@ const magazineEditorial = (r: ManualResumeInput) => `
     </header>
     
     <div class="content">
-      ${r.summary ? `
+      ${
+        r.summary
+          ? `
       <div class="section">
         <h2 class="section-title">Profile</h2>
         <div class="summary">${escape(r.summary)}</div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
       
       <div class="section">
         <h2 class="section-title">Experience</h2>
-        ${r.experience.map(e => `
+        ${r.experience
+          .map(
+            (e) => `
           <div class="experience-item">
             <div class="role">${escape(e.jobTitle)}</div>
             <div class="company">${escape(e.company)}</div>
             <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
-            ${e.description?.length ? `
-              <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
-            ` : ''}
+            ${
+              e.description?.length
+                ? `
+              <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
+            `
+                : ''
+            }
           </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
       
-      ${r.education?.length ? `
+      ${
+        r.education?.length
+          ? `
       <div class="section">
         <h2 class="section-title">Education</h2>
-        ${r.education.map(edu => `
+        ${r.education
+          .map(
+            (edu) => `
           <div class="experience-item">
             <div class="role">${escape(edu.degree)}</div>
             <div class="company">${escape(edu.institution)}</div>
             <div class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
             ${edu.description ? `<p>${escape(edu.description)}</p>` : ''}
           </div>
-        `).join('')}
-      </div>` : ''}
+        `
+          )
+          .join('')}
+      </div>`
+          : ''
+      }
       
-      ${r.skills?.length ? `
+      ${
+        r.skills?.length
+          ? `
       <div class="section">
         <h2 class="section-title">Skills</h2>
         <div class="skills-container">
-          ${r.skills.map(s => `
+          ${r.skills
+            .map(
+              (s) => `
             <div class="skill-item">
               ${escape(s.name)}${s.proficiency ? `<br><small>${escape(s.proficiency)}</small>` : ''}
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
     </div>
   </div>
 </body>
@@ -1236,61 +1276,96 @@ const infographicMinimal = (r: ManualResumeInput) => `
     
     <div class="content">
       <div>
-        ${r.summary ? `
+        ${
+          r.summary
+            ? `
         <div class="section">
           <h2 class="section-title">Summary</h2>
           <p>${escape(r.summary)}</p>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
         
         <div class="section">
           <h2 class="section-title">Experience</h2>
-          ${r.experience.map(e => `
+          ${r.experience
+            .map(
+              (e) => `
             <div class="experience-item">
               <div class="role">${escape(e.jobTitle)}</div>
               <div class="company">${escape(e.company)}</div>
               <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
-              ${e.description?.length ? `
-                <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
-              ` : ''}
+              ${
+                e.description?.length
+                  ? `
+                <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
+              `
+                  : ''
+              }
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
       </div>
       
       <div>
-        ${r.education?.length ? `
+        ${
+          r.education?.length
+            ? `
         <div class="section">
           <h2 class="section-title">Education</h2>
-          ${r.education.map(edu => `
+          ${r.education
+            .map(
+              (edu) => `
             <div class="education-item">
               <div class="degree">${escape(edu.degree)}</div>
               <div class="institution">${escape(edu.institution)}</div>
               <div class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
               ${edu.description ? `<p>${escape(edu.description)}</p>` : ''}
             </div>
-          `).join('')}
-        </div>` : ''}
+          `
+            )
+            .join('')}
+        </div>`
+            : ''
+        }
         
-        ${r.skills?.length ? `
+        ${
+          r.skills?.length
+            ? `
         <div class="section">
           <h2 class="section-title">Skills</h2>
-          ${r.skills.map(s => `
+          ${r.skills
+            .map(
+              (s) => `
             <div class="skill-meter">
               <div class="skill-name">
                 <span>${escape(s.name)}</span>
                 ${s.proficiency ? `<span>${escape(s.proficiency)}</span>` : ''}
               </div>
               <div class="meter-bar">
-                <div class="meter-fill" style="width: ${s.proficiency ? 
-                  s.proficiency.includes('Expert') ? '95%' : 
-                  s.proficiency.includes('Advanced') ? '85%' : 
-                  s.proficiency.includes('Intermediate') ? '70%' : 
-                  s.proficiency.includes('Basic') ? '50%' : '60%' 
-                  : '60%'}"></div>
+                <div class="meter-fill" style="width: ${
+                  s.proficiency
+                    ? s.proficiency.includes('Expert')
+                      ? '95%'
+                      : s.proficiency.includes('Advanced')
+                        ? '85%'
+                        : s.proficiency.includes('Intermediate')
+                          ? '70%'
+                          : s.proficiency.includes('Basic')
+                            ? '50%'
+                            : '60%'
+                    : '60%'
+                }"></div>
               </div>
             </div>
-          `).join('')}
-        </div>` : ''}
+          `
+            )
+            .join('')}
+        </div>`
+            : ''
+        }
       </div>
     </div>
   </div>
@@ -1497,51 +1572,79 @@ const asymmetricLayout = (r: ManualResumeInput) => `
         </div>
       </div>
       
-      ${r.skills?.length ? `
+      ${
+        r.skills?.length
+          ? `
       <div>
         <div class="divider"></div>
         <h3 class="section-title">Skills</h3>
         <div class="skills-container">
-          ${r.skills.map(s => `
+          ${r.skills
+            .map(
+              (s) => `
             <div class="skill-tag">${escape(s.name)}</div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
     </aside>
     
     <main class="main-content">
-      ${r.summary ? `
+      ${
+        r.summary
+          ? `
       <div class="section">
         <h2 class="section-title">Profile</h2>
         <p>${escape(r.summary)}</p>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
       
       <div class="section">
         <h2 class="section-title">Experience</h2>
-        ${r.experience.map(e => `
+        ${r.experience
+          .map(
+            (e) => `
           <div class="experience-item">
             <div class="role">${escape(e.jobTitle)}</div>
             <div class="company">${escape(e.company)}</div>
             <span class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</span>
-            ${e.description?.length ? `
-              <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
-            ` : ''}
+            ${
+              e.description?.length
+                ? `
+              <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
+            `
+                : ''
+            }
           </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
       
-      ${r.education?.length ? `
+      ${
+        r.education?.length
+          ? `
       <div class="section">
         <h2 class="section-title">Education</h2>
-        ${r.education.map(edu => `
+        ${r.education
+          .map(
+            (edu) => `
           <div class="education-item">
             <div class="degree">${escape(edu.degree)}</div>
             <div class="institution">${escape(edu.institution)}</div>
             <span class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</span>
             ${edu.description ? `<p>${escape(edu.description)}</p>` : ''}
           </div>
-        `).join('')}
-      </div>` : ''}
+        `
+          )
+          .join('')}
+      </div>`
+          : ''
+      }
     </main>
   </div>
 </body>
@@ -1723,63 +1826,97 @@ const typographicEmphasis = (r: ManualResumeInput) => `
       </div>
     </header>
     
-    ${r.summary ? `
+    ${
+      r.summary
+        ? `
     <div class="section" data-number="01">
       <h2 class="section-title">Profile</h2>
       <div class="summary">${escape(r.summary)}</div>
-    </div>` : ''}
+    </div>`
+        : ''
+    }
     
     <div class="section" data-number="02">
       <h2 class="section-title">Experience</h2>
-      ${r.experience.map(e => `
+      ${r.experience
+        .map(
+          (e) => `
         <div class="experience-grid">
           <div class="date-range">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
           <div class="experience-details">
             <div class="role">${escape(e.jobTitle)}</div>
             <div class="company">${escape(e.company)}</div>
-            ${e.description?.length ? `
-              <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
-            ` : ''}
+            ${
+              e.description?.length
+                ? `
+              <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
+            `
+                : ''
+            }
           </div>
         </div>
-      `).join('')}
+      `
+        )
+        .join('')}
     </div>
     
-    ${r.education?.length ? `
+    ${
+      r.education?.length
+        ? `
     <div class="section" data-number="03">
       <h2 class="section-title">Education</h2>
-      ${r.education.map(edu => `
+      ${r.education
+        .map(
+          (edu) => `
         <div class="education-item">
           <div class="date-range">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
           <div class="degree">${escape(edu.degree)}</div>
           <div class="institution">${escape(edu.institution)}</div>
           ${edu.description ? `<p>${escape(edu.description)}</p>` : ''}
         </div>
-      `).join('')}
-    </div>` : ''}
+      `
+        )
+        .join('')}
+    </div>`
+        : ''
+    }
     
-    ${r.skills?.length ? `
+    ${
+      r.skills?.length
+        ? `
     <div class="section" data-number="04">
       <h2 class="section-title">Skills</h2>
       <div class="skills-container">
         <div class="skill-category">
           <h4>Technical</h4>
           <div class="skill-items">
-            ${r.skills.filter(s => !s.category || s.category === 'Technical').map(s => `
+            ${r.skills
+              .filter((s) => !s.category || s.category === 'Technical')
+              .map(
+                (s) => `
               <div class="skill-item">${escape(s.name)}</div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
         </div>
         <div class="skill-category">
           <h4>Professional</h4>
           <div class="skill-items">
-            ${r.skills.filter(s => s.category === 'Professional').map(s => `
+            ${r.skills
+              .filter((s) => s.category === 'Professional')
+              .map(
+                (s) => `
               <div class="skill-item">${escape(s.name)}</div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
         </div>
       </div>
-    </div>` : ''}
+    </div>`
+        : ''
+    }
   </div>
 </body>
 </html>`;
@@ -1996,50 +2133,78 @@ const geometricMinimalism = (r: ManualResumeInput) => `
     
     <div class="content">
       <div>
-        ${r.summary ? `
+        ${
+          r.summary
+            ? `
         <div class="section">
           <h2 class="section-title">Summary</h2>
           <p>${escape(r.summary)}</p>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
         
         <div class="section">
           <h2 class="section-title">Experience</h2>
-          ${r.experience.map(e => `
+          ${r.experience
+            .map(
+              (e) => `
             <div class="experience-item">
               <div class="role">${escape(e.jobTitle)}</div>
               <div class="company">${escape(e.company)}</div>
               <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
-              ${e.description?.length ? `
-                <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
-              ` : ''}
+              ${
+                e.description?.length
+                  ? `
+                <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
+              `
+                  : ''
+              }
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
       </div>
       
       <div>
-        ${r.education?.length ? `
+        ${
+          r.education?.length
+            ? `
         <div class="section">
           <h2 class="section-title">Education</h2>
-          ${r.education.map(edu => `
+          ${r.education
+            .map(
+              (edu) => `
             <div class="experience-item">
               <div class="role">${escape(edu.degree)}</div>
               <div class="company">${escape(edu.institution)}</div>
               <div class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
               ${edu.description ? `<p>${escape(edu.description)}</p>` : ''}
             </div>
-          `).join('')}
-        </div>` : ''}
+          `
+            )
+            .join('')}
+        </div>`
+            : ''
+        }
         
-        ${r.skills?.length ? `
+        ${
+          r.skills?.length
+            ? `
         <div class="section">
           <h2 class="section-title">Skills</h2>
           <div class="skills-grid">
-            ${r.skills.map(s => `
+            ${r.skills
+              .map(
+                (s) => `
               <div class="skill-item">${escape(s.name)}</div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
       </div>
     </div>
   </div>
@@ -2283,50 +2448,78 @@ const hexagonalGrid = (r: ManualResumeInput) => `
     
     <div class="content">
       <div class="hex-grid">
-        ${r.summary ? `
+        ${
+          r.summary
+            ? `
         <div class="hex-section">
           <h2 class="section-title">Summary</h2>
           <div class="summary-text">${escape(r.summary)}</div>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
         
         <div class="hex-section">
           <h2 class="section-title">Experience</h2>
-          ${r.experience.map(e => `
+          ${r.experience
+            .map(
+              (e) => `
             <div class="experience-item">
               <div class="job-title">${escape(e.jobTitle)}</div>
               <div class="company">${escape(e.company)}</div>
               <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
-              ${e.description?.length ? `
+              ${
+                e.description?.length
+                  ? `
                 <div class="description">
-                  <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
+                  <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
                 </div>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
         
-        ${r.education?.length ? `
+        ${
+          r.education?.length
+            ? `
         <div class="hex-section">
           <h2 class="section-title">Education</h2>
-          ${r.education.map(edu => `
+          ${r.education
+            .map(
+              (edu) => `
             <div class="experience-item">
               <div class="job-title">${escape(edu.degree)}</div>
               <div class="company">${escape(edu.institution)}</div>
               <div class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
               ${edu.description ? `<div class="description">${escape(edu.description)}</div>` : ''}
             </div>
-          `).join('')}
-        </div>` : ''}
+          `
+            )
+            .join('')}
+        </div>`
+            : ''
+        }
         
-        ${r.skills?.length ? `
+        ${
+          r.skills?.length
+            ? `
         <div class="hex-section">
           <h2 class="section-title">Skills</h2>
           <div class="skills-hex">
-            ${r.skills.map(s => `
+            ${r.skills
+              .map(
+                (s) => `
               <div class="skill-hex">${escape(s.name)}</div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
       </div>
     </div>
   </div>
@@ -2606,52 +2799,80 @@ const diagonalSplit = (r: ManualResumeInput) => `
     </header>
     
     <div class="content">
-      ${r.summary ? `
+      ${
+        r.summary
+          ? `
       <div class="section">
         <h2 class="section-title">Summary</h2>
         <div class="summary-box">
           ${escape(r.summary)}
         </div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
       
       <div class="section">
         <h2 class="section-title">Experience</h2>
-        ${r.experience.map(e => `
+        ${r.experience
+          .map(
+            (e) => `
           <div class="experience-item">
             <div class="job-title">${escape(e.jobTitle)}</div>
             <div class="company">${escape(e.company)}</div>
             <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
-            ${e.description?.length ? `
+            ${
+              e.description?.length
+                ? `
               <div class="description">
-                <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
+                <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
       
-      ${r.education?.length ? `
+      ${
+        r.education?.length
+          ? `
       <div class="section">
         <h2 class="section-title">Education</h2>
-        ${r.education.map(edu => `
+        ${r.education
+          .map(
+            (edu) => `
           <div class="experience-item">
             <div class="job-title">${escape(edu.degree)}</div>
             <div class="company">${escape(edu.institution)}</div>
             <div class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
             ${edu.description ? `<div class="description">${escape(edu.description)}</div>` : ''}
           </div>
-        `).join('')}
-      </div>` : ''}
+        `
+          )
+          .join('')}
+      </div>`
+          : ''
+      }
       
-      ${r.skills?.length ? `
+      ${
+        r.skills?.length
+          ? `
       <div class="section">
         <h2 class="section-title">Skills</h2>
         <div class="skills-diagonal">
-          ${r.skills.map(s => `
+          ${r.skills
+            .map(
+              (s) => `
             <div class="skill-tag">${escape(s.name)}</div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
     </div>
   </div>
 </body>
@@ -2659,35 +2880,62 @@ const diagonalSplit = (r: ManualResumeInput) => `
 `;
 
 export const renderHTMLTemplate = (resume: ManualResumeInput, template: TemplateId): string => {
-    switch (template) {
-      case 'classic': return classic(resume);
-      case 'modern': return modern(resume);
-      case 'elegant': return elegant(resume);
-      case 'sidebar': return sidebar(resume);
-      case 'timeline': return timeline(resume);
-      case 'compactGrid': return compactGrid(resume);
-      case 'creativeGradient': return creativeGradient(resume);
-      case 'futuristicDarkMode': return futuristicDarkMode(resume);
-      case 'photoHeader': return photoHeader(resume);
-      case 'softPastel': return softPastel(resume);
-      case 'minimalistColumns': return minimalistColumns(resume);
-      case 'boldAccentLine': return boldAccentLine(resume);
-      case 'splitBanner': return splitBanner(resume);
-      case 'modernCardBlocks': return modernCardBlocks(resume);
-      case 'elegantMonochrome': return elegantMonochrome(resume);
-      case 'geometricMinimalism': return geometricMinimalism(resume);
-      case 'magazineEditorial': return magazineEditorial(resume);
-      case 'infographicMinimal': return infographicMinimal(resume);
-      case 'asymmetricLayout': return asymmetricLayout(resume);
-      case 'typographicEmphasis': return typographicEmphasis(resume);
-      case 'layeredPaper': return layeredPaper(resume);
-      case 'artDecoRevival': return artDecoRevival(resume);
-      case 'circularOrbit': return circularOrbit(resume);
-      case 'verticalRibbon': return verticalRibbon(resume);
-      case 'diagonalSplit': return diagonalSplit(resume);
-      case 'hexagonalGrid': return hexagonalGrid(resume);
-      default: return classic(resume);
-    }
-  };
+  switch (template) {
+    case 'classic':
+      return classic(resume);
+    case 'modern':
+      return modern(resume);
+    case 'elegant':
+      return elegant(resume);
+    case 'sidebar':
+      return sidebar(resume);
+    case 'timeline':
+      return timeline(resume);
+    case 'compactGrid':
+      return compactGrid(resume);
+    case 'creativeGradient':
+      return creativeGradient(resume);
+    case 'futuristicDarkMode':
+      return futuristicDarkMode(resume);
+    case 'photoHeader':
+      return photoHeader(resume);
+    case 'softPastel':
+      return softPastel(resume);
+    case 'minimalistColumns':
+      return minimalistColumns(resume);
+    case 'boldAccentLine':
+      return boldAccentLine(resume);
+    case 'splitBanner':
+      return splitBanner(resume);
+    case 'modernCardBlocks':
+      return modernCardBlocks(resume);
+    case 'elegantMonochrome':
+      return elegantMonochrome(resume);
+    case 'geometricMinimalism':
+      return geometricMinimalism(resume);
+    case 'magazineEditorial':
+      return magazineEditorial(resume);
+    case 'infographicMinimal':
+      return infographicMinimal(resume);
+    case 'asymmetricLayout':
+      return asymmetricLayout(resume);
+    case 'typographicEmphasis':
+      return typographicEmphasis(resume);
+    case 'layeredPaper':
+      return layeredPaper(resume);
+    case 'artDecoRevival':
+      return artDecoRevival(resume);
+    case 'circularOrbit':
+      return circularOrbit(resume);
+    case 'verticalRibbon':
+      return verticalRibbon(resume);
+    case 'diagonalSplit':
+      return diagonalSplit(resume);
+    case 'hexagonalGrid':
+      return hexagonalGrid(resume);
+    default:
+      return classic(resume);
+  }
+};
 export const listHTMLTemplates = () =>
   (Object.keys(TEMPLATE_NAMES) as TemplateId[]).map((id) => ({ id, name: TEMPLATE_NAMES[id] }));

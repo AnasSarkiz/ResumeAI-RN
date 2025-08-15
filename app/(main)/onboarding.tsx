@@ -84,7 +84,7 @@
 //               className={`px-6 py-3 ${currentIndex === 0 ? 'opacity-0' : ''}`}>
 //               <Text className="font-medium text-blue-500">Back</Text>
 //             </TouchableOpacity>
-// 
+//
 //             <TouchableOpacity onPress={handleNext} className="rounded-full bg-blue-500 px-6 py-3">
 //               <Text className="font-medium text-white">Next</Text>
 //             </TouchableOpacity>

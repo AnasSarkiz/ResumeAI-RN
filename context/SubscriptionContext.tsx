@@ -1,7 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import Purchases from 'react-native-purchases';
 import { SubscriptionPlan } from '../types/user';
-import { initializeRevenueCat, getSubscriptionPlans, purchaseSubscription } from '../services/subscription';
+import {
+  initializeRevenueCat,
+  getSubscriptionPlans,
+  purchaseSubscription,
+} from '../services/subscription';
 
 interface SubscriptionContextType {
   isPro: boolean;
@@ -73,14 +77,15 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
   };
 
   return (
-    <SubscriptionContext.Provider value={{
-      isPro,
-      loading,
-      error,
-      plans,
-      refreshSubscriptionStatus,
-      purchasePlan,
-    }}>
+    <SubscriptionContext.Provider
+      value={{
+        isPro,
+        loading,
+        error,
+        plans,
+        refreshSubscriptionStatus,
+        purchasePlan,
+      }}>
       {children}
     </SubscriptionContext.Provider>
   );

@@ -45,9 +45,7 @@ export const exportHTMLToPDF = async (html: string): Promise<string> => {
   }
 };
 
-export const exportResumeToPDF = async (
-  resume: SavedResume,
-): Promise<string> => {
+export const exportResumeToPDF = async (resume: SavedResume): Promise<string> => {
   try {
     const html = resume.html;
     const file = await Print.printToFileAsync({ html: ensureA4HTML(html) });

@@ -262,13 +262,17 @@ export const layeredPaper = (r: ManualResumeInput) => `
           </div>
         </div>
         
-        ${r.summary ? `
+        ${
+          r.summary
+            ? `
         <div class="section-paper">
           <h2 class="section-title"><span>Summary</span></h2>
           <div class="summary-paper">
             ${escape(r.summary)}
           </div>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
       </div>
     </div>
     
@@ -276,52 +280,76 @@ export const layeredPaper = (r: ManualResumeInput) => `
       <div class="paper-content">
         <div class="section-paper">
           <h2 class="section-title"><span>Experience</span></h2>
-          ${r.experience.map(e => `
+          ${r.experience
+            .map(
+              (e) => `
             <div class="experience-paper">
               <div class="job-title">${escape(e.jobTitle)}</div>
               <div class="company">${escape(e.company)}</div>
               <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
-              ${e.description?.length ? `
+              ${
+                e.description?.length
+                  ? `
                 <div class="description">
-                  <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
+                  <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
                 </div>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
       </div>
     </div>
     
-    ${r.education?.length ? `
+    ${
+      r.education?.length
+        ? `
     <div class="paper-layer">
       <div class="paper-content">
         <div class="section-paper">
           <h2 class="section-title"><span>Education</span></h2>
-          ${r.education.map(edu => `
+          ${r.education
+            .map(
+              (edu) => `
             <div class="experience-paper">
               <div class="job-title">${escape(edu.degree)}</div>
               <div class="company">${escape(edu.institution)}</div>
               <div class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
               ${edu.description ? `<div class="description">${escape(edu.description)}</div>` : ''}
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
       </div>
-    </div>` : ''}
+    </div>`
+        : ''
+    }
     
-    ${r.skills?.length ? `
+    ${
+      r.skills?.length
+        ? `
     <div class="paper-layer">
       <div class="paper-content">
         <div class="section-paper">
           <h2 class="section-title"><span>Skills</span></h2>
           <div class="skills-paper">
-            ${r.skills.map(s => `
+            ${r.skills
+              .map(
+                (s) => `
               <div class="skill-paper">${escape(s.name)}</div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
         </div>
       </div>
-    </div>` : ''}
+    </div>`
+        : ''
+    }
   </div>
 </body>
 </html>
@@ -648,52 +676,80 @@ export const artDecoRevival = (r: ManualResumeInput) => `
     </header>
     
     <div class="content">
-      ${r.summary ? `
+      ${
+        r.summary
+          ? `
       <div class="section">
         <h2 class="section-title">Summary</h2>
         <div class="summary-deco">
           ${escape(r.summary)}
         </div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
       
       <div class="section">
         <h2 class="section-title">Experience</h2>
-        ${r.experience.map(e => `
+        ${r.experience
+          .map(
+            (e) => `
           <div class="experience-deco">
             <div class="job-title">${escape(e.jobTitle)}</div>
             <div class="company">${escape(e.company)}</div>
             <div class="date">${escape(e.startDate)} - ${escape(e.endDate || 'Present')}</div>
-            ${e.description?.length ? `
+            ${
+              e.description?.length
+                ? `
               <div class="description">
-                <ul>${e.description.map(d => `<li>${escape(d)}</li>`).join('')}</ul>
+                <ul>${e.description.map((d) => `<li>${escape(d)}</li>`).join('')}</ul>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
       
-      ${r.education?.length ? `
+      ${
+        r.education?.length
+          ? `
       <div class="section">
         <h2 class="section-title">Education</h2>
-        ${r.education.map(edu => `
+        ${r.education
+          .map(
+            (edu) => `
           <div class="experience-deco">
             <div class="job-title">${escape(edu.degree)}</div>
             <div class="company">${escape(edu.institution)}</div>
             <div class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
             ${edu.description ? `<div class="description">${escape(edu.description)}</div>` : ''}
           </div>
-        `).join('')}
-      </div>` : ''}
+        `
+          )
+          .join('')}
+      </div>`
+          : ''
+      }
       
-      ${r.skills?.length ? `
+      ${
+        r.skills?.length
+          ? `
       <div class="section">
         <h2 class="section-title">Skills</h2>
         <div class="skills-deco">
-          ${r.skills.map(s => `
+          ${r.skills
+            .map(
+              (s) => `
             <div class="skill-deco">${escape(s.name)}</div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
-      </div>` : ''}
+      </div>`
+          : ''
+      }
     </div>
   </div>
 </body>

@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, BackHandler } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  BackHandler,
+} from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -20,12 +28,13 @@ export default function AIHtmlEditScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editedHtml, setEditedHtml] = useState<string>('');
-  const [versions, setVersions] = useState<Array<{ id: string; html: string; label: string; ts: number; instr?: string }>>([]);
+  const [versions, setVersions] = useState<
+    { id: string; html: string; label: string; ts: number; instr?: string }[]
+  >([]);
 
   // Lazy WebView import (avoid crash if not installed)
   let WebViewComp: any = null;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     WebViewComp = require('react-native-webview').WebView;
   } catch {}
 
@@ -43,23 +52,29 @@ export default function AIHtmlEditScreen() {
   useEffect(() => {
     const hasUnsaved = !!editedHtml;
     const onAttemptLeave = (proceed: () => void) => {
-      if (!hasUnsaved) { proceed(); return; }
+      if (!hasUnsaved) {
+        proceed();
+        return;
+      }
       Alert.alert('Unsaved AI edits', 'Save or discard your AI edits before leaving.', [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Discard', style: 'destructive', onPress: () => {
+          text: 'Discard',
+          style: 'destructive',
+          onPress: () => {
             setEditedHtml('');
             proceed();
-          }
+          },
         },
         {
-          text: 'Save', onPress: async () => {
+          text: 'Save',
+          onPress: async () => {
             try {
               await onSave();
               proceed();
             } catch {}
-          }
-        }
+          },
+        },
       ]);
     };
 
@@ -84,7 +99,8 @@ export default function AIHtmlEditScreen() {
   const enforceFixedViewport = (html: string): string => {
     if (!html) return html;
     const FIXED_META = `\n    <meta name="viewport" content="width=794, initial-scale=0.42, user-scalable=false" />\n  `;
-    const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
+    const FIXED_STYLE =
+      '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
     let out = html.replace(/<meta[^>]*name=["']viewport["'][^>]*>/i, FIXED_META);
     if (!/name=["']viewport["']/i.test(out)) {
       out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_META}`);
@@ -131,11 +147,20 @@ export default function AIHtmlEditScreen() {
       const sourceHtml = editedHtml || baseHtml;
       const newHtml = await editHTMLResume(sourceHtml, instructions);
       const versionId = `${Date.now()}`;
-      const next = { id: versionId, html: newHtml, label: `v${versions.length}`, ts: Date.now(), instr: instructions.trim() };
+      const next = {
+        id: versionId,
+        html: newHtml,
+        label: `v${versions.length}`,
+        ts: Date.now(),
+        instr: instructions.trim(),
+      };
       setVersions((prev) => [...prev, next]);
       setEditedHtml(newHtml);
       setInstructions('');
-      Alert.alert('Edits ready', 'Review the preview below. Tap Save to apply changes to your resume.');
+      Alert.alert(
+        'Edits ready',
+        'Review the preview below. Tap Save to apply changes to your resume.'
+      );
     } catch (e) {
       console.error(e);
       Alert.alert('Edit failed', 'There was a problem applying your edits.');
@@ -174,12 +199,19 @@ export default function AIHtmlEditScreen() {
 
   return (
     <View className="flex-1 bg-[#f9f9f9]">
-      <View className="px-4 pt-4 pb-2 flex-row items-center justify-between">
+      <View className="flex-row items-center justify-between px-4 pb-2 pt-4">
         <Text className="text-2xl font-bold text-gray-800">AI Edit</Text>
         <View className="flex-row items-center">
           {editedHtml ? (
-            <TouchableOpacity onPress={onSave} disabled={saving} className={`mr-2 rounded-md px-3 py-2 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
-              {saving ? <ActivityIndicator color="#fff" /> : <Text className="text-white">Save & Exit</Text>}
+            <TouchableOpacity
+              onPress={onSave}
+              disabled={saving}
+              className={`mr-2 rounded-md px-3 py-2 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
+              {saving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-white">Save & Exit</Text>
+              )}
             </TouchableOpacity>
           ) : null}
           <TouchableOpacity
@@ -203,7 +235,12 @@ export default function AIHtmlEditScreen() {
         <Text className="mb-2 text-sm text-gray-500">Preview</Text>
         <View className="mb-4 h-[520px] overflow-hidden rounded-lg bg-white">
           {WebViewComp ? (
-            <WebViewComp originWhitelist={["*"]} source={{ html: htmlToPreview }} style={{ flex: 1 }} scrollEnabled={true} />
+            <WebViewComp
+              originWhitelist={['*']}
+              source={{ html: htmlToPreview }}
+              style={{ flex: 1 }}
+              scrollEnabled={true}
+            />
           ) : (
             <View className="flex-1 items-center justify-center">
               <Text className="text-gray-500">WebView not installed</Text>
@@ -211,27 +248,32 @@ export default function AIHtmlEditScreen() {
           )}
         </View>
 
-        {versions.some(v => v.id !== 'original') && (
+        {versions.some((v) => v.id !== 'original') && (
           <View className="mb-4 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
             <Text className="mb-2 text-sm font-medium text-gray-700">AI Edit Chat</Text>
             <ScrollView style={{ maxHeight: 260 }} showsVerticalScrollIndicator>
               {versions.map((v) => {
                 const isOriginal = v.id === 'original';
-                const isSelected = (isOriginal && !editedHtml) || (!isOriginal && editedHtml && v.html === editedHtml);
+                const isSelected =
+                  (isOriginal && !editedHtml) ||
+                  (!isOriginal && editedHtml && v.html === editedHtml);
                 return (
                   <View key={v.id} className="mb-3">
                     {!isOriginal && v.instr ? (
-                      <View className="mb-2 self-end max-w-[90%] rounded-2xl bg-indigo-50 px-3 py-2">
+                      <View className="mb-2 max-w-[90%] self-end rounded-2xl bg-indigo-50 px-3 py-2">
                         <Text className="text-indigo-900">{v.instr}</Text>
                       </View>
                     ) : null}
                     <TouchableOpacity
                       onPress={() => selectVersion(v.id)}
-                      className={`rounded-xl border px-3 py-2 ${isSelected ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}
-                    >
+                      className={`rounded-xl border px-3 py-2 ${isSelected ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
                       <View className="flex-row items-center justify-between">
-                        <Text className="font-medium text-gray-800">{isOriginal ? 'Original' : v.label}</Text>
-                        <Text className="text-xs text-gray-500">{new Date(v.ts).toLocaleTimeString()}</Text>
+                        <Text className="font-medium text-gray-800">
+                          {isOriginal ? 'Original' : v.label}
+                        </Text>
+                        <Text className="text-xs text-gray-500">
+                          {new Date(v.ts).toLocaleTimeString()}
+                        </Text>
                       </View>
                       <Text className="mt-1 text-xs text-gray-500">Tap to use this version</Text>
                     </TouchableOpacity>
@@ -254,8 +296,7 @@ export default function AIHtmlEditScreen() {
           <TouchableOpacity
             onPress={onApply}
             disabled={submitting}
-            className={`mt-3 flex-row items-center justify-center rounded-md px-4 py-3 ${submitting ? 'bg-purple-300' : 'bg-purple-600'}`}
-          >
+            className={`mt-3 flex-row items-center justify-center rounded-md px-4 py-3 ${submitting ? 'bg-purple-300' : 'bg-purple-600'}`}>
             {submitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
@@ -269,8 +310,7 @@ export default function AIHtmlEditScreen() {
             <TouchableOpacity
               onPress={onSave}
               disabled={saving}
-              className={`mt-2 flex-row items-center justify-center rounded-md px-4 py-3 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}
-            >
+              className={`mt-2 flex-row items-center justify-center rounded-md px-4 py-3 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (

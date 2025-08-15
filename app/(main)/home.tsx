@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, Alert, Image, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Dimensions,
+} from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
@@ -21,7 +30,6 @@ export default function HomeScreen() {
   // Load WebView lazily to avoid issues if not installed
   let WebViewComp: any = null;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     WebViewComp = require('react-native-webview').WebView;
   } catch (e) {
     WebViewComp = null;
@@ -56,26 +64,27 @@ export default function HomeScreen() {
   };
   function enforceFixedViewport(html: string): string {
     if (!html) return html;
-  
+
     const FIXED_META = `
     <meta name="viewport" content="width=794, initial-scale=0.42, user-scalable=false" />
   `;
-  
-    const FIXED_STYLE = '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
-  
+
+    const FIXED_STYLE =
+      '<style id="fixed-a4-reset">html, body { margin:0; padding:0; background:#f3f3f3; -webkit-text-size-adjust:100%; }</style>';
+
     // Replace existing viewport meta if present
     let out = html.replace(/<meta[^>]*name=["']viewport["'][^>]*>/i, FIXED_META);
-  
+
     // If no viewport meta existed, inject one into <head>
     if (!/name=["']viewport["']/i.test(out)) {
       out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_META}`);
     }
-  
+
     // Inject reset style early in <head> (idempotent)
     if (!/id=["']fixed-a4-reset["']/.test(out)) {
       out = out.replace(/<head(\s*)>/i, (m) => `${m}\n${FIXED_STYLE}`);
     }
-  
+
     return out;
   }
   const handleExport = async (resumeId: string) => {
@@ -101,21 +110,34 @@ export default function HomeScreen() {
   const EmptyState = () => (
     <View className="flex-1 items-center justify-center px-4">
       <Text className="mt-4 text-lg font-semibold text-gray-700">No resumes yet</Text>
-      <Text className="text-center text-gray-500 mb-6">
+      <Text className="mb-6 text-center text-gray-500">
         Create your first resume manually or let AI craft it for you in seconds.
       </Text>
       <View className="w-full space-y-3">
         <TouchableOpacity
-          onPress={() => (isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe'))}
+          onPress={() =>
+            isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe')
+          }
           className="flex-row items-center justify-center rounded-full py-4 shadow-lg">
-                   <LinearGradient
-                colors={['#a855f7', '#6366f1']} 
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{ height: 52 , width: '100%', borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row'}}
-              >
-          <Ionicons className='absolute -left-1 -top-1 overflow-hidden' name="sparkles" size={36} color="gold" />
-          <Text className="ml-2 text-center font-semibold text-white">✨ Create with AI</Text>
+          <LinearGradient
+            colors={['#a855f7', '#6366f1']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              height: 52,
+              width: '100%',
+              borderRadius: 12,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+            }}>
+            <Ionicons
+              className="absolute -left-1 -top-1 overflow-hidden"
+              name="sparkles"
+              size={36}
+              color="gold"
+            />
+            <Text className="ml-2 text-center font-semibold text-white">✨ Create with AI</Text>
           </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity
@@ -140,20 +162,30 @@ export default function HomeScreen() {
         <View className="mb-3 flex-row items-center justify-between">
           <View>
             <Text className="text-lg font-semibold text-gray-900">{item.title}</Text>
-            <Text className="text-xs text-gray-600">Updated {item.updatedAt?.toLocaleDateString?.() || ''}</Text>
+            <Text className="text-xs text-gray-600">
+              Updated {item.updatedAt?.toLocaleDateString?.() || ''}
+            </Text>
           </View>
-          <TouchableOpacity onPress={() => handleDelete(item.id)} className="absolute right-0 top-0 rounded-full bg-red-50 p-2">
+          <TouchableOpacity
+            onPress={() => handleDelete(item.id)}
+            className="absolute right-0 top-0 rounded-full bg-red-50 p-2">
             <Ionicons name="trash-outline" size={18} color="#EF4444" />
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => router.push({ pathname: '/resume/preview', params: { id: String(item.id)} })}
+          onPress={() =>
+            router.push({ pathname: '/resume/preview', params: { id: String(item.id) } })
+          }
           className="mb-3 overflow-hidden rounded-lg"
-          style={{ height: previewHeight, backgroundColor: '#fff' }}
-        >
-          <WebViewComp originWhitelist={["*"]} source={{ html: enforceFixedViewport(html) }} style={{ flex: 1 }} scrollEnabled={false} />
+          style={{ height: previewHeight, backgroundColor: '#fff' }}>
+          <WebViewComp
+            originWhitelist={['*']}
+            source={{ html: enforceFixedViewport(html) }}
+            style={{ flex: 1 }}
+            scrollEnabled={false}
+          />
         </TouchableOpacity>
 
         <View className="flex-row flex-wrap gap-2">
@@ -164,13 +196,17 @@ export default function HomeScreen() {
             <Text className={`ml-1 font-medium ${isAI ? 'text-gray-600' : 'text-white'}`}>Edit</Text>
           </TouchableOpacity> */}
           <TouchableOpacity
-            onPress={() => (isPro ? router.push(`/resume/ai-edit?id=${item.id}`) : router.push('/(main)/subscribe'))}
-            className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 bg-purple-600`}> 
+            onPress={() =>
+              isPro
+                ? router.push(`/resume/ai-edit?id=${item.id}`)
+                : router.push('/(main)/subscribe')
+            }
+            className={`flex-1 flex-row items-center justify-center rounded-md bg-purple-600 px-3 py-2`}>
             <Text className="-ml-1 font-medium text-white">✨ AI-Edit</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push(`/resume/manual-edit?id=${item.id}`)}
-            className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 bg-amber-600`}>
+            className={`flex-1 flex-row items-center justify-center rounded-md bg-amber-600 px-3 py-2`}>
             <Ionicons name="create-outline" size={16} color="white" />
             <Text className="ml-1 font-medium text-white">Manual Edit</Text>
           </TouchableOpacity>
@@ -231,22 +267,38 @@ export default function HomeScreen() {
           <View className="mt-4 flex-row items-center justify-between">
             <TouchableOpacity
               onPress={() => router.push('/resume/editor')}
-              className="flex-row w-[48%] items-center justify-center rounded-lg border-2 border-dashed border-blue-500 py-4">
+              className="w-[48%] flex-row items-center justify-center rounded-lg border-2 border-dashed border-blue-500 py-4">
               <Ionicons name="add" size={20} color="#3B82F6" />
               <Text className="ml-2 text-base font-semibold text-blue-600">Create Manually</Text>
             </TouchableOpacity>
-            <TouchableOpacity className="w-[48%] rounded-xl py-2 overflow-hidden " onPress={() => (isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe'))} >
+            <TouchableOpacity
+              className="w-[48%] overflow-hidden rounded-xl py-2 "
+              onPress={() =>
+                isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe')
+              }>
               <LinearGradient
                 colors={['#a855f7', '#6366f1']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={{ height: 52 , borderRadius: 12, alignItems: 'center', justifyContent: 'center', flexDirection: 'row'}}
-              >
-                <Ionicons className='absolute left-0 top-0 overflow-hidden' name="sparkles" size={16} color="gold" />
-                <Text className="-ml-4 font-semibold text-white text-xl text-center">✨ Create with AI</Text>
+                style={{
+                  height: 52,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                }}>
+                <Ionicons
+                  className="absolute left-0 top-0 overflow-hidden"
+                  name="sparkles"
+                  size={16}
+                  color="gold"
+                />
+                <Text className="-ml-4 text-center text-xl font-semibold text-white">
+                  ✨ Create with AI
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
-            </View>
+          </View>
         </>
       )}
     </View>

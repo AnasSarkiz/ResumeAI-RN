@@ -71,14 +71,16 @@ export const validateManualResume = (resume: ManualResumeInput): ValidationResul
     resume.experience.forEach((e, idx) => {
       if (!isNonEmpty(e.jobTitle)) errors[`experience.${idx}.jobTitle`] = 'Job title is required';
       if (!isNonEmpty(e.company)) errors[`experience.${idx}.company`] = 'Company is required';
-      if (!isNonEmpty(e.startDate)) errors[`experience.${idx}.startDate`] = 'Start date is required';
+      if (!isNonEmpty(e.startDate))
+        errors[`experience.${idx}.startDate`] = 'Start date is required';
     });
   }
 
   // Education: if provided, each item must have required fields
   if (Array.isArray(resume.education)) {
     resume.education.forEach((e, idx) => {
-      if (!isNonEmpty(e.institution)) errors[`education.${idx}.institution`] = 'Institution is required';
+      if (!isNonEmpty(e.institution))
+        errors[`education.${idx}.institution`] = 'Institution is required';
       if (!isNonEmpty(e.startDate)) errors[`education.${idx}.startDate`] = 'Start date is required';
     });
   }
@@ -87,7 +89,8 @@ export const validateManualResume = (resume: ManualResumeInput): ValidationResul
   if (Array.isArray(resume.links)) {
     resume.links.forEach((l, idx) => {
       if (!isNonEmpty(l.label)) errors[`links.${idx}.label`] = 'Platform/Domain label is required';
-      if (!isNonEmpty(l.url) || !isValidUrl(l.url)) errors[`links.${idx}.url`] = 'Valid URL is required';
+      if (!isNonEmpty(l.url) || !isValidUrl(l.url))
+        errors[`links.${idx}.url`] = 'Valid URL is required';
     });
   }
 
@@ -113,7 +116,8 @@ export const validateAIResume = (resume: AIResumeInput): ValidationResult => {
 };
 
 export const saveResume = async (resume: SavedResume): Promise<SavedResume> => {
-  const id = resume.id && resume.id.trim().length > 0 ? resume.id : doc(collection(db, 'resumes')).id;
+  const id =
+    resume.id && resume.id.trim().length > 0 ? resume.id : doc(collection(db, 'resumes')).id;
   const toSave: SavedResume = { ...resume, id };
   const cleaned = cleanForFirestore(toSave);
   await setDoc(doc(db, 'resumes', id), cleaned);
@@ -173,4 +177,3 @@ export const getResumes = async (userId: string): Promise<SavedResume[]> => {
 export const deleteResume = async (resumeId: string) => {
   await deleteDoc(doc(db, 'resumes', resumeId));
 };
-

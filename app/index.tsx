@@ -7,7 +7,7 @@ export default function Index() {
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" />
       </View>
     );
@@ -16,5 +16,5 @@ export default function Index() {
   if (user) {
     return <Redirect href="/(main)/home" />;
   }
-  return <Redirect href="/(auth)/welcome" />
+  return <Redirect href="/(auth)/welcome" />;
 }

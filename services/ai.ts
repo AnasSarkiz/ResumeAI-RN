@@ -1,6 +1,6 @@
 // services/geminiService.ts
 import axios from 'axios';
-import { AIResumeInput , SavedResume } from '../types/resume';
+import { AIResumeInput, SavedResume } from '../types/resume';
 import type { TemplateId } from './templates';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
@@ -213,7 +213,6 @@ const sanitizeBullet = (line: string): string => {
 //   return result || text;
 // };
 
-
 // export const improveSummary = async (summary: string): Promise<string> => {
 //   const prompt = `Improve this resume summary to be more compelling, keyword-rich, and concise (2–3 sentences).
 
@@ -273,6 +272,3 @@ ${currentHtml}
   // If the model returned only a fragment, wrap safely
   return `<!DOCTYPE html>\n<html><head><meta name="viewport" content="width=device-width, initial-scale=1" /></head><body>${cleaned}</body></html>`;
 };
-
-
-

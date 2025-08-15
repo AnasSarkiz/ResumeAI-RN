@@ -171,7 +171,10 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       cacheResumeById.current[newResume.id] = { ts: Date.now(), data: newResume };
       if (newResume.userId) {
         const curr = cacheResumesByUser.current[newResume.userId]?.data || [];
-        cacheResumesByUser.current[newResume.userId] = { ts: Date.now(), data: [...curr, newResume] };
+        cacheResumesByUser.current[newResume.userId] = {
+          ts: Date.now(),
+          data: [...curr, newResume],
+        };
       }
       return newResume;
     } catch (err) {

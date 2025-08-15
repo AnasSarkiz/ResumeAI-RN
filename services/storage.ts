@@ -66,7 +66,7 @@ class StorageService {
       const lastLoginDate = new Date(lastLogin);
       const now = new Date();
       const daysDiff = (now.getTime() - lastLoginDate.getTime()) / (1000 * 3600 * 24);
-      
+
       // Session expires after 30 days
       return daysDiff < 30;
     } catch (error) {
