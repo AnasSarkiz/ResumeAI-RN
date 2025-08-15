@@ -205,8 +205,9 @@ export default function ResumeEditorScreen() {
         <TouchableOpacity
           onPress={() => handleValidateAndSave()}
           className={`flex-1 flex-row items-center justify-center rounded-full bg-green-600 py-3`}>
-          <Ionicons name="checkmark-done" size={18} color="#ffffff" />
-          <Text className="ml-2 text-center font-semibold text-white">Save & Choose Template</Text>
+          <Text className="text-center text-sm font-semibold text-white">
+            Save & Choose Template
+          </Text>
         </TouchableOpacity>
       )}
     </View>
