@@ -50,7 +50,6 @@ export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
         'Unlimited resumes',
         'AI-powered suggestions',
         'PDF export',
-        'Cover letter generator',
       ],
     }));
   } catch (error) {

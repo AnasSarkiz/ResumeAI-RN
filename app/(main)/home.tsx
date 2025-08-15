@@ -9,6 +9,7 @@ import { renderHTMLTemplate, TemplateId } from '../../services/templates';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { SavedResume } from 'types/resume';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
@@ -31,17 +32,6 @@ export default function HomeScreen() {
       loadResumes(user.id);
     }
   }, [user]);
-
-  // const handleCreateResume = async () => {
-  //   try {
-  //     const newResume = await createResume(user?.id || '', `My Resume ${resumes.length + 1}`);
-  //     if (newResume?.id) {
-  //       router.push(`/resume/editor?id=${newResume.id}`);
-  //     }
-  //   } catch (error) {
-  //     console.error('Failed to create resume:', error);
-  //   }
-  // };
 
   const handleDelete = (resumeId: string) => {
     Alert.alert(

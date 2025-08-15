@@ -213,53 +213,6 @@ const sanitizeBullet = (line: string): string => {
 //   return result || text;
 // };
 
-// export const generateCoverLetter = async (
-//   resume: Resume,
-//   company?: string,
-//   position?: string
-// ): Promise<string> => {
-//   const prompt = `Write a professional, results-focused cover letter for the following resume targeting ${
-//     position ? `the ${position} position` : 'a job'
-//   }${company ? ` at ${company}` : ''}. Here's the resume data:
-
-// Name: ${resume.fullName}
-// Email: ${resume.email}
-// Experience: ${resume.experience.map((exp) => `${exp.jobTitle} at ${exp.company}`).join(', ')}
-// Education: ${resume.education.map((edu) => `${edu.degree} from ${edu.institution}`).join(', ')}
-// Skills: ${resume.skills.map((skill) => skill.name).join(', ')}
-
-// Requirements:
-// - 3–4 concise paragraphs (intro, 1–2 value paragraphs, closing call-to-action).
-// - Tailor to the role/company; emphasize relevant achievements and quantified outcomes.
-// - Use professional tone, no placeholders, no first-person pronouns overuse.
-// `;
-
-//   return await callGemini(prompt);
-// };
-
-// export const tailorResume = async (resume: Resume, jobDescription: string): Promise<Resume> => {
-//   const prompt = `Optimize the following resume for this job description:
-// ${jobDescription}
-
-// Rules:
-// - Keep the exact JSON schema of the project's Resume interface; do not add unknown fields.
-// - Improve wording for impact and clarity; prioritize relevant skills and achievements.
-// - Reorder experiences and skills for best fit; keep dates and facts realistic.
-// - Add realistic, non-placeholder metrics only if implied by context; otherwise omit.
-
-// Current resume JSON:
-// ${JSON.stringify(resume, null, 2)}
-
-// Return ONLY the optimized resume JSON.`;
-
-//   const text = await callGemini(prompt);
-//   try {
-//     return JSON.parse(text);
-//   } catch (err) {
-//     console.error('Failed to parse Gemini JSON response:', err);
-//     return resume;
-//   }
-// };
 
 // export const improveSummary = async (summary: string): Promise<string> => {
 //   const prompt = `Improve this resume summary to be more compelling, keyword-rich, and concise (2–3 sentences).

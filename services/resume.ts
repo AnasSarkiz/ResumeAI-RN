@@ -9,7 +9,7 @@ import {
   getDocs,
   deleteDoc,
 } from 'firebase/firestore';
-import { ManualResumeInput, CoverLetter ,SavedResume, AIResumeInput } from '../types/resume';
+import { ManualResumeInput, SavedResume, AIResumeInput } from '../types/resume';
 
 // Recursively remove undefined values (Firestore does not allow undefined)
 const cleanForFirestore = (value: any): any => {
@@ -174,29 +174,3 @@ export const deleteResume = async (resumeId: string) => {
   await deleteDoc(doc(db, 'resumes', resumeId));
 };
 
-export const saveCoverLetter = async (coverLetter: CoverLetter): Promise<CoverLetter> => {
-  await setDoc(doc(db, 'coverLetters', coverLetter.id), coverLetter);
-  return coverLetter;
-};
-
-export const getCoverLetter = async (resumeId: string): Promise<CoverLetter> => {
-  const q = query(collection(db, 'coverLetters'), where('resumeId', '==', resumeId));
-  const querySnapshot = await getDocs(q);
-
-  if (querySnapshot.empty) {
-    throw new Error('Cover letter not found');
-  }
-
-  const doc = querySnapshot.docs[0];
-  const data = doc.data();
-
-  return {
-    id: doc.id,
-    resumeId: data.resumeId,
-    content: data.content,
-    company: data.company,
-    position: data.position,
-    createdAt: data.createdAt.toDate(),
-    updatedAt: data.updatedAt.toDate(),
-  };
-};

@@ -1,17 +1,15 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { CoverLetter, SavedResume } from '../types/resume';
+import { SavedResume } from '../types/resume';
 import {
   getResumes,
   getResumeById,
   saveResume,
   deleteResume as deleteResumeApi,
-  getCoverLetter,
 } from '../services/resume';
 
 interface ResumeContextType {
   resumes: SavedResume[];
   currentResume: SavedResume | null;
-  currentCoverLetter: CoverLetter | null;
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -20,19 +18,12 @@ interface ResumeContextType {
   createResume: (resume: SavedResume) => Promise<SavedResume>;
   updateResume: (resumeId: string, updates: Partial<SavedResume>) => Promise<void>;
   deleteResume: (resumeId: string) => Promise<void>;
-  loadCoverLetter: (resumeId: string) => Promise<void>;
-  generateCoverLetter: (
-    resumeId: string,
-    company?: string,
-    position?: string
-  ) => Promise<CoverLetter>;
   saveNow: (resume: SavedResume) => Promise<void>;
 }
 
 const ResumeContext = createContext<ResumeContextType>({
   resumes: [],
   currentResume: null,
-  currentCoverLetter: null,
   loading: false,
   saving: false,
   error: null,
@@ -48,21 +39,12 @@ const ResumeContext = createContext<ResumeContextType>({
   }),
   updateResume: async () => {},
   deleteResume: async () => {},
-  loadCoverLetter: async () => {},
-  generateCoverLetter: async () => ({
-    id: '',
-    resumeId: '',
-    content: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }),
   saveNow: async () => {},
 });
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const [resumes, setResumes] = useState<SavedResume[]>([]);
   const [currentResume, setCurrentResume] = useState<SavedResume | null>(null);
-  const [currentCoverLetter, setCurrentCoverLetter] = useState<CoverLetter | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -285,68 +267,11 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const loadCoverLetter = async (resumeId: string) => {
-    setLoading(true);
-    try {
-      const coverLetter = await getCoverLetter(resumeId);
-      setCurrentCoverLetter(coverLetter);
-    } catch (err) {
-      setError('Failed to load cover letter');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Helper to extract minimal metadata from SavedResume.html
-  const extractMetaFromHtml = (html: string): Record<string, any> => {
-    try {
-      // Look for <script id="resume-metadata">{...}</script>
-      const match = html.match(/<script[^>]*id=["']resume-metadata["'][^>]*>([\s\S]*?)<\/script>/i);
-      if (match && match[1]) {
-        return JSON.parse(match[1].trim());
-      }
-    } catch {}
-    return {};
-  };
-
-  const generateCoverLetter = async (resumeId: string, company?: string, position?: string) => {
-    setLoading(true);
-    try {
-      // const { generateCoverLetter } = await import('../services/ai');
-      const resume = currentResume || (await getResumeById(resumeId));
-      const meta = extractMetaFromHtml(resume.html);
-      const displayName = meta.fullName || meta.name || 'Candidate';
-      // const content = await generateCoverLetter(resume, company, position);
-      const content = `Cover letter content for ${displayName} applying to ${position || 'a position'} at ${company || 'the company'}.`; // Placeholder for actual AI generation logic
-
-      const coverLetter: CoverLetter = {
-        id: `${resumeId}-${Date.now()}`,
-        resumeId,
-        content,
-        company,
-        position,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      setCurrentCoverLetter(coverLetter);
-      return coverLetter;
-    } catch (err) {
-      setError('Failed to generate cover letter');
-      console.error(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <ResumeContext.Provider
       value={{
         resumes,
         currentResume,
-        currentCoverLetter,
         loading,
         saving,
         error,
@@ -355,8 +280,6 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         createResume,
         updateResume,
         deleteResume,
-        loadCoverLetter,
-        generateCoverLetter,
         saveNow,
       }}>
       {children}

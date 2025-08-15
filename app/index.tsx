@@ -1,5 +1,20 @@
-import WelcomeScreen from './(auth)/welcome';
+import { Redirect } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
+import { ActivityIndicator, View } from 'react-native';
 import '../global.css';
 export default function Index() {
-  return <WelcomeScreen />;
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (user) {
+    return <Redirect href="/(main)/home" />;
+  }
+  return <Redirect href="/(auth)/welcome" />
 }

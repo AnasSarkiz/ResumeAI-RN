@@ -196,7 +196,6 @@ export interface Resume {
 
 Related:
 
-- `CoverLetter` for optional cover letter drafts
 - `AIAction` and `AIResponse` to track AI operations
 
 ## Architecture & Workflows

@@ -179,7 +179,6 @@ export default function ManualHtmlEditScreen() {
         updatedAt: new Date(),
       } as any;
       await saveNow(toSave);
-      Alert.alert('Saved', 'Your manual edits have been saved.');
       setEditedHtml('');
     } catch (e) {
       console.error(e);

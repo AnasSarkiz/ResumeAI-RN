@@ -41,10 +41,6 @@ export default function SubscribeScreen() {
           <Text className="mr-2 text-green-500">✓</Text>
           <Text>PDF export</Text>
         </View>
-        <View className="flex-row items-center">
-          <Text className="mr-2 text-green-500">✓</Text>
-          <Text>Cover letter generator</Text>
-        </View>
       </View>
 
       {loading ? (

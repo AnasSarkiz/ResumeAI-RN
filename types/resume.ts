@@ -82,21 +82,9 @@ export interface ManualResumeInput {
   updatedAt: Date;
 }
 
-// Deprecated in the new storage model, but kept for backward compatibility.
-export interface CoverLetter {
-  id: string;
-  resumeId: string;
-  content: string;
-  company?: string;
-  position?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export type AIAction =
   | 'generate-bullet-points'
   | 'reword-text'
-  | 'draft-cover-letter'
   | 'tailor-resume'
   | 'improve-summary';
 

@@ -16,8 +16,10 @@ export default function RootLayout() {
             <Stack.Screen name="(main)/onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="(main)/profile" options={{ title: 'Profile' }} />
             <Stack.Screen name="(main)/subscriptions" options={{ title: 'Subscriptions' }} />
-            <Stack.Screen name="resume/cover-letter" options={{ title: 'Cover Letter' }} />
-            <Stack.Screen name="resume/editor" options={{ title: 'Resume Editor' }} />
+            <Stack.Screen name="resume/ai-edit" options={{ title: 'AI Edit' }} />
+            <Stack.Screen name="resume/manual-edit" options={{ title: 'Manual Edit' }} />
+            <Stack.Screen name="resume/ai-generator" options={{ title: 'AI Generator' }} />
+            <Stack.Screen name="resume/editor" options={{ title: 'Create Resume' }} />
             <Stack.Screen name="resume/preview" options={{ title: 'Preview Resume' }} />
           </Stack>
         </SubscriptionProvider>
@@ -25,3 +27,4 @@ export default function RootLayout() {
     </AuthProvider>
   );
 }
+
