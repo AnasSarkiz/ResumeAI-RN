@@ -5,6 +5,7 @@ import {
   getResumeById,
   saveResume,
   deleteResume as deleteResumeApi,
+  updateResumeFields,
 } from '../services/resume';
 
 interface ResumeContextType {
@@ -19,6 +20,8 @@ interface ResumeContextType {
   updateResume: (resumeId: string, updates: Partial<SavedResume>) => Promise<void>;
   deleteResume: (resumeId: string) => Promise<void>;
   saveNow: (resume: SavedResume) => Promise<void>;
+  subscribeResumes: (userId: string) => () => void;
+  subscribeResume: (resumeId: string) => () => void;
 }
 
 const ResumeContext = createContext<ResumeContextType>({
@@ -40,6 +43,8 @@ const ResumeContext = createContext<ResumeContextType>({
   updateResume: async () => {},
   deleteResume: async () => {},
   saveNow: async () => {},
+  subscribeResumes: () => () => {},
+  subscribeResume: () => () => {},
 });
 
 export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
@@ -57,7 +62,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   }, [currentResume]);
 
   // Simple in-memory caches and request coalescing
-  const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
   const cacheResumesByUser = useRef<Record<string, { ts: number; data: SavedResume[] }>>({});
   const cacheResumeById = useRef<Record<string, { ts: number; data: SavedResume }>>({});
   const inflightResumesByUser = useRef<Record<string, Promise<SavedResume[]>>>({});
@@ -214,23 +219,27 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     }
     // indicate a save is pending
     setSaving(true);
+    const updatesForWrite = { ...updates } as Partial<SavedResume>;
     saveTimers.current[resumeId] = setTimeout(async () => {
       try {
+        // Partial update: only send changed fields to Firestore
+        await updateResumeFields(resumeId, updatesForWrite);
+        // Locally we already applied optimistic updates; refresh cache timestamps
         const latest = currentResumeRef.current as SavedResume;
-        if (!latest) return;
-        const saved = await saveResume(latest);
-        setCurrentResume(saved);
-        setResumes((prev) => prev.map((r) => (r.id === resumeId ? saved : r)));
-        // refresh caches with saved
-        cacheResumeById.current[resumeId] = { ts: Date.now(), data: saved };
-        const owner = saved.userId;
-        if (owner) {
-          const list = cacheResumesByUser.current[owner]?.data || [];
-          const exists = list.some((r) => r.id === resumeId);
-          cacheResumesByUser.current[owner] = {
-            ts: Date.now(),
-            data: exists ? list.map((r) => (r.id === resumeId ? saved : r)) : [...list, saved],
-          };
+        if (latest) {
+          const refreshed = { ...latest, updatedAt: new Date() } as SavedResume;
+          cacheResumeById.current[resumeId] = { ts: Date.now(), data: refreshed };
+          const owner = refreshed.userId;
+          if (owner) {
+            const list = cacheResumesByUser.current[owner]?.data || [];
+            const exists = list.some((r) => r.id === resumeId);
+            cacheResumesByUser.current[owner] = {
+              ts: Date.now(),
+              data: exists
+                ? list.map((r) => (r.id === resumeId ? refreshed : r))
+                : [...list, refreshed],
+            };
+          }
         }
       } catch (err) {
         setError('Failed to update resume');
@@ -238,7 +247,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       } finally {
         setSaving(false);
       }
-    }, 400);
+    }, 800);
   };
 
   const deleteResume = async (resumeId: string) => {
@@ -270,6 +279,52 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Real-time subscriptions (scoped to screens; remember to unsubscribe on unmount/blur)
+  const subscribeResumes = (userId: string) => {
+    // Lazy import from services to avoid circular types here
+    const { subscribeToUserResumes } = require('../services/resume');
+    const unsub = subscribeToUserResumes(
+      userId,
+      (items: SavedResume[]) => {
+        setResumes(items);
+        cacheResumesByUser.current[userId] = { ts: Date.now(), data: items };
+        // prime individual cache entries
+        items.forEach((r) => (cacheResumeById.current[r.id] = { ts: Date.now(), data: r }));
+      },
+      (e: any) => {
+        console.error('Resumes subscription error', e);
+        setError('Realtime resumes failed');
+      },
+      { limit: 50 }
+    );
+    return unsub;
+  };
+
+  const subscribeResume = (resumeId: string) => {
+    const { subscribeToResume } = require('../services/resume');
+    const unsub = subscribeToResume(
+      resumeId,
+      (item: SavedResume) => {
+        setCurrentResume(item);
+        cacheResumeById.current[resumeId] = { ts: Date.now(), data: item };
+        const owner = item.userId;
+        if (owner) {
+          const list = cacheResumesByUser.current[owner]?.data || [];
+          const exists = list.some((r) => r.id === item.id);
+          cacheResumesByUser.current[owner] = {
+            ts: Date.now(),
+            data: exists ? list.map((r) => (r.id === item.id ? item : r)) : [...list, item],
+          };
+        }
+      },
+      (e: any) => {
+        console.error('Resume subscription error', e);
+        setError('Realtime resume failed');
+      }
+    );
+    return unsub;
+  };
+
   return (
     <ResumeContext.Provider
       value={{
@@ -284,6 +339,8 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         updateResume,
         deleteResume,
         saveNow,
+        subscribeResumes,
+        subscribeResume,
       }}>
       {children}
     </ResumeContext.Provider>

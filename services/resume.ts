@@ -8,6 +8,12 @@ import {
   where,
   getDocs,
   deleteDoc,
+  onSnapshot,
+  updateDoc,
+  serverTimestamp,
+  orderBy,
+  limit as fbLimit,
+  startAfter,
 } from 'firebase/firestore';
 import { ManualResumeInput, SavedResume, AIResumeInput } from '../types/resume';
 
@@ -118,10 +124,26 @@ export const validateAIResume = (resume: AIResumeInput): ValidationResult => {
 export const saveResume = async (resume: SavedResume): Promise<SavedResume> => {
   const id =
     resume.id && resume.id.trim().length > 0 ? resume.id : doc(collection(db, 'resumes')).id;
-  const toSave: SavedResume = { ...resume, id };
+  const toSave: SavedResume = {
+    ...resume,
+    id,
+    // stamp times; Firestore will set actual server time
+    createdAt: (resume as any).createdAt || (serverTimestamp() as any),
+    updatedAt: serverTimestamp() as any,
+  } as any;
   const cleaned = cleanForFirestore(toSave);
-  await setDoc(doc(db, 'resumes', id), cleaned);
-  return cleaned as SavedResume;
+  // merge so that we don't overwrite fields unintentionally
+  await setDoc(doc(db, 'resumes', id), cleaned, { merge: true });
+  return { ...(toSave as any) } as SavedResume;
+};
+
+// Prefer partial updates for small edits to avoid rewriting the whole doc
+export const updateResumeFields = async (
+  resumeId: string,
+  updates: Partial<SavedResume>
+): Promise<void> => {
+  const toUpdate: any = cleanForFirestore({ ...updates, updatedAt: serverTimestamp() as any });
+  await updateDoc(doc(db, 'resumes', resumeId), toUpdate);
 };
 
 export const getResumeById = async (resumeId: string): Promise<SavedResume> => {
@@ -151,7 +173,12 @@ export const getResumeById = async (resumeId: string): Promise<SavedResume> => {
 };
 
 export const getResumes = async (userId: string): Promise<SavedResume[]> => {
-  const q = query(collection(db, 'resumes'), where('userId', '==', userId));
+  const q = query(
+    collection(db, 'resumes'),
+    where('userId', '==', userId),
+    // keep list stable and allow incremental sync by updatedAt
+    orderBy('updatedAt', 'desc')
+  );
   const querySnapshot = await getDocs(q);
 
   return querySnapshot.docs.map((doc) => {
@@ -174,6 +201,123 @@ export const getResumes = async (userId: string): Promise<SavedResume[]> => {
   });
 };
 
+// Paged list to reduce reads for large lists
+export const getResumesPage = async (
+  userId: string,
+  pageSize: number,
+  cursorUpdatedAt?: Date
+): Promise<{ items: SavedResume[]; nextCursor?: Date }> => {
+  let q = query(
+    collection(db, 'resumes'),
+    where('userId', '==', userId),
+    orderBy('updatedAt', 'desc'),
+    fbLimit(pageSize)
+  );
+  if (cursorUpdatedAt) {
+    q = query(
+      collection(db, 'resumes'),
+      where('userId', '==', userId),
+      orderBy('updatedAt', 'desc'),
+      startAfter(cursorUpdatedAt as any),
+      fbLimit(pageSize)
+    );
+  }
+  const snap = await getDocs(q);
+  const items = snap.docs.map((docSnap) => {
+    const data = docSnap.data();
+    const toJsDate = (v: any): Date => {
+      try {
+        if (v && typeof v.toDate === 'function') return v.toDate();
+        if (typeof v === 'string' || typeof v === 'number') return new Date(v);
+      } catch {}
+      return new Date();
+    };
+    return {
+      id: docSnap.id,
+      userId: data.userId,
+      title: data.title || '',
+      html: data.html,
+      createdAt: toJsDate(data.createdAt),
+      updatedAt: toJsDate(data.updatedAt),
+    } as SavedResume;
+  });
+  const last = items[items.length - 1];
+  return { items, nextCursor: last?.updatedAt };
+};
+
 export const deleteResume = async (resumeId: string) => {
   await deleteDoc(doc(db, 'resumes', resumeId));
+};
+
+export const subscribeToUserResumes = (
+  userId: string,
+  onChange: (resumes: SavedResume[]) => void,
+  onError?: (e: any) => void,
+  options?: { limit?: number }
+) => {
+  const q = options?.limit
+    ? query(
+        collection(db, 'resumes'),
+        where('userId', '==', userId),
+        orderBy('updatedAt', 'desc'),
+        fbLimit(options.limit)
+      )
+    : query(collection(db, 'resumes'), where('userId', '==', userId), orderBy('updatedAt', 'desc'));
+  return onSnapshot(
+    q,
+    (snap) => {
+      const items: SavedResume[] = snap.docs.map((docSnap) => {
+        const data = docSnap.data();
+        const toJsDate = (v: any): Date => {
+          try {
+            if (v && typeof v.toDate === 'function') return v.toDate();
+            if (typeof v === 'string' || typeof v === 'number') return new Date(v);
+          } catch {}
+          return new Date();
+        };
+        return {
+          id: docSnap.id,
+          userId: data.userId,
+          title: data.title || '',
+          html: data.html,
+          createdAt: toJsDate(data.createdAt),
+          updatedAt: toJsDate(data.updatedAt),
+        };
+      });
+      onChange(items);
+    },
+    onError
+  );
+};
+
+// Real-time subscriptions (use sparingly)
+export const subscribeToResume = (
+  resumeId: string,
+  onChange: (resume: SavedResume) => void,
+  onError?: (e: any) => void
+) => {
+  const ref = doc(db, 'resumes', resumeId);
+  return onSnapshot(
+    ref,
+    (docSnap) => {
+      if (!docSnap.exists()) return;
+      const data = docSnap.data();
+      const toJsDate = (v: any): Date => {
+        try {
+          if (v && typeof v.toDate === 'function') return v.toDate();
+          if (typeof v === 'string' || typeof v === 'number') return new Date(v);
+        } catch {}
+        return new Date();
+      };
+      onChange({
+        id: docSnap.id,
+        userId: data.userId,
+        title: data.title || '',
+        html: data.html,
+        createdAt: toJsDate(data.createdAt),
+        updatedAt: toJsDate(data.updatedAt),
+      });
+    },
+    onError
+  );
 };

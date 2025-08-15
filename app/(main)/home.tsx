@@ -2,14 +2,17 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  StyleSheet,
   TouchableOpacity,
-  FlatList,
   ActivityIndicator,
   Alert,
-  Image,
   Dimensions,
+  AppState,
+  AppStateStatus,
+  FlatList,
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
 import * as Sharing from 'expo-sharing';
@@ -22,7 +25,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
-  const { resumes, loading, loadResumes, createResume, deleteResume } = useResume();
+  const { resumes, loading, loadResumes, createResume, deleteResume, subscribeResumes } =
+    useResume();
   const isPro = user?.isPro;
   const router = useRouter();
   const [exportingId, setExportingId] = useState<string | null>(null);
@@ -35,11 +39,39 @@ export default function HomeScreen() {
     WebViewComp = null;
   }
 
+  // Initial cache-first load (in case subscription delays or offline)
   useEffect(() => {
     if (user) {
       loadResumes(user.id);
     }
   }, [user]);
+
+  // Real-time subscription when screen is focused; also pause on background
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!user?.id) return () => {};
+      let unsub: (() => void) | null = subscribeResumes(user.id);
+
+      const handleAppState = (state: AppStateStatus) => {
+        if (state !== 'active') {
+          // pause
+          if (unsub) {
+            unsub();
+            unsub = null;
+          }
+        } else if (!unsub && user?.id) {
+          // resume
+          unsub = subscribeResumes(user.id);
+        }
+      };
+
+      const sub = AppState.addEventListener('change', handleAppState);
+      return () => {
+        sub.remove();
+        if (unsub) unsub();
+      };
+    }, [user?.id])
+  );
 
   const handleDelete = (resumeId: string) => {
     Alert.alert(
@@ -152,6 +184,11 @@ export default function HomeScreen() {
 
   const ResumeCard = ({ item, index = 0 }: { item: SavedResume; index?: number }) => {
     const html = item.html;
+    const [previewLoading, setPreviewLoading] = useState<boolean>(true);
+    // If the resume HTML or updatedAt changes, trigger loading state again
+    useEffect(() => {
+      setPreviewLoading(true);
+    }, [html, item.updatedAt]);
     // Compute preview height using A4 aspect ratio (~1:1.414) based on available card width
     const screenWidth = Dimensions.get('window').width;
     // Page has outer padding 16 and card has inner padding 16
@@ -180,12 +217,31 @@ export default function HomeScreen() {
           }
           className="mb-3 overflow-hidden rounded-lg"
           style={{ height: previewHeight, backgroundColor: '#fff' }}>
-          <WebViewComp
-            originWhitelist={['*']}
-            source={{ html: enforceFixedViewport(html) }}
-            style={{ flex: 1 }}
-            scrollEnabled={false}
-          />
+          <View style={{ flex: 1, position: 'relative' }}>
+            <WebViewComp
+              originWhitelist={['*']}
+              source={{ html: enforceFixedViewport(html) }}
+              style={{ flex: 1 }}
+              scrollEnabled={false}
+              onLoadStart={() => setPreviewLoading(true)}
+              onLoadEnd={() => setPreviewLoading(false)}
+            />
+            {previewLoading && (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(255,255,255,0.6)',
+                }}>
+                <ActivityIndicator size="small" color="#3B82F6" />
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
 
         <View className="flex-row flex-wrap gap-2">
@@ -260,7 +316,9 @@ export default function HomeScreen() {
           <FlatList
             data={resumes}
             keyExtractor={(item) => item.id}
-            renderItem={({ item, index }) => <ResumeCard item={item} index={index} />}
+            renderItem={({ item, index }: { item: SavedResume; index: number }) => (
+              <ResumeCard item={item} index={index} />
+            )}
             showsVerticalScrollIndicator={false}
           />
 

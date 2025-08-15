@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  AppState,
+  AppStateStatus,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useResume } from '../../context/ResumeContext';
 // subscription and old section tabs removed in step-based UI
 import { EditableTextInput } from '../../components/EditableTextInput';
@@ -12,7 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function ResumeEditorScreen() {
   const { id } = useLocalSearchParams();
-  const { currentResume, updateResume, loading, loadResume } = useResume();
+  const { currentResume, updateResume, loading, loadResume, subscribeResume } = useResume();
   const { user } = useAuth();
   const router = useRouter();
   // step-based UI only
@@ -27,6 +37,31 @@ export default function ResumeEditorScreen() {
       loadResume(id);
     }
   }, [id]);
+
+  // Real-time subscription for the active resume when this screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!id || typeof id !== 'string') return () => {};
+      let unsub: (() => void) | null = subscribeResume ? subscribeResume(id) : null;
+
+      const handleAppState = (state: AppStateStatus) => {
+        if (state !== 'active') {
+          if (unsub) {
+            unsub();
+            unsub = null;
+          }
+        } else if (!unsub && subscribeResume && id && typeof id === 'string') {
+          unsub = subscribeResume(id);
+        }
+      };
+
+      const sub = AppState.addEventListener('change', handleAppState);
+      return () => {
+        sub.remove();
+        if (unsub) unsub();
+      };
+    }, [id, subscribeResume])
+  );
 
   const renderError = (key: string) =>
     errors[key] ? <Text className="mt-1 text-xs text-red-500">{errors[key]}</Text> : null;
