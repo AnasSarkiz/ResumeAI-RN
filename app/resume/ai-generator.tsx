@@ -111,8 +111,7 @@ export default function AIGeneratorScreen() {
         updatedAt: new Date(),
         createdAt: new Date(),
       });
-      router.replace({ pathname: '/resume/preview', params: { id: String(created.id) } })
-
+      router.replace({ pathname: '/resume/preview', params: { id: String(created.id) } });
     } catch (err) {
       console.error(err);
       Alert.alert(

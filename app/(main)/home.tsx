@@ -322,15 +322,15 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
           />
 
-          <View className="mt-4 flex-row items-center justify-between">
+          <View className="my-1 h-[8%] flex-row items-center justify-between">
             <TouchableOpacity
               onPress={() => router.push('/resume/editor')}
-              className="w-[48%] flex-row items-center justify-center rounded-lg border-2 border-dashed border-blue-500 py-4">
+              className="h-[75%] w-[48%] flex-row items-center justify-center rounded-lg border-2 border-dashed border-blue-500 py-2">
               <Ionicons name="add" size={20} color="#3B82F6" />
               <Text className="ml-2 text-base font-semibold text-blue-600">Create Manually</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="w-[48%] overflow-hidden rounded-xl py-2 "
+              className="h-[100%] w-[48%] overflow-hidden rounded-xl py-2 "
               onPress={() =>
                 isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe')
               }>
@@ -339,7 +339,7 @@ export default function HomeScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{
-                  height: 52,
+                  height: '100%',
                   borderRadius: 12,
                   alignItems: 'center',
                   justifyContent: 'center',

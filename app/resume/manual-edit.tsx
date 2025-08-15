@@ -76,8 +76,7 @@ export default function ManualHtmlEditScreen() {
 
   // Prevent leaving screen with unsaved edits
   useEffect(() => {
-    const hasUnsaved =
-      !!editedHtml && (!!currentResume ? (currentResume).html !== editedHtml : true);
+    const hasUnsaved = !!editedHtml && (!!currentResume ? currentResume.html !== editedHtml : true);
     const onAttemptLeave = (proceed: () => void) => {
       if (!hasUnsaved) {
         proceed();
@@ -237,18 +236,22 @@ export default function ManualHtmlEditScreen() {
           <TouchableOpacity
             onPress={() => setEditMode((v) => !v)}
             className={`mr-2 rounded-md px-3 py-2 ${editMode ? 'bg-amber-600' : 'bg-amber-500'}`}>
-            <Text className="text-white text-sm">{editMode ? 'Editing On' : 'Text Edit Mode'}</Text>
+            <Text className="text-sm text-white">{editMode ? 'Editing On' : 'Text Edit Mode'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setMoveMode((v) => !v)}
             className={`mr-2 rounded-md px-3 py-2 ${moveMode ? 'bg-purple-600' : 'bg-purple-500'}`}>
-            <Text className="text-white text-sm">{moveMode ? 'Drag On' : 'Drag Mode'}</Text>
+            <Text className="text-sm text-white">{moveMode ? 'Drag On' : 'Drag Mode'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onSave}
             disabled={saving}
             className={`rounded-md px-3 py-2 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
-            {saving ? <ActivityIndicator color="#fff" /> : <Text className="text-white text-sm">Save</Text>}
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="text-sm text-white">Save</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -493,6 +496,8 @@ export default function ManualHtmlEditScreen() {
                 var SELECT_STYLE_ID = 'rn-select-style';
                 var MARQUEE_ID = 'rn-marquee';
                 var TAP_THRESHOLD = 6; // px
+                var LONG_PRESS_MS = 450; // touch long-press duration
+                var RN_ID_ATTR = 'data-rn-id';
                 function addFocusStyle(){
                   if(document.getElementById(FOCUS_STYLE_ID)) return;
                   var st=document.createElement('style');
@@ -505,12 +510,35 @@ export default function ManualHtmlEditScreen() {
                   st.id=SELECT_STYLE_ID; st.textContent='[data-rn-selected="1"]{outline:2px solid #3b82f6 !important; outline-offset:2px !important;}';
                   document.head.appendChild(st);
                 }
+                function isContainer(el){
+                  if(!el || !el.tagName) return false;
+                  var tn = el.tagName.toUpperCase();
+                  if(tn==='HTML' || tn==='BODY' || tn==='MAIN' || tn==='HEADER' || tn==='FOOTER' || tn==='SECTION' || tn==='ARTICLE') return true;
+                  var id = (el.id||'').toLowerCase();
+                  if(id==='app' || id==='root' || id==='__next' || id==='resume-root') return true;
+                  if(el.hasAttribute && el.hasAttribute('data-rn-no-drag')) return true;
+                  return false;
+                }
+                function ensureIds(){
+                  try{
+                    var seq = (window.__rnIdSeq||0);
+                    document.querySelectorAll(SELECTORS).forEach(function(el){
+                      if(isContainer(el)) return;
+                      if(!el.hasAttribute(RN_ID_ATTR)){
+                        seq += 1;
+                        el.setAttribute(RN_ID_ATTR, String(seq));
+                      }
+                    });
+                    window.__rnIdSeq = seq;
+                  }catch(e){}
+                }
                 function enableEditing(){
                   addFocusStyle();
                   addSelectStyle();
                   // Prefer known selectors, but also heuristically enable on texty elements
                   var setEditable = function(el){
                     try{
+                      if(isContainer(el)) return;
                       el.setAttribute('contenteditable','true');
                       el.setAttribute('data-rn-edit','1');
                     }catch(e){}
@@ -519,9 +547,11 @@ export default function ManualHtmlEditScreen() {
                   Array.prototype.forEach.call(document.body.querySelectorAll('*'), function(el){
                     if(el.closest('script,style,meta,link,head,title')) return;
                     if(el.getAttribute('contenteditable')==='true') return;
+                    if(isContainer(el)) return;
                     var txt = (el.textContent||'').trim();
                     if(txt && txt.length>0 && txt.length<2000){ setEditable(el); }
                   });
+                  ensureIds();
                 }
                 function disableEditing(){
                   document.querySelectorAll('[data-rn-edit="1"]').forEach(function(el){
@@ -537,6 +567,49 @@ export default function ManualHtmlEditScreen() {
                 // Drag/Move mode
                 var dragState = {el:null, startX:0, startY:0, curX:0, curY:0, group:null, isDragging:false, mod:false};
                 var marqueeState = {active:false, startX:0, startY:0};
+                var longPress = {timer:null, fired:false};
+                // History for drag operations
+                var history = [];
+                var histIndex = -1; // points to last applied entry
+                function pushHistory(entry){
+                  try{
+                    // drop redo tail
+                    if(histIndex < history.length - 1){ history = history.slice(0, histIndex+1); }
+                    history.push(entry);
+                    histIndex = history.length - 1;
+                  }catch(e){}
+                }
+                function applyMoveItems(items, usePrev){
+                  items.forEach(function(it){
+                    var el = document.querySelector('['+RN_ID_ATTR+'="'+it.id+'"]');
+                    if(!el) return;
+                    try{
+                      var targetLeft = usePrev ? it.prevLeft : it.left;
+                      var targetTop = usePrev ? it.prevTop : it.top;
+                      el.style.position = 'relative';
+                      el.style.left = targetLeft + 'px';
+                      el.style.top = targetTop + 'px';
+                    }catch(err){}
+                  });
+                }
+                function undoDrag(){
+                  if(histIndex < 0) return;
+                  var entry = history[histIndex];
+                  if(entry && entry.type==='drag'){
+                    applyMoveItems(entry.items, /*usePrev*/true);
+                    histIndex -= 1;
+                    schedule();
+                  }
+                }
+                function redoDrag(){
+                  if(histIndex >= history.length - 1){ return; }
+                  var next = history[histIndex+1];
+                  if(next && next.type==='drag'){
+                    applyMoveItems(next.items, /*usePrev*/false);
+                    histIndex += 1;
+                    schedule();
+                  }
+                }
                 function rectFromPoints(x1,y1,x2,y2){
                   var left = Math.min(x1,x2), top = Math.min(y1,y2);
                   var width = Math.abs(x2-x1), height = Math.abs(y2-y1);
@@ -580,16 +653,32 @@ export default function ManualHtmlEditScreen() {
                   var isTouch = ('touches' in e);
                   var pt = isTouch ? e.touches[0] : e;
                   dragState.mod = (!!e.metaKey || !!e.ctrlKey || !!e.shiftKey || (isTouch && e.touches && e.touches.length>1));
+                  longPress.fired = false;
+                  if(longPress.timer){ clearTimeout(longPress.timer); longPress.timer=null; }
                   if(!el){
-                    // Start marquee selection from empty space
-                    marqueeState.active = true;
-                    marqueeState.startX = pt.clientX; marqueeState.startY = pt.clientY;
-                    var mq = getMarquee();
-                    mq.style.display='block';
-                    mq.style.left = pt.clientX + 'px';
-                    mq.style.top = pt.clientY + 'px';
-                    mq.style.width = '0px';
-                    mq.style.height = '0px';
+                    // Empty space: on touch, marquee after long press; on mouse, start immediately
+                    if(isTouch){
+                      marqueeState.startX = pt.clientX; marqueeState.startY = pt.clientY;
+                      longPress.timer = setTimeout(function(){
+                        longPress.fired = true;
+                        marqueeState.active = true;
+                        var mq = getMarquee();
+                        mq.style.display='block';
+                        mq.style.left = marqueeState.startX + 'px';
+                        mq.style.top = marqueeState.startY + 'px';
+                        mq.style.width = '0px';
+                        mq.style.height = '0px';
+                      }, LONG_PRESS_MS);
+                    } else {
+                      marqueeState.active = true;
+                      marqueeState.startX = pt.clientX; marqueeState.startY = pt.clientY;
+                      var mq = getMarquee();
+                      mq.style.display='block';
+                      mq.style.left = pt.clientX + 'px';
+                      mq.style.top = pt.clientY + 'px';
+                      mq.style.width = '0px';
+                      mq.style.height = '0px';
+                    }
                     e.preventDefault();
                     return;
                   }
@@ -598,9 +687,23 @@ export default function ManualHtmlEditScreen() {
                   dragState.startX = pt.clientX; dragState.startY = pt.clientY;
                   dragState.curX = 0; dragState.curY = 0;
                   dragState.isDragging = false;
+                  if(isContainer(el)){
+                    // Do not allow container dragging/selection
+                    dragState.el = null;
+                    return;
+                  }
                   var selected = currentSelected();
                   var isElSelected = el.hasAttribute('data-rn-selected');
-                  if(dragState.mod){
+                  if(isTouch){
+                    // On touch, multi-select toggling only after long press
+                    if(longPress.timer){
+                      longPress.timer = setTimeout(function(){
+                        longPress.fired = true;
+                        if(isElSelected){ el.removeAttribute('data-rn-selected'); }
+                        else { el.setAttribute('data-rn-selected','1'); }
+                      }, LONG_PRESS_MS);
+                    }
+                  } else if(dragState.mod){
                     // Modifier pressed: toggle selection state of this element
                     if(isElSelected){ el.removeAttribute('data-rn-selected'); }
                     else { el.setAttribute('data-rn-selected','1'); }
@@ -640,6 +743,10 @@ export default function ManualHtmlEditScreen() {
                     e.preventDefault();
                     return;
                   }
+                  // Cancel pending long-press if moved too far
+                  if(longPress.timer && (Math.abs(pt.clientX - dragState.startX) > TAP_THRESHOLD || Math.abs(pt.clientY - dragState.startY) > TAP_THRESHOLD)){
+                    clearTimeout(longPress.timer); longPress.timer = null; longPress.fired=false;
+                  }
                   if(!dragState.el) return;
                   var dx = pt.clientX - dragState.startX;
                   var dy = pt.clientY - dragState.startY;
@@ -656,6 +763,7 @@ export default function ManualHtmlEditScreen() {
                   }
                 }
                 function onPointerUp(){
+                  if(longPress.timer){ clearTimeout(longPress.timer); longPress.timer=null; }
                   if(marqueeState.active){
                     marqueeState.active = false;
                     var mq = document.getElementById(MARQUEE_ID);
@@ -670,7 +778,7 @@ export default function ManualHtmlEditScreen() {
                     return;
                   }
                   // If it was a tap (not a drag) and no modifier, treat as select-only
-                  if(!dragState.isDragging && !dragState.mod){
+                  if(!dragState.isDragging && !dragState.mod && !longPress.fired){
                     // Already selected single element stays; otherwise selection already set in pointerDown
                     schedule();
                     dragState.el = null; dragState.group = null; // stop here
@@ -678,32 +786,44 @@ export default function ManualHtmlEditScreen() {
                   }
                   // Persist via inline style left/top relative to current position
                   try {
+                    var histItems = [];
                     if(dragState.group && dragState.group.length>0){
                       dragState.group.forEach(function(item){
                         var node = item.node;
                         node.style.transform = '';
-                        var currentLeft = parseFloat(getComputedStyle(node).left || '0') || 0;
-                        var currentTop = parseFloat(getComputedStyle(node).top || '0') || 0;
+                        var cs = getComputedStyle(node);
+                        var currentLeft = parseFloat(cs.left || '0') || 0;
+                        var currentTop = parseFloat(cs.top || '0') || 0;
+                        var newLeft = currentLeft + dragState.curX;
+                        var newTop = currentTop + dragState.curY;
                         node.style.position = 'relative';
-                        node.style.left = (currentLeft + dragState.curX) + 'px';
-                        node.style.top = (currentTop + dragState.curY) + 'px';
+                        node.style.left = newLeft + 'px';
+                        node.style.top = newTop + 'px';
                         node.setAttribute('data-rn-dragging','1');
+                        var id = node.getAttribute(RN_ID_ATTR) || '';
+                        if(id){ histItems.push({ id: id, prevLeft: currentLeft, prevTop: currentTop, left: newLeft, top: newTop }); }
                       });
                     } else {
                       var el = dragState.el;
                       var parent = el.offsetParent || el.parentElement || document.body;
                       if(parent && parent !== document.body){ parent.style.position = parent.style.position || 'relative'; }
                       el.style.transform = '';
-                      var currentLeft = parseFloat(getComputedStyle(el).left || '0') || 0;
-                      var currentTop = parseFloat(getComputedStyle(el).top || '0') || 0;
+                      var cs2 = getComputedStyle(el);
+                      var currentLeft2 = parseFloat(cs2.left || '0') || 0;
+                      var currentTop2 = parseFloat(cs2.top || '0') || 0;
+                      var newLeft2 = currentLeft2 + dragState.curX;
+                      var newTop2 = currentTop2 + dragState.curY;
                       el.style.position = 'relative';
-                      el.style.left = (currentLeft + dragState.curX) + 'px';
-                      el.style.top = (currentTop + dragState.curY) + 'px';
+                      el.style.left = newLeft2 + 'px';
+                      el.style.top = newTop2 + 'px';
                       el.style.willChange = '';
                       el.style.userSelect = '';
                       el.style.cursor = '';
                       el.setAttribute('data-rn-dragging','1');
+                      var id2 = el.getAttribute(RN_ID_ATTR) || '';
+                      if(id2){ histItems.push({ id: id2, prevLeft: currentLeft2, prevTop: currentTop2, left: newLeft2, top: newTop2 }); }
                     }
+                    if(histItems.length>0){ pushHistory({ type:'drag', items: histItems }); }
                   } catch(err){}
                   dragState.el = null; dragState.group = null;
                   schedule();
@@ -731,12 +851,27 @@ export default function ManualHtmlEditScreen() {
                 // Bridge for formatting commands
                 window.__exec = function(cmd, val){
                   try {
-                    // Ensure we are in edit mode so execCommand works
-                    if(!EDIT_MODE){ window.__setEditMode(true); }
                     var command = String(cmd||'');
+                    if(command === 'undo'){
+                      if(MOVE_MODE){
+                        undoDrag();
+                      } else {
+                        document.execCommand('undo', false, null);
+                      }
+                      return;
+                    }
+                    if(command === 'redo'){
+                      if(MOVE_MODE){
+                        redoDrag();
+                      } else {
+                        document.execCommand('redo', false, null);
+                      }
+                      return;
+                    }
+                    // For text operations, ensure edit mode
+                    if(!EDIT_MODE){ window.__setEditMode(true); }
                     var value = (typeof val!== 'undefined' ? val : null);
                     if(command === 'formatBlock'){
-                      // WebKit expects a block tag name like H1/H2/H3
                       document.execCommand('formatBlock', false, value || 'P');
                     } else {
                       document.execCommand(command, false, value);

@@ -118,9 +118,7 @@ export default function AIHtmlEditScreen() {
     return enforceFixedViewport(ensureA4HTML(currentResume.html));
   }, [currentResume]);
 
-  const htmlToPreview = editedHtml
-    ? enforceFixedViewport(ensureA4HTML(editedHtml))
-    : baseHtml;
+  const htmlToPreview = editedHtml ? enforceFixedViewport(ensureA4HTML(editedHtml)) : baseHtml;
 
   // Initialize versions with the original snapshot once resume is loaded
   useEffect(() => {
