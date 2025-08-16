@@ -18,14 +18,14 @@ export const ResumeSectionCard: React.FC<ResumeSectionCardProps> = ({
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`my-2 rounded-lg border p-4 ${active ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
+      className={`my-2 rounded-lg border p-4 ${active ? 'border-primary-500 bg-primary-50' : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'}`}>
       <View className="flex-row items-center">
         {icon && (
           <View className="mr-3">
             <Text className="text-lg">{icon}</Text>
           </View>
         )}
-        <Text className={`text-lg font-medium ${active ? 'text-blue-700' : 'text-gray-700'}`}>
+        <Text className={`text-lg font-medium ${active ? 'text-primary-700' : 'text-gray-700 dark:text-gray-200'}`}>
           {title}
         </Text>
       </View>

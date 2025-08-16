@@ -158,10 +158,10 @@ export default function ResumeEditorScreen() {
 
   const StepIndicator = () => (
     <View className="mb-4">
-      <View className="h-2 w-full rounded-full bg-gray-200">
+      <View className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
         <View style={{ width: `${progress}%` }} className="h-2 overflow-hidden rounded-full">
           <LinearGradient
-            colors={['#6366f1', '#a855f7']}
+            colors={['#25439A', '#3D92C4']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{ flex: 1 }}
@@ -172,11 +172,11 @@ export default function ResumeEditorScreen() {
         {steps.map((label, idx) => (
           <View key={label} className="items-center">
             <View
-              className={`h-7 w-7 items-center justify-center rounded-full ${idx <= step ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+              className={`h-7 w-7 items-center justify-center rounded-full ${idx <= step ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
               <Text className="text-xs font-semibold text-white">{idx + 1}</Text>
             </View>
             <Text
-              className={`mt-1 text-[10px] ${idx === step ? 'text-indigo-600' : 'text-gray-500'}`}>
+              className={`mt-1 text-[10px] ${idx === step ? 'text-primary-600' : 'text-gray-500 dark:text-gray-400'}`}>
               {label}
             </Text>
           </View>
@@ -197,7 +197,7 @@ export default function ResumeEditorScreen() {
         <TouchableOpacity
           onPress={handleNext}
           disabled={!canProceed}
-          className={`flex-1 flex-row items-center justify-center rounded-full py-3 ${canProceed ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+          className={`flex-1 flex-row items-center justify-center rounded-full py-3 ${canProceed ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
           <Text className="mr-1 text-center font-semibold text-white">Next</Text>
           <Ionicons name="arrow-forward" size={18} color="#ffffff" />
         </TouchableOpacity>
@@ -445,7 +445,7 @@ export default function ResumeEditorScreen() {
                         : prev
                     )
                   }>
-                  <Text className="text-blue-500">+ Add Phone</Text>
+                  <Text className="text-primary-600">+ Add Phone</Text>
                 </TouchableOpacity>
               </View>
               {(draft.phones && draft.phones.length > 0
@@ -600,8 +600,8 @@ export default function ResumeEditorScreen() {
                 )
               }
               className="mt-1 flex-row items-center">
-              <Ionicons name="add-circle" size={18} color="#6366f1" />
-              <Text className="ml-1 text-sm font-medium text-indigo-600">Add link</Text>
+              <Ionicons name="add-circle" size={18} color="#25439A" />
+              <Text className="ml-1 text-sm font-medium text-primary-600">Add link</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -624,7 +624,7 @@ export default function ResumeEditorScreen() {
             <View className="mb-2 flex-row items-center justify-between">
               <Text className="text-lg font-semibold text-gray-800">Work Experience</Text>
               <TouchableOpacity onPress={handleAddExperience} className="p-2">
-                <Text className="text-blue-500">+ Add Experience</Text>
+                <Text className="text-primary-600">+ Add Experience</Text>
               </TouchableOpacity>
             </View>
             {draft.experience.map((exp, expIdx) => (
@@ -669,7 +669,7 @@ export default function ResumeEditorScreen() {
                     <Text className="mr-2">Current Job</Text>
                     <TouchableOpacity
                       onPress={() => handleUpdateExperience(exp.id, { current: !exp.current })}
-                      className={`h-6 w-6 rounded-md border ${exp.current ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
+                      className={`h-6 w-6 rounded-md border ${exp.current ? 'border-primary-500 bg-primary-500' : 'border-gray-300'}`}>
                       {exp.current && <Text className="text-center text-white">✓</Text>}
                     </TouchableOpacity>
                   </View>
@@ -716,7 +716,7 @@ export default function ResumeEditorScreen() {
                     );
                   }}
                   className="py-1">
-                  <Text className="text-blue-500">+ Add bullet point</Text>
+                  <Text className="text-primary-600">+ Add bullet point</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -728,7 +728,7 @@ export default function ResumeEditorScreen() {
             <View className="mb-2 flex-row items-center justify-between">
               <Text className="text-lg font-semibold text-gray-800">Education</Text>
               <TouchableOpacity onPress={handleAddEducation} className="p-2">
-                <Text className="text-blue-500">+ Add Education</Text>
+                <Text className="text-primary-600">+ Add Education</Text>
               </TouchableOpacity>
             </View>
             {draft.education.map((edu: Education, eduIdx: number) => (
@@ -775,7 +775,7 @@ export default function ResumeEditorScreen() {
                     <Text className="mr-2">Currently Studying</Text>
                     <TouchableOpacity
                       onPress={() => handleUpdateEducation(edu.id, { current: !edu.current })}
-                      className={`h-6 w-6 rounded-md border ${edu.current ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
+                      className={`h-6 w-6 rounded-md border ${edu.current ? 'border-primary-500 bg-primary-500' : 'border-gray-300'}`}>
                       {edu.current && <Text className="text-center text-white">✓</Text>}
                     </TouchableOpacity>
                   </View>
@@ -799,7 +799,7 @@ export default function ResumeEditorScreen() {
             <View className="mb-2 flex-row items-center justify-between">
               <Text className="text-lg font-semibold text-gray-800">Skills</Text>
               <TouchableOpacity onPress={handleAddSkill} className="p-2">
-                <Text className="text-blue-500">+ Add Skill</Text>
+                <Text className="text-primary-600">+ Add Skill</Text>
               </TouchableOpacity>
             </View>
             {draft.skills.map((sk: Skill) => (

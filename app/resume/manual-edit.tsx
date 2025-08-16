@@ -240,13 +240,13 @@ export default function ManualHtmlEditScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setMoveMode((v) => !v)}
-            className={`mr-2 rounded-md px-3 py-2 ${moveMode ? 'bg-purple-600' : 'bg-purple-500'}`}>
+            className={`mr-2 rounded-md px-3 py-2 ${moveMode ? 'bg-primary-600' : 'bg-primary-500'}`}>
             <Text className="text-sm text-white">{moveMode ? 'Drag On' : 'Drag Mode'}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onSave}
             disabled={saving}
-            className={`rounded-md px-3 py-2 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
+            className={`rounded-md px-3 py-2 ${saving ? 'bg-gray-300 dark:bg-gray-600' : 'bg-primary-600'}`}>
             {saving ? (
               <ActivityIndicator color="#fff" />
             ) : (
@@ -427,8 +427,8 @@ export default function ManualHtmlEditScreen() {
                       '#ef4444',
                       '#f59e0b',
                       '#10b981',
-                      '#3b82f6',
-                      '#8b5cf6',
+                      '#25439A',
+                      '#3D92C4',
                       '#ec4899',
                       '#6b7280',
                       '#000000',
@@ -507,7 +507,7 @@ export default function ManualHtmlEditScreen() {
                 function addSelectStyle(){
                   if(document.getElementById(SELECT_STYLE_ID)) return;
                   var st=document.createElement('style');
-                  st.id=SELECT_STYLE_ID; st.textContent='[data-rn-selected="1"]{outline:2px solid #3b82f6 !important; outline-offset:2px !important;}';
+                  st.id=SELECT_STYLE_ID; st.textContent='[data-rn-selected="1"]{outline:2px solid #25439A !important; outline-offset:2px !important;}';
                   document.head.appendChild(st);
                 }
                 function isContainer(el){

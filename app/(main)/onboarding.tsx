@@ -39,7 +39,7 @@
 //   };
 
 //   return (
-//     <View className="flex-1 bg-white">
+//     <View className="flex-1 bg-gray-50 dark:bg-gray-900">
 //       <FlatList
 //         data={onboardingData}
 //         horizontal
@@ -54,8 +54,8 @@
 //         renderItem={({ item }) => (
 //           <View className="w-screen flex-1 items-center justify-center p-6">
 //             <Image source={item.image} className="mb-8 h-64 w-64" />
-//             <Text className="mb-4 text-center text-2xl font-bold">{item.title}</Text>
-//             <Text className="mb-8 text-center text-lg text-gray-600">{item.description}</Text>
+//             <Text className="mb-4 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">{item.title}</Text>
+//             <Text className="mb-8 text-center text-lg text-gray-600 dark:text-gray-300">{item.description}</Text>
 //           </View>
 //         )}
 //       />
@@ -64,7 +64,7 @@
 //         {onboardingData.map((_, index) => (
 //           <View
 //             key={index}
-//             className={`mx-1 h-2 w-2 rounded-full ${currentIndex === index ? 'bg-blue-500' : 'bg-gray-300'}`}
+//             className={`mx-1 h-2 w-2 rounded-full ${currentIndex === index ? 'bg-primary-600 dark:bg-primary-400' : 'bg-gray-300 dark:bg-gray-600'}`}
 //           />
 //         ))}
 //       </View>
@@ -72,7 +72,7 @@
 //       <View className="px-6 pb-8">
 //         {currentIndex === onboardingData.length - 1 ? (
 //           <Link href="./home" asChild>
-//             <TouchableOpacity className="rounded-full bg-blue-500 py-3">
+//             <TouchableOpacity className="rounded-full bg-primary-600 dark:bg-primary-500 py-3">
 //               <Text className="text-center text-lg font-medium text-white">Get Started</Text>
 //             </TouchableOpacity>
 //           </Link>
@@ -82,10 +82,10 @@
 //               onPress={handlePrevious}
 //               disabled={currentIndex === 0}
 //               className={`px-6 py-3 ${currentIndex === 0 ? 'opacity-0' : ''}`}>
-//               <Text className="font-medium text-blue-500">Back</Text>
+//               <Text className="font-medium text-primary-600 dark:text-primary-400">Back</Text>
 //             </TouchableOpacity>
 //
-//             <TouchableOpacity onPress={handleNext} className="rounded-full bg-blue-500 px-6 py-3">
+//             <TouchableOpacity onPress={handleNext} className="rounded-full bg-primary-600 dark:bg-primary-500 px-6 py-3">
 //               <Text className="font-medium text-white">Next</Text>
 //             </TouchableOpacity>
 //           </View>
@@ -94,3 +94,14 @@
 //     </View>
 //   );
 // }
+
+import React from 'react';
+import { View, Text } from 'react-native';
+
+export default function OnboardingScreen() {
+  return (
+    <View className="flex-1 items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">Onboarding</Text>
+    </View>
+  );
+}

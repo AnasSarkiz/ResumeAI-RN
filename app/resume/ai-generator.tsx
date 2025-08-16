@@ -147,10 +147,10 @@ export default function AIGeneratorScreen() {
   const StepIndicator = () => (
     <View className="mb-4">
       {/* Progress bar */}
-      <View className="h-2 w-full rounded-full bg-gray-200">
+      <View className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
         <View style={{ width: `${progress}%` }} className="h-2 overflow-hidden rounded-full">
           <LinearGradient
-            colors={['#6366f1', '#a855f7']}
+            colors={['#25439A', '#3D92C4']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{ flex: 1 }}
@@ -162,11 +162,11 @@ export default function AIGeneratorScreen() {
         {steps.map((label, idx) => (
           <View key={label} className="items-center">
             <View
-              className={`h-7 w-7 items-center justify-center rounded-full ${idx <= step ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+              className={`h-7 w-7 items-center justify-center rounded-full ${idx <= step ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
               <Text className="text-xs font-semibold text-white">{idx + 1}</Text>
             </View>
             <Text
-              className={`mt-1 text-[10px] ${idx === step ? 'text-indigo-600' : 'text-gray-500'}`}>
+              className={`mt-1 text-[10px] ${idx === step ? 'text-primary-600' : 'text-gray-500 dark:text-gray-400'}`}>
               {label}
             </Text>
           </View>
@@ -185,16 +185,16 @@ export default function AIGeneratorScreen() {
       {step > 0 && (
         <TouchableOpacity
           onPress={handleBack}
-          className="flex-1 flex-row items-center justify-center rounded-full border border-gray-300 bg-white py-3">
+          className="flex-1 flex-row items-center justify-center rounded-full border border-gray-300 bg-white py-3 dark:border-gray-700 dark:bg-gray-800">
           <Ionicons name="chevron-back" size={18} color="#374151" />
-          <Text className="ml-1 text-center font-medium text-gray-700">Back</Text>
+          <Text className="ml-1 text-center font-medium text-gray-700 dark:text-gray-200">Back</Text>
         </TouchableOpacity>
       )}
       {step < 5 ? (
         <TouchableOpacity
           onPress={handleNext}
           disabled={!canProceed}
-          className={`flex-1 flex-row items-center justify-center rounded-full py-3 ${canProceed ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+          className={`flex-1 flex-row items-center justify-center rounded-full py-3 ${canProceed ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
           <Text className="mr-1 text-center font-semibold text-white">Next</Text>
           <Ionicons name="arrow-forward" size={18} color="#ffffff" />
         </TouchableOpacity>
@@ -220,20 +220,20 @@ export default function AIGeneratorScreen() {
   );
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
+    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <LinearGradient
-        colors={['#eef2ff', '#faf5ff']}
+        colors={["#eef2fc", "#e6f3f9"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 24 }}>
         <View style={{ marginBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
           <View className="mr-2 rounded-full bg-white/70 p-2">
-            <Ionicons name="sparkles" size={20} color="#7c3aed" />
+            <Ionicons name="sparkles" size={20} color="#25439A" />
           </View>
           <Text className="text-2xl font-bold text-gray-900">Create with AI</Text>
         </View>
-        <Text className="text-sm text-gray-600">
+        <Text className="text-sm text-gray-600 dark:text-gray-300">
           Fill the steps. On the last step, add how you want the design. We will generate a complete
           resume.
         </Text>
@@ -244,8 +244,8 @@ export default function AIGeneratorScreen() {
 
       <View className="space-y-4 p-4">
         {step === 0 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <Text className="mb-3 text-lg font-semibold text-gray-800">Personal Information</Text>
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Personal Information</Text>
             <EditableTextInput
               label="Full Name *"
               value={formData.fullName}
@@ -304,12 +304,12 @@ export default function AIGeneratorScreen() {
                 />
               </View>
             </View>
-            <Text className="mt-2 text-xs text-gray-500">
+            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               Tip: Use your primary contact details. We will not share them.
             </Text>
 
             <View className="mt-4">
-              <Text className="mb-2 text-base font-semibold text-gray-800">Links</Text>
+              <Text className="mb-2 text-base font-semibold text-gray-800 dark:text-gray-100">Links</Text>
               {links.map((lnk, idx) => (
                 <View key={`link-${idx}`} className="mb-2">
                   <View className="flex-row gap-3">
@@ -348,16 +348,16 @@ export default function AIGeneratorScreen() {
               <TouchableOpacity
                 onPress={() => setLinks((prev) => [...prev, { label: '', url: '' }])}
                 className="mt-1 flex-row items-center">
-                <Ionicons name="add-circle" size={18} color="#6366f1" />
-                <Text className="ml-1 text-sm font-medium text-indigo-600">Add link</Text>
+                <Ionicons name="add-circle" size={18} color="#25439A" />
+                <Text className="ml-1 text-sm font-medium text-primary-600">Add link</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
 
         {step === 1 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <Text className="mb-3 text-lg font-semibold text-gray-800">Summary</Text>
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Summary</Text>
             <EditableTextInput
               label="Current/Target Job Title"
               value={formData.jobTitle || ''}
@@ -382,15 +382,15 @@ export default function AIGeneratorScreen() {
               multiline
               placeholder="Brief summary of your background"
             />
-            <Text className="mt-2 text-xs text-gray-500">
+            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               Keep it 2-4 sentences focusing on impact and strengths.
             </Text>
           </View>
         )}
 
         {step === 2 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <Text className="mb-3 text-lg font-semibold text-gray-800">Education</Text>
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Education</Text>
             {educations.map((val, idx) => (
               <View key={`edu-${idx}`} className="mb-2">
                 <EditableTextInput
@@ -414,18 +414,18 @@ export default function AIGeneratorScreen() {
             <TouchableOpacity
               onPress={() => setEducations((prev) => [...prev, ''])}
               className="mt-1 flex-row items-center">
-              <Ionicons name="add-circle" size={18} color="#6366f1" />
-              <Text className="ml-1 text-sm font-medium text-indigo-600">Add education</Text>
+              <Ionicons name="add-circle" size={18} color="#25439A" />
+              <Text className="ml-1 text-sm font-medium text-primary-600">Add education</Text>
             </TouchableOpacity>
-            <Text className="mt-2 text-xs text-gray-500">
+            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               Example: B.Sc. in Computer Science — ABC University (2019)
             </Text>
           </View>
         )}
 
         {step === 3 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <Text className="mb-3 text-lg font-semibold text-gray-800">Experience</Text>
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Experience</Text>
             {experiences.map((val, idx) => (
               <View key={`exp-${idx}`} className="mb-2">
                 <EditableTextInput
@@ -449,18 +449,18 @@ export default function AIGeneratorScreen() {
             <TouchableOpacity
               onPress={() => setExperiences((prev) => [...prev, ''])}
               className="mt-1 flex-row items-center">
-              <Ionicons name="add-circle" size={18} color="#6366f1" />
-              <Text className="ml-1 text-sm font-medium text-indigo-600">Add experience</Text>
+              <Ionicons name="add-circle" size={18} color="#25439A" />
+              <Text className="ml-1 text-sm font-medium text-primary-600">Add experience</Text>
             </TouchableOpacity>
-            <Text className="mt-2 text-xs text-gray-500">
+            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               Use action verbs and quantify results when possible.
             </Text>
           </View>
         )}
 
         {step === 4 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <Text className="mb-3 text-lg font-semibold text-gray-800">Skills</Text>
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Skills</Text>
             {skillsList.map((val, idx) => (
               <View key={`skill-${idx}`} className="mb-2">
                 <EditableTextInput
@@ -483,18 +483,18 @@ export default function AIGeneratorScreen() {
             <TouchableOpacity
               onPress={() => setSkillsList((prev) => [...prev, ''])}
               className="mt-1 flex-row items-center">
-              <Ionicons name="add-circle" size={18} color="#6366f1" />
-              <Text className="ml-1 text-sm font-medium text-indigo-600">Add skill</Text>
+              <Ionicons name="add-circle" size={18} color="#25439A" />
+              <Text className="ml-1 text-sm font-medium text-primary-600">Add skill</Text>
             </TouchableOpacity>
-            <Text className="mt-2 text-xs text-gray-500">
+            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               Example: React, TypeScript, Node.js, AWS, CI/CD
             </Text>
           </View>
         )}
 
         {step === 5 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <Text className="mb-3 text-lg font-semibold text-gray-800">Design Instructions</Text>
+          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Design Instructions</Text>
             <EditableTextInput
               label="How should it look?"
               value={formData.designInstructions || ''}
@@ -502,7 +502,7 @@ export default function AIGeneratorScreen() {
               multiline
               placeholder="e.g., Modern minimal, accent color blue, two columns, emphasis on projects"
             />
-            <Text className="mt-2 text-xs text-gray-500">
+            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               Hint: Mention color accents, column layout, and typography vibe.
             </Text>
           </View>

@@ -218,7 +218,7 @@ export default function AIHtmlEditScreen() {
             <TouchableOpacity
               onPress={onSave}
               disabled={saving}
-              className={`mr-2 rounded-md px-3 py-2 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
+              className={`mr-2 rounded-md px-3 py-2 ${saving ? 'bg-gray-300 dark:bg-gray-600' : 'bg-primary-600'}`}>
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (
@@ -272,13 +272,13 @@ export default function AIHtmlEditScreen() {
                 return (
                   <View key={v.id} className="mb-3">
                     {!isOriginal && v.instr ? (
-                      <View className="mb-2 max-w-[90%] self-end rounded-2xl bg-indigo-50 px-3 py-2">
-                        <Text className="text-indigo-900">{v.instr}</Text>
+                      <View className="mb-2 max-w-[90%] self-end rounded-2xl bg-primary-50 px-3 py-2">
+                        <Text className="text-primary-900">{v.instr}</Text>
                       </View>
                     ) : null}
                     <TouchableOpacity
                       onPress={() => selectVersion(v.id)}
-                      className={`rounded-xl border px-3 py-2 ${isSelected ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
+                      className={`rounded-xl border px-3 py-2 ${isSelected ? 'border-primary-500 bg-primary-50' : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'}`}>
                       <View className="flex-row items-center justify-between">
                         <Text className="font-medium text-gray-800">
                           {isOriginal ? 'Original' : v.label}
@@ -308,7 +308,7 @@ export default function AIHtmlEditScreen() {
           <TouchableOpacity
             onPress={onApply}
             disabled={submitting}
-            className={`mt-3 flex-row items-center justify-center rounded-md px-4 py-3 ${submitting ? 'bg-purple-300' : 'bg-purple-600'}`}>
+            className={`mt-3 flex-row items-center justify-center rounded-md px-4 py-3 ${submitting ? 'bg-gray-300 dark:bg-gray-600' : 'bg-primary-600'}`}>
             {submitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
@@ -322,7 +322,7 @@ export default function AIHtmlEditScreen() {
             <TouchableOpacity
               onPress={onSave}
               disabled={saving}
-              className={`mt-2 flex-row items-center justify-center rounded-md px-4 py-3 ${saving ? 'bg-blue-300' : 'bg-blue-600'}`}>
+              className={`mt-2 flex-row items-center justify-center rounded-md px-4 py-3 ${saving ? 'bg-gray-300 dark:bg-gray-600' : 'bg-primary-600'}`}>
               {saving ? (
                 <ActivityIndicator color="#fff" />
               ) : (

@@ -119,14 +119,14 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
             return (
               <View
                 key={tplId}
-                className={`mb-6 h-[360px] w-[49.5%] rounded-xl border ${selected === tplId ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'}`}>
+                className={`mb-6 h-[360px] w-[49.5%] rounded-xl border ${selected === tplId ? 'border-primary-500 bg-primary-50' : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'}`}>
                 <View className="flex-row items-center justify-between px-4 pb-2 pt-4">
                   <View>
-                    <Text className="text-sm font-semibold text-purple-900">{name}</Text>
+                    <Text className="text-sm font-semibold text-primary-900">{name}</Text>
                     <Text className="text-xs text-gray-600">ID: {tplId}</Text>
                   </View>
                   {selected === tplId && (
-                    <View className="rounded-full bg-blue-500 px-3 py-1">
+                    <View className="rounded-full bg-primary-600 px-3 py-1">
                       <Text className="text-xs font-semibold text-white">Selected</Text>
                     </View>
                   )}
@@ -158,7 +158,7 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
                 <View className="absolute bottom-0 left-0 right-0 px-4 pb-4">
                   <TouchableOpacity
                     onPress={() => handleSelect(tplId)}
-                    className={`rounded-full px-2 py-2 ${selected === tplId ? 'bg-blue-700' : 'bg-blue-600'}`}>
+                    className={`rounded-full px-2 py-2 ${selected === tplId ? 'bg-primary-700' : 'bg-primary-600'}`}>
                     <Text className="text-center text-xs font-semibold text-white">
                       Use This Template
                     </Text>
@@ -173,7 +173,7 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
       <View className="px-4 pb-6">
         <TouchableOpacity
           onPress={handleSave}
-          className={`mb-3 flex-row items-center justify-center rounded-full py-3 ${selected && !isSaving ? 'bg-indigo-600' : 'bg-gray-300'}`}
+          className={`mb-3 flex-row items-center justify-center rounded-full py-3 ${selected && !isSaving ? 'bg-primary-600' : 'bg-gray-300 dark:bg-gray-600'}`}
           disabled={!selected || isSaving}>
           {isSaving ? (
             <ActivityIndicator color="#ffffff" />

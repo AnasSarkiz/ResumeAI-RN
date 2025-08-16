@@ -37,54 +37,55 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center bg-white p-6">
-      <Text className="mb-8 text-2xl font-bold text-gray-800">Create Account</Text>
+    <View className="flex-1 justify-center p-6 bg-gray-50 dark:bg-gray-900">
+      <Text className="mb-8 text-2xl font-bold text-gray-900 dark:text-gray-100">Create Account</Text>
 
       <View className="mb-4">
-        <Text className="mb-1 text-sm font-medium text-gray-700">Full Name</Text>
+        <Text className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</Text>
         <TextInput
           value={name}
           onChangeText={setName}
           placeholder="John Doe"
-          className="rounded-md border border-gray-300 p-2"
+          className="rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
         />
       </View>
 
       <View className="mb-4">
-        <Text className="mb-1 text-sm font-medium text-gray-700">Email</Text>
+        <Text className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Email</Text>
         <TextInput
           value={email}
           onChangeText={setEmail}
           placeholder="your@email.com"
           keyboardType="email-address"
           autoCapitalize="none"
-          className="rounded-md border border-gray-300 p-2"
+          className="rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
         />
       </View>
 
       <View className="mb-6">
-        <Text className="mb-1 text-sm font-medium text-gray-700">Password</Text>
+        <Text className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Password</Text>
         <TextInput
           value={password}
           onChangeText={setPassword}
           placeholder="••••••••"
           secureTextEntry
-          className="rounded-md border border-gray-300 p-2"
+          className="rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
         />
       </View>
       <TouchableOpacity
         onPress={handleRegister}
         disabled={loading}
-        className="mb-4 rounded-full bg-blue-500 py-3">
+        className="mb-4 rounded-full bg-primary-600 dark:bg-primary-500 py-3">
         <Text className="text-center text-lg font-medium text-white">
           {loading ? 'Creating Account...' : 'Sign Up'}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity className="py-3" onPress={() => router.replace('/login')}>
-        <Text className="text-center font-medium text-blue-500">
+        <Text className="text-center font-medium text-primary-600 dark:text-primary-400">
           Already have an account? Log in
         </Text>
       </TouchableOpacity>
     </View>
   );
 }
+

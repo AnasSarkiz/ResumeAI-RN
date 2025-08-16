@@ -21,43 +21,44 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center bg-white p-6">
-      <Text className="mb-8 text-2xl font-bold text-gray-800">Log In</Text>
+    <View className="flex-1 justify-center p-6 bg-gray-50 dark:bg-gray-900">
+      <Text className="mb-8 text-2xl font-bold text-gray-900 dark:text-gray-100">Log In</Text>
 
       <View className="mb-4">
-        <Text className="mb-1 text-sm font-medium text-gray-700">Email</Text>
+        <Text className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Email</Text>
         <TextInput
           value={email}
           onChangeText={setEmail}
           placeholder="your@email.com"
           keyboardType="email-address"
           autoCapitalize="none"
-          className="rounded-md border border-gray-300 p-2"
+          className="rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
         />
       </View>
 
       <View className="mb-6">
-        <Text className="mb-1 text-sm font-medium text-gray-700">Password</Text>
+        <Text className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Password</Text>
         <TextInput
           value={password}
           onChangeText={setPassword}
           placeholder="••••••••"
           secureTextEntry
-          className="rounded-md border border-gray-300 p-2"
+          className="rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
         />
       </View>
 
-      <TouchableOpacity onPress={handleLogin} className="mb-4 rounded-full bg-blue-500 py-3">
+      <TouchableOpacity onPress={handleLogin} className="mb-4 rounded-full bg-primary-600 dark:bg-primary-500 py-3">
         <Text className="text-center text-lg font-medium text-white">
           {loading ? 'Logging In...' : 'Log In'}
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity className="py-3" onPress={() => router.replace('./register')}>
-        <Text className="text-center font-medium text-blue-500">
+        <Text className="text-center font-medium text-primary-600 dark:text-primary-400">
           Don not have an account? Sign up
         </Text>
       </TouchableOpacity>
     </View>
   );
 }
+
