@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import Purchases from 'react-native-purchases';
 import { SubscriptionPlan } from '../types/user';
 import {
   initializeRevenueCat,
   getSubscriptionPlans,
   purchaseSubscription,
+  getIsPro,
 } from '../services/subscription';
 
 interface SubscriptionContextType {
@@ -52,8 +52,8 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
   const refreshSubscriptionStatus = async () => {
     setLoading(true);
     try {
-      const customerInfo = await Purchases.getCustomerInfo();
-      setIsPro(customerInfo.entitlements.active?.pro?.isActive === true);
+      const active = await getIsPro();
+      setIsPro(active);
     } catch (err) {
       setError('Failed to refresh subscription status');
       console.error(err);
