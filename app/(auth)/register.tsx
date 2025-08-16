@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { Link, router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 
@@ -40,25 +49,27 @@ export default function RegisterScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         contentInsetAdjustmentBehavior="always"
         className="bg-gray-50 dark:bg-gray-900"
-        showsVerticalScrollIndicator={false}
-      >
-        <Text className="mb-8 text-2xl font-bold text-gray-900 dark:text-gray-100">Create Account</Text>
+        showsVerticalScrollIndicator={false}>
+        <Text className="mb-8 text-2xl font-bold text-gray-900 dark:text-gray-100">
+          Create Account
+        </Text>
 
         <View className="mb-4">
-          <Text className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</Text>
+          <Text className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+            Full Name
+          </Text>
           <TextInput
             value={name}
             onChangeText={setName}
             placeholder="John Doe"
-            className="rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
+            className="rounded-md border border-gray-300 bg-white p-2 text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           />
         </View>
 
@@ -70,24 +81,26 @@ export default function RegisterScreen() {
             placeholder="your@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
-            className="rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
+            className="rounded-md border border-gray-300 bg-white p-2 text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           />
         </View>
 
         <View className="mb-6">
-          <Text className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">Password</Text>
+          <Text className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+            Password
+          </Text>
           <TextInput
             value={password}
             onChangeText={setPassword}
             placeholder="••••••••"
             secureTextEntry
-            className="rounded-md border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
+            className="rounded-md border border-gray-300 bg-white p-2 text-gray-900 placeholder:text-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           />
         </View>
         <TouchableOpacity
           onPress={handleRegister}
           disabled={loading}
-          className="mb-4 rounded-full bg-primary-600 dark:bg-primary-500 py-3">
+          className="mb-4 rounded-full bg-primary-600 py-3 dark:bg-primary-500">
           <Text className="text-center text-lg font-medium text-white">
             {loading ? 'Creating Account...' : 'Sign Up'}
           </Text>
@@ -101,4 +114,3 @@ export default function RegisterScreen() {
     </KeyboardAvoidingView>
   );
 }
-

@@ -6,7 +6,7 @@ export default function WelcomeScreen() {
   const { user } = useAuth();
 
   return (
-    <View className="flex-1 justify-center p-6 bg-gray-50 dark:bg-gray-900">
+    <View className="flex-1 justify-center bg-gray-50 p-6 dark:bg-gray-900">
       <View className="-mt-36 mb-12 items-center">
         <Image source={require('../../assets/logo.png')} className="h-96 w-96 " />
         {/* <Text className="mb-2 text-3xl font-bold text-gray-800">ResumeAI</Text> */}
@@ -18,14 +18,14 @@ export default function WelcomeScreen() {
       <View className="space-y-4">
         {user ? (
           <TouchableOpacity
-            className="rounded-full bg-primary-600 dark:bg-primary-500 py-3"
+            className="rounded-full bg-primary-600 py-3 dark:bg-primary-500"
             onPress={() => router.replace('/(main)/home')}>
             <Text className="text-center text-lg font-medium text-white">Continue to App</Text>
           </TouchableOpacity>
         ) : (
           <>
             <TouchableOpacity
-              className="my-2 rounded-full bg-primary-600 dark:bg-primary-500 py-3"
+              className="my-2 rounded-full bg-primary-600 py-3 dark:bg-primary-500"
               onPress={() => {
                 router.push('/register');
               }}>
@@ -33,11 +33,13 @@ export default function WelcomeScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="my-2 rounded-full border border-primary-600 dark:border-primary-400 py-3"
+              className="my-2 rounded-full border border-primary-600 py-3 dark:border-primary-400"
               onPress={() => {
                 router.push('/login');
               }}>
-              <Text className="text-center text-lg font-medium text-primary-600 dark:text-primary-400">Log In</Text>
+              <Text className="text-center text-lg font-medium text-primary-600 dark:text-primary-400">
+                Log In
+              </Text>
             </TouchableOpacity>
           </>
         )}
@@ -45,4 +47,3 @@ export default function WelcomeScreen() {
     </View>
   );
 }
-

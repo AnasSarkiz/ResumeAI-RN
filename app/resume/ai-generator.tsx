@@ -1,5 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
@@ -187,7 +196,9 @@ export default function AIGeneratorScreen() {
           onPress={handleBack}
           className="flex-1 flex-row items-center justify-center rounded-full border border-gray-300 bg-white py-3 dark:border-gray-700 dark:bg-gray-800">
           <Ionicons name="chevron-back" size={18} color="#374151" />
-          <Text className="ml-1 text-center font-medium text-gray-700 dark:text-gray-200">Back</Text>
+          <Text className="ml-1 text-center font-medium text-gray-700 dark:text-gray-200">
+            Back
+          </Text>
         </TouchableOpacity>
       )}
       {step < 5 ? (
@@ -223,133 +234,207 @@ export default function AIGeneratorScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
-    <ScrollView
-      className="flex-1 bg-gray-50 dark:bg-gray-900"
-      keyboardShouldPersistTaps="handled"
-      keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-      contentInsetAdjustmentBehavior="always"
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <LinearGradient
-        colors={["#eef2fc", "#e6f3f9"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 24 }}>
-        <View style={{ marginBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
-          <View className="mr-2 rounded-full bg-white/70 p-2">
-            <Ionicons name="sparkles" size={20} color="#25439A" />
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
+      <ScrollView
+        className="flex-1 bg-gray-50 dark:bg-gray-900"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        contentInsetAdjustmentBehavior="always"
+        showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <LinearGradient
+          colors={['#eef2fc', '#e6f3f9']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 24 }}>
+          <View style={{ marginBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
+            <View className="mr-2 rounded-full bg-white/70 p-2">
+              <Ionicons name="sparkles" size={20} color="#25439A" />
+            </View>
+            <Text className="text-2xl font-bold text-gray-900">Create with AI</Text>
           </View>
-          <Text className="text-2xl font-bold text-gray-900">Create with AI</Text>
-        </View>
-        <Text className="text-sm text-gray-600 dark:text-gray-300">
-          Fill the steps. On the last step, add how you want the design. We will generate a complete
-          resume.
-        </Text>
-        <View className="mt-4">
-          <StepIndicator />
-        </View>
-      </LinearGradient>
+          <Text className="text-sm text-gray-600 dark:text-gray-300">
+            Fill the steps. On the last step, add how you want the design. We will generate a
+            complete resume.
+          </Text>
+          <View className="mt-4">
+            <StepIndicator />
+          </View>
+        </LinearGradient>
 
-      <View className="space-y-4 p-4">
-        {step === 0 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Personal Information</Text>
-            <EditableTextInput
-              label="Full Name *"
-              value={formData.fullName}
-              onChange={(t) => handleInputChange('fullName', t)}
-              required
-              error={errors.fullName}
-            />
-            {errors.fullName ? (
-              <Text className="mt-1 text-xs text-red-500">{errors.fullName}</Text>
-            ) : null}
-            <EditableTextInput
-              label="Email *"
-              value={formData.email}
-              onChange={(t) => handleInputChange('email', t)}
-              required
-              error={errors.email}
-            />
-            {errors.email ? (
-              <Text className="mt-1 text-xs text-red-500">{errors.email}</Text>
-            ) : null}
-            <View className="mt-2 flex-row items-end gap-3">
-              <View className="flex-1">
-                <EditableTextInput
-                  label="Date of Birth"
-                  value={formData.dateOfBirth || ''}
-                  onChange={(t) => handleInputChange('dateOfBirth', t)}
-                  placeholder="YYYY-MM-DD"
-                />
+        <View className="space-y-4 p-4">
+          {step === 0 && (
+            <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Personal Information
+              </Text>
+              <EditableTextInput
+                label="Full Name *"
+                value={formData.fullName}
+                onChange={(t) => handleInputChange('fullName', t)}
+                required
+                error={errors.fullName}
+              />
+              {errors.fullName ? (
+                <Text className="mt-1 text-xs text-red-500">{errors.fullName}</Text>
+              ) : null}
+              <EditableTextInput
+                label="Email *"
+                value={formData.email}
+                onChange={(t) => handleInputChange('email', t)}
+                required
+                error={errors.email}
+              />
+              {errors.email ? (
+                <Text className="mt-1 text-xs text-red-500">{errors.email}</Text>
+              ) : null}
+              <View className="mt-2 flex-row items-end gap-3">
+                <View className="flex-1">
+                  <EditableTextInput
+                    label="Date of Birth"
+                    value={formData.dateOfBirth || ''}
+                    onChange={(t) => handleInputChange('dateOfBirth', t)}
+                    placeholder="YYYY-MM-DD"
+                  />
+                </View>
+                <View className="flex-1">
+                  <EditableTextInput
+                    label="Country"
+                    value={formData.country || ''}
+                    onChange={(t) => handleInputChange('country', t)}
+                    placeholder="e.g., Germany"
+                  />
+                </View>
               </View>
-              <View className="flex-1">
-                <EditableTextInput
-                  label="Country"
-                  value={formData.country || ''}
-                  onChange={(t) => handleInputChange('country', t)}
-                  placeholder="e.g., Germany"
-                />
+              <View className="mt-2 flex-row items-end gap-3">
+                <View style={{ width: 96 }}>
+                  <EditableTextInput
+                    label="Code"
+                    value={formData.countryCode || '+'}
+                    onChange={(t) =>
+                      handleInputChange('countryCode', t.startsWith('+') ? t : `+${t}`)
+                    }
+                    placeholder="+1"
+                  />
+                </View>
+                <View className="flex-1">
+                  <EditableTextInput
+                    label="Phone"
+                    value={formData.phone || ''}
+                    onChange={(t) => handleInputChange('phone', t)}
+                    placeholder="555 555 5555"
+                  />
+                </View>
               </View>
-            </View>
-            <View className="mt-2 flex-row items-end gap-3">
-              <View style={{ width: 96 }}>
-                <EditableTextInput
-                  label="Code"
-                  value={formData.countryCode || '+'}
-                  onChange={(t) =>
-                    handleInputChange('countryCode', t.startsWith('+') ? t : `+${t}`)
-                  }
-                  placeholder="+1"
-                />
-              </View>
-              <View className="flex-1">
-                <EditableTextInput
-                  label="Phone"
-                  value={formData.phone || ''}
-                  onChange={(t) => handleInputChange('phone', t)}
-                  placeholder="555 555 5555"
-                />
-              </View>
-            </View>
-            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Tip: Use your primary contact details. We will not share them.
-            </Text>
+              <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Tip: Use your primary contact details. We will not share them.
+              </Text>
 
-            <View className="mt-4">
-              <Text className="mb-2 text-base font-semibold text-gray-800 dark:text-gray-100">Links</Text>
-              {links.map((lnk, idx) => (
-                <View key={`link-${idx}`} className="mb-2">
-                  <View className="flex-row gap-3">
-                    <View style={{ width: 120 }}>
-                      <EditableTextInput
-                        label={`Label ${idx + 1}`}
-                        value={lnk.label}
-                        onChange={(t) =>
-                          setLinks((prev) =>
-                            prev.map((v, i) => (i === idx ? { ...v, label: t } : v))
-                          )
-                        }
-                        placeholder="LinkedIn"
-                      />
+              <View className="mt-4">
+                <Text className="mb-2 text-base font-semibold text-gray-800 dark:text-gray-100">
+                  Links
+                </Text>
+                {links.map((lnk, idx) => (
+                  <View key={`link-${idx}`} className="mb-2">
+                    <View className="flex-row gap-3">
+                      <View style={{ width: 120 }}>
+                        <EditableTextInput
+                          label={`Label ${idx + 1}`}
+                          value={lnk.label}
+                          onChange={(t) =>
+                            setLinks((prev) =>
+                              prev.map((v, i) => (i === idx ? { ...v, label: t } : v))
+                            )
+                          }
+                          placeholder="LinkedIn"
+                        />
+                      </View>
+                      <View className="flex-1">
+                        <EditableTextInput
+                          label="URL"
+                          value={lnk.url}
+                          onChange={(t) =>
+                            setLinks((prev) =>
+                              prev.map((v, i) => (i === idx ? { ...v, url: t } : v))
+                            )
+                          }
+                          placeholder="https://linkedin.com/in/username"
+                        />
+                      </View>
                     </View>
-                    <View className="flex-1">
-                      <EditableTextInput
-                        label="URL"
-                        value={lnk.url}
-                        onChange={(t) =>
-                          setLinks((prev) => prev.map((v, i) => (i === idx ? { ...v, url: t } : v)))
-                        }
-                        placeholder="https://linkedin.com/in/username"
-                      />
-                    </View>
+                    {links.length > 1 && (
+                      <TouchableOpacity
+                        onPress={() => setLinks((prev) => prev.filter((_, i) => i !== idx))}
+                        className="self-end rounded-full px-2 py-1">
+                        <Text className="text-xs text-red-500">Remove</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
-                  {links.length > 1 && (
+                ))}
+                <TouchableOpacity
+                  onPress={() => setLinks((prev) => [...prev, { label: '', url: '' }])}
+                  className="mt-1 flex-row items-center">
+                  <Ionicons name="add-circle" size={18} color="#25439A" />
+                  <Text className="ml-1 text-sm font-medium text-primary-600">Add link</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {step === 1 && (
+            <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Summary
+              </Text>
+              <EditableTextInput
+                label="Current/Target Job Title"
+                value={formData.jobTitle || ''}
+                onChange={(t) => handleInputChange('jobTitle', t)}
+              />
+              <EditableTextInput
+                label="Industry"
+                value={formData.industry || ''}
+                onChange={(t) => handleInputChange('industry', t)}
+                placeholder="e.g., Technology, Healthcare"
+              />
+              <EditableTextInput
+                label="Target Role"
+                value={formData.targetRole || ''}
+                onChange={(t) => handleInputChange('targetRole', t)}
+                placeholder="e.g., Senior Software Engineer"
+              />
+              <EditableTextInput
+                label="Professional Summary"
+                value={formData.summary || ''}
+                onChange={(t) => handleInputChange('summary', t)}
+                multiline
+                placeholder="Brief summary of your background"
+              />
+              <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Keep it 2-4 sentences focusing on impact and strengths.
+              </Text>
+            </View>
+          )}
+
+          {step === 2 && (
+            <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Education
+              </Text>
+              {educations.map((val, idx) => (
+                <View key={`edu-${idx}`} className="mb-2">
+                  <EditableTextInput
+                    label={`Education ${idx + 1}`}
+                    value={val}
+                    onChange={(t) => {
+                      setEducations((prev) => prev.map((v, i) => (i === idx ? t : v)));
+                    }}
+                    multiline
+                    placeholder="Degree — Institution (Year)"
+                  />
+                  {educations.length > 1 && (
                     <TouchableOpacity
-                      onPress={() => setLinks((prev) => prev.filter((_, i) => i !== idx))}
+                      onPress={() => setEducations((prev) => prev.filter((_, i) => i !== idx))}
                       className="self-end rounded-full px-2 py-1">
                       <Text className="text-xs text-red-500">Remove</Text>
                     </TouchableOpacity>
@@ -357,171 +442,111 @@ export default function AIGeneratorScreen() {
                 </View>
               ))}
               <TouchableOpacity
-                onPress={() => setLinks((prev) => [...prev, { label: '', url: '' }])}
+                onPress={() => setEducations((prev) => [...prev, ''])}
                 className="mt-1 flex-row items-center">
                 <Ionicons name="add-circle" size={18} color="#25439A" />
-                <Text className="ml-1 text-sm font-medium text-primary-600">Add link</Text>
+                <Text className="ml-1 text-sm font-medium text-primary-600">Add education</Text>
               </TouchableOpacity>
+              <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Example: B.Sc. in Computer Science — ABC University (2019)
+              </Text>
             </View>
-          </View>
-        )}
+          )}
 
-        {step === 1 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Summary</Text>
-            <EditableTextInput
-              label="Current/Target Job Title"
-              value={formData.jobTitle || ''}
-              onChange={(t) => handleInputChange('jobTitle', t)}
-            />
-            <EditableTextInput
-              label="Industry"
-              value={formData.industry || ''}
-              onChange={(t) => handleInputChange('industry', t)}
-              placeholder="e.g., Technology, Healthcare"
-            />
-            <EditableTextInput
-              label="Target Role"
-              value={formData.targetRole || ''}
-              onChange={(t) => handleInputChange('targetRole', t)}
-              placeholder="e.g., Senior Software Engineer"
-            />
-            <EditableTextInput
-              label="Professional Summary"
-              value={formData.summary || ''}
-              onChange={(t) => handleInputChange('summary', t)}
-              multiline
-              placeholder="Brief summary of your background"
-            />
-            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Keep it 2-4 sentences focusing on impact and strengths.
-            </Text>
-          </View>
-        )}
+          {step === 3 && (
+            <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Experience
+              </Text>
+              {experiences.map((val, idx) => (
+                <View key={`exp-${idx}`} className="mb-2">
+                  <EditableTextInput
+                    label={`Experience ${idx + 1}`}
+                    value={val}
+                    onChange={(t) => {
+                      setExperiences((prev) => prev.map((v, i) => (i === idx ? t : v)));
+                    }}
+                    multiline
+                    placeholder="Role — Company (Dates) • Key achievements"
+                  />
+                  {experiences.length > 1 && (
+                    <TouchableOpacity
+                      onPress={() => setExperiences((prev) => prev.filter((_, i) => i !== idx))}
+                      className="self-end rounded-full px-2 py-1">
+                      <Text className="text-xs text-red-500">Remove</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+              <TouchableOpacity
+                onPress={() => setExperiences((prev) => [...prev, ''])}
+                className="mt-1 flex-row items-center">
+                <Ionicons name="add-circle" size={18} color="#25439A" />
+                <Text className="ml-1 text-sm font-medium text-primary-600">Add experience</Text>
+              </TouchableOpacity>
+              <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Use action verbs and quantify results when possible.
+              </Text>
+            </View>
+          )}
 
-        {step === 2 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Education</Text>
-            {educations.map((val, idx) => (
-              <View key={`edu-${idx}`} className="mb-2">
-                <EditableTextInput
-                  label={`Education ${idx + 1}`}
-                  value={val}
-                  onChange={(t) => {
-                    setEducations((prev) => prev.map((v, i) => (i === idx ? t : v)));
-                  }}
-                  multiline
-                  placeholder="Degree — Institution (Year)"
-                />
-                {educations.length > 1 && (
-                  <TouchableOpacity
-                    onPress={() => setEducations((prev) => prev.filter((_, i) => i !== idx))}
-                    className="self-end rounded-full px-2 py-1">
-                    <Text className="text-xs text-red-500">Remove</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-            <TouchableOpacity
-              onPress={() => setEducations((prev) => [...prev, ''])}
-              className="mt-1 flex-row items-center">
-              <Ionicons name="add-circle" size={18} color="#25439A" />
-              <Text className="ml-1 text-sm font-medium text-primary-600">Add education</Text>
-            </TouchableOpacity>
-            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Example: B.Sc. in Computer Science — ABC University (2019)
-            </Text>
-          </View>
-        )}
+          {step === 4 && (
+            <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Skills
+              </Text>
+              {skillsList.map((val, idx) => (
+                <View key={`skill-${idx}`} className="mb-2">
+                  <EditableTextInput
+                    label={`Skill ${idx + 1}`}
+                    value={val}
+                    onChange={(t) => {
+                      setSkillsList((prev) => prev.map((v, i) => (i === idx ? t : v)));
+                    }}
+                    placeholder="e.g., React"
+                  />
+                  {skillsList.length > 1 && (
+                    <TouchableOpacity
+                      onPress={() => setSkillsList((prev) => prev.filter((_, i) => i !== idx))}
+                      className="self-end rounded-full px-2 py-1">
+                      <Text className="text-xs text-red-500">Remove</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+              <TouchableOpacity
+                onPress={() => setSkillsList((prev) => [...prev, ''])}
+                className="mt-1 flex-row items-center">
+                <Ionicons name="add-circle" size={18} color="#25439A" />
+                <Text className="ml-1 text-sm font-medium text-primary-600">Add skill</Text>
+              </TouchableOpacity>
+              <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Example: React, TypeScript, Node.js, AWS, CI/CD
+              </Text>
+            </View>
+          )}
 
-        {step === 3 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Experience</Text>
-            {experiences.map((val, idx) => (
-              <View key={`exp-${idx}`} className="mb-2">
-                <EditableTextInput
-                  label={`Experience ${idx + 1}`}
-                  value={val}
-                  onChange={(t) => {
-                    setExperiences((prev) => prev.map((v, i) => (i === idx ? t : v)));
-                  }}
-                  multiline
-                  placeholder="Role — Company (Dates) • Key achievements"
-                />
-                {experiences.length > 1 && (
-                  <TouchableOpacity
-                    onPress={() => setExperiences((prev) => prev.filter((_, i) => i !== idx))}
-                    className="self-end rounded-full px-2 py-1">
-                    <Text className="text-xs text-red-500">Remove</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-            <TouchableOpacity
-              onPress={() => setExperiences((prev) => [...prev, ''])}
-              className="mt-1 flex-row items-center">
-              <Ionicons name="add-circle" size={18} color="#25439A" />
-              <Text className="ml-1 text-sm font-medium text-primary-600">Add experience</Text>
-            </TouchableOpacity>
-            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Use action verbs and quantify results when possible.
-            </Text>
-          </View>
-        )}
+          {step === 5 && (
+            <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                Design Instructions
+              </Text>
+              <EditableTextInput
+                label="How should it look?"
+                value={formData.designInstructions || ''}
+                onChange={(t) => handleInputChange('designInstructions', t)}
+                multiline
+                placeholder="e.g., Modern minimal, accent color blue, two columns, emphasis on projects"
+              />
+              <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Hint: Mention color accents, column layout, and typography vibe.
+              </Text>
+            </View>
+          )}
 
-        {step === 4 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Skills</Text>
-            {skillsList.map((val, idx) => (
-              <View key={`skill-${idx}`} className="mb-2">
-                <EditableTextInput
-                  label={`Skill ${idx + 1}`}
-                  value={val}
-                  onChange={(t) => {
-                    setSkillsList((prev) => prev.map((v, i) => (i === idx ? t : v)));
-                  }}
-                  placeholder="e.g., React"
-                />
-                {skillsList.length > 1 && (
-                  <TouchableOpacity
-                    onPress={() => setSkillsList((prev) => prev.filter((_, i) => i !== idx))}
-                    className="self-end rounded-full px-2 py-1">
-                    <Text className="text-xs text-red-500">Remove</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-            <TouchableOpacity
-              onPress={() => setSkillsList((prev) => [...prev, ''])}
-              className="mt-1 flex-row items-center">
-              <Ionicons name="add-circle" size={18} color="#25439A" />
-              <Text className="ml-1 text-sm font-medium text-primary-600">Add skill</Text>
-            </TouchableOpacity>
-            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Example: React, TypeScript, Node.js, AWS, CI/CD
-            </Text>
-          </View>
-        )}
-
-        {step === 5 && (
-          <View className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <Text className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-100">Design Instructions</Text>
-            <EditableTextInput
-              label="How should it look?"
-              value={formData.designInstructions || ''}
-              onChange={(t) => handleInputChange('designInstructions', t)}
-              multiline
-              placeholder="e.g., Modern minimal, accent color blue, two columns, emphasis on projects"
-            />
-            <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Hint: Mention color accents, column layout, and typography vibe.
-            </Text>
-          </View>
-        )}
-
-        <FooterNav />
-      </View>
-    </ScrollView>
+          <FooterNav />
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

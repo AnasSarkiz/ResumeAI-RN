@@ -61,33 +61,31 @@ export default function ProfileScreen() {
             contentContainerStyle={{ paddingBottom: 24 }}
             showsVerticalScrollIndicator={false}>
             {/* Profile Card */}
-            <View 
+            <View
               className="mb-4 mt-10 rounded-2xl p-6 shadow-sm"
               style={{ backgroundColor: THEME_COLORS.surface }}>
               <View className="-mt-14 mb-2 items-center">
-                <View 
+                <View
                   className="h-24 w-24 items-center justify-center rounded-full border-4"
-                  style={{ 
+                  style={{
                     borderColor: THEME_COLORS.surface,
-                    backgroundColor: '#E6ECFF'
+                    backgroundColor: '#E6ECFF',
                   }}>
-                  <Text 
-                    className="text-4xl font-bold"
-                    style={{ color: THEME_COLORS.primary }}>
+                  <Text className="text-4xl font-bold" style={{ color: THEME_COLORS.primary }}>
                     {user?.name?.charAt(0) ?? user?.email?.charAt(0)?.toUpperCase() ?? '?'}
                   </Text>
                 </View>
               </View>
-              <Text 
-                className="text-center text-xl font-bold"
-                style={{ color: THEME_COLORS.text }}>
+              <Text className="text-center text-xl font-bold" style={{ color: THEME_COLORS.text }}>
                 {user?.name || 'Your Name'}
               </Text>
               <View className="mt-1 flex-row items-center justify-center gap-2">
-                <MaterialIcons name="alternate-email" size={16} color={THEME_COLORS.textSecondary} />
-                <Text 
-                  className="text-sm"
-                  style={{ color: THEME_COLORS.textSecondary }}>
+                <MaterialIcons
+                  name="alternate-email"
+                  size={16}
+                  color={THEME_COLORS.textSecondary}
+                />
+                <Text className="text-sm" style={{ color: THEME_COLORS.textSecondary }}>
                   {user?.email}
                 </Text>
               </View>
@@ -105,18 +103,16 @@ export default function ProfileScreen() {
             </View>
 
             {/* Credits Card */}
-            <View 
+            <View
               className="mb-4 rounded-2xl p-5 shadow-sm"
-              style={{ 
+              style={{
                 backgroundColor: THEME_COLORS.surface,
                 borderColor: THEME_COLORS.border,
-                borderWidth: 1
+                borderWidth: 1,
               }}>
               <View className="flex-row items-center gap-2">
                 <MaterialIcons name="credit-card" size={18} color={THEME_COLORS.primary} />
-                <Text 
-                  className="text-sm font-medium"
-                  style={{ color: THEME_COLORS.primary }}>
+                <Text className="text-sm font-medium" style={{ color: THEME_COLORS.primary }}>
                   Career Credits
                 </Text>
               </View>
@@ -130,13 +126,13 @@ export default function ProfileScreen() {
                       color={THEME_COLORS.textSecondary}
                       className="-ml-4 mr-4"
                     />
-                    <Text 
+                    <Text
                       className="-ml-4 mr-4 text-xl"
                       style={{ color: THEME_COLORS.textSecondary }}>
                       Current Balance :
                     </Text>
                   </View>
-                  <Text 
+                  <Text
                     className="mr-4 text-center text-3xl font-extrabold"
                     style={{ color: THEME_COLORS.primary }}>
                     {balance}
@@ -152,22 +148,18 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
-              <Text 
-                className="mt-1 text-xs"
-                style={{ color: THEME_COLORS.textSecondary }}>
+              <Text className="mt-1 text-xs" style={{ color: THEME_COLORS.textSecondary }}>
                 AI Generate (3) · AI Rewrite (1) · Premium Template (5)
               </Text>
             </View>
 
             {/* Help & Legal */}
-            <View 
+            <View
               className="mb-6 rounded-2xl p-5 shadow-sm"
               style={{ backgroundColor: THEME_COLORS.surface }}>
               <View className="mb-1 flex-row items-center gap-2">
                 <MaterialIcons name="verified-user" size={18} color={THEME_COLORS.text} />
-                <Text 
-                  className="text-base font-semibold"
-                  style={{ color: THEME_COLORS.text }}>
+                <Text className="text-base font-semibold" style={{ color: THEME_COLORS.text }}>
                   Help & Legal
                 </Text>
               </View>
@@ -179,7 +171,11 @@ export default function ProfileScreen() {
                     <MaterialIcons name="support-agent" size={20} color={THEME_COLORS.text} />
                     <Text style={{ color: THEME_COLORS.text }}>Contact Support</Text>
                   </View>
-                  <MaterialIcons name="chevron-right" size={22} color={THEME_COLORS.textSecondary} />
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={22}
+                    color={THEME_COLORS.textSecondary}
+                  />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -189,7 +185,11 @@ export default function ProfileScreen() {
                     <MaterialIcons name="privacy-tip" size={20} color={THEME_COLORS.text} />
                     <Text style={{ color: THEME_COLORS.text }}>Privacy Policy</Text>
                   </View>
-                  <MaterialIcons name="chevron-right" size={22} color={THEME_COLORS.textSecondary} />
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={22}
+                    color={THEME_COLORS.textSecondary}
+                  />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -199,7 +199,11 @@ export default function ProfileScreen() {
                     <MaterialIcons name="gavel" size={20} color={THEME_COLORS.text} />
                     <Text style={{ color: THEME_COLORS.text }}>Terms of Use</Text>
                   </View>
-                  <MaterialIcons name="chevron-right" size={22} color={THEME_COLORS.textSecondary} />
+                  <MaterialIcons
+                    name="chevron-right"
+                    size={22}
+                    color={THEME_COLORS.textSecondary}
+                  />
                 </TouchableOpacity>
               </View>
             </View>

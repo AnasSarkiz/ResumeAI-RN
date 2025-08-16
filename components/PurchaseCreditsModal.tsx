@@ -32,7 +32,9 @@ export const PurchaseCreditsModal: React.FC<Props> = ({ visible, onClose }) => {
       <View className="flex-1 items-center justify-end bg-black/40">
         <View className="w-full rounded-t-2xl bg-white p-4 dark:bg-gray-900">
           <View className="mb-3 items-center">
-            <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">Buy Career Credits</Text>
+            <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              Buy Career Credits
+            </Text>
             <Text className="mt-1 text-center text-gray-600 dark:text-gray-400">
               Pay-as-you-go. No subscription. Credits sync across devices.
             </Text>
@@ -48,7 +50,9 @@ export const PurchaseCreditsModal: React.FC<Props> = ({ visible, onClose }) => {
                 accessibilityLabel={`Select bundle ${def.label}`}>
                 <View className="flex-row items-center justify-between">
                   <View>
-                    <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">{def.label}</Text>
+                    <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                      {def.label}
+                    </Text>
                     <Text className="text-xs text-gray-500 dark:text-gray-400">
                       Best for{' '}
                       {id === 'bundle_10'
@@ -58,9 +62,7 @@ export const PurchaseCreditsModal: React.FC<Props> = ({ visible, onClose }) => {
                           : 'power users'}
                     </Text>
                   </View>
-                  <Text className="text-base font-bold text-primary">
-                    ${def.price.toFixed(2)}
-                  </Text>
+                  <Text className="text-base font-bold text-primary">${def.price.toFixed(2)}</Text>
                 </View>
               </TouchableOpacity>
             ))}

@@ -140,7 +140,9 @@ export default function HomeScreen() {
 
   const EmptyState = () => (
     <View className="flex-1 items-center justify-center px-4">
-      <Text className="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-200">No resumes yet</Text>
+      <Text className="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-200">
+        No resumes yet
+      </Text>
       <Text className="mb-6 text-center text-gray-500 dark:text-gray-400">
         Create your first resume manually or let AI craft it for you in seconds.
       </Text>
@@ -149,7 +151,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/resume/ai-generator')}
           className="flex-row items-center justify-center rounded-full py-4 shadow-lg">
           <LinearGradient
-            colors={["#25439A", "#3D92C4"]}
+            colors={['#25439A', '#3D92C4']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
@@ -173,7 +175,9 @@ export default function HomeScreen() {
           onPress={() => router.push('/resume/editor')}
           className="flex-row items-center justify-center rounded-full border border-primary bg-white py-4 dark:bg-gray-800">
           <Ionicons name="add-circle-outline" size={20} color="#25439A" />
-          <Text className="ml-2 text-center font-medium text-primary dark:text-primary-300">Create Manually</Text>
+          <Text className="ml-2 text-center font-medium text-primary dark:text-primary-300">
+            Create Manually
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -195,7 +199,9 @@ export default function HomeScreen() {
       <View className="mb-4  rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <View className="mb-3 flex-row items-center justify-between">
           <View>
-            <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">{item.title}</Text>
+            <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              {item.title}
+            </Text>
             <Text className="text-xs text-gray-600 dark:text-gray-400">
               Updated {item.updatedAt?.toLocaleDateString?.() || ''}
             </Text>
@@ -320,13 +326,15 @@ export default function HomeScreen() {
               onPress={() => router.push('/resume/editor')}
               className="h-[75%] w-[48%] flex-row items-center justify-center rounded-lg border-2 border-dashed border-primary py-2 dark:border-primary-400">
               <Ionicons name="add" size={20} color="#25439A" />
-              <Text className="ml-2 text-base font-semibold text-primary dark:text-primary-300">Create Manually</Text>
+              <Text className="ml-2 text-base font-semibold text-primary dark:text-primary-300">
+                Create Manually
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               className="h-[100%] w-[48%] overflow-hidden rounded-xl py-2 "
               onPress={() => router.push('/resume/ai-generator')}>
               <LinearGradient
-                colors={["#25439A", "#3D92C4"]}
+                colors={['#25439A', '#3D92C4']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{

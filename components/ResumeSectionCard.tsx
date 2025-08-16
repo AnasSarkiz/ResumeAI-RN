@@ -25,7 +25,8 @@ export const ResumeSectionCard: React.FC<ResumeSectionCardProps> = ({
             <Text className="text-lg">{icon}</Text>
           </View>
         )}
-        <Text className={`text-lg font-medium ${active ? 'text-primary-700' : 'text-gray-700 dark:text-gray-200'}`}>
+        <Text
+          className={`text-lg font-medium ${active ? 'text-primary-700' : 'text-gray-700 dark:text-gray-200'}`}>
           {title}
         </Text>
       </View>
