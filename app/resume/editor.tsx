@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   AppState,
   AppStateStatus,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -338,7 +340,18 @@ export default function ResumeEditorScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
+      <ScrollView
+        className="flex-1 bg-gray-50"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        contentInsetAdjustmentBehavior="always"
+        showsVerticalScrollIndicator={false}
+      >
       <LinearGradient
         colors={['#eef2ff', '#faf5ff']}
         start={{ x: 0, y: 0 }}
@@ -831,7 +844,8 @@ export default function ResumeEditorScreen() {
 
         <FooterNav />
       </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

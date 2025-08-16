@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   Alert,
   BackHandler,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useResume } from '../../context/ResumeContext';
@@ -210,6 +212,11 @@ export default function AIHtmlEditScreen() {
   }
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
     <View className="flex-1 bg-[#f9f9f9]">
       <View className="flex-row items-center justify-between px-4 pb-2 pt-4">
         <Text className="text-2xl font-bold text-gray-800">AI Edit</Text>
@@ -243,7 +250,14 @@ export default function AIHtmlEditScreen() {
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView
+        className="flex-1 px-4"
+        contentContainerStyle={{ paddingBottom: 24 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        contentInsetAdjustmentBehavior="always"
+        showsVerticalScrollIndicator={false}
+      >
         <Text className="mb-2 text-sm text-gray-500">Preview</Text>
         <View className="mb-4 h-[520px] overflow-hidden rounded-lg bg-white">
           {WebViewComp ? (
@@ -336,5 +350,6 @@ export default function AIHtmlEditScreen() {
         </View>
       </ScrollView>
     </View>
+    </KeyboardAvoidingView>
   );
 }

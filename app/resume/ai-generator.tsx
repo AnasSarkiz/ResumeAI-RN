@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
@@ -220,7 +220,18 @@ export default function AIGeneratorScreen() {
   );
 
   return (
-    <ScrollView className="flex-1 bg-gray-50 dark:bg-gray-900">
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+    >
+    <ScrollView
+      className="flex-1 bg-gray-50 dark:bg-gray-900"
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+      contentInsetAdjustmentBehavior="always"
+      showsVerticalScrollIndicator={false}
+    >
       {/* Header */}
       <LinearGradient
         colors={["#eef2fc", "#e6f3f9"]}
@@ -511,5 +522,6 @@ export default function AIGeneratorScreen() {
         <FooterNav />
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
