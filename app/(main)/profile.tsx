@@ -44,18 +44,23 @@ export default function ProfileScreen() {
         <>
           {/* Header with gradient */}
           <LinearGradient
-            colors={["#25439A", "#3D92C4"]}
+            colors={['#25439A', '#3D92C4']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ height: 120, width: '100%', borderBottomLeftRadius: 24, borderBottomRightRadius: 24, zIndex: 0 }}
+            style={{
+              height: 120,
+              width: '100%',
+              borderBottomLeftRadius: 24,
+              borderBottomRightRadius: 24,
+              zIndex: 0,
+            }}
           />
           <ScrollView
             className="-mt-16 flex-1 px-4"
             contentContainerStyle={{ paddingBottom: 24 }}
-            showsVerticalScrollIndicator={false}
-          >
+            showsVerticalScrollIndicator={false}>
             {/* Profile Card */}
-            <View className="mb-4 rounded-2xl mt-10 bg-white p-6 shadow-sm">
+            <View className="mb-4 mt-10 rounded-2xl bg-white p-6 shadow-sm">
               <View className="-mt-14 mb-2 items-center">
                 <View className="h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-blue-100">
                   <Text className="text-4xl font-bold text-[#25439A]">
@@ -63,18 +68,18 @@ export default function ProfileScreen() {
                   </Text>
                 </View>
               </View>
-              <Text className="text-center text-xl font-bold text-gray-900">{user?.name || 'Your Name'}</Text>
+              <Text className="text-center text-xl font-bold text-gray-900">
+                {user?.name || 'Your Name'}
+              </Text>
               <View className="mt-1 flex-row items-center justify-center gap-2">
                 <MaterialIcons name="alternate-email" size={16} color="#6b7280" />
                 <Text className="text-sm text-gray-500">{user?.email}</Text>
               </View>
 
-
               <View className="mt-4 flex-row items-center justify-center gap-3">
                 <TouchableOpacity
                   onPress={handleLogout}
-                  className="rounded-full border bg-red-400 border-red-600 px-5 py-2.5"
-                >
+                  className="rounded-full border border-red-600 bg-red-400 px-5 py-2.5">
                   <View className="flex-row items-center gap-2">
                     <MaterialIcons name="logout" size={18} color="#ffffff" />
                     <Text className="font-medium text-white">Log Out</Text>
@@ -90,18 +95,23 @@ export default function ProfileScreen() {
                 <Text className="text-sm font-medium text-[#25439A]">Career Credits</Text>
               </View>
               <View className="mt-2 items-center justify-between">
-                <View>
-                </View>
-                <View className="flex-row items-center justify-between z-10 py-5 w-[80%]">
+                <View></View>
+                <View className="z-10 w-[80%] flex-row items-center justify-between py-5">
                   <View className="flex-row items-center">
-                    <MaterialIcons name="account-balance-wallet" size={18} color="#6b7280"  className="-ml-4 mr-4"/>
-                    <Text className="text-xl text-gray-500 -ml-4 mr-4">  Current Balance :</Text>
+                    <MaterialIcons
+                      name="account-balance-wallet"
+                      size={18}
+                      color="#6b7280"
+                      className="-ml-4 mr-4"
+                    />
+                    <Text className="-ml-4 mr-4 text-xl text-gray-500"> Current Balance :</Text>
                   </View>
-                  <Text className="text-3xl font-extrabold text-center mr-4 text-[#25439A]">{balance}</Text>
+                  <Text className="mr-4 text-center text-3xl font-extrabold text-[#25439A]">
+                    {balance}
+                  </Text>
                   <TouchableOpacity
                     onPress={() => setPurchaseOpen(true)}
-                    className="rounded-full bg-[#25439A] px-4  py-2"
-                  >
+                    className="rounded-full bg-[#25439A] px-4  py-2">
                     <View className="flex-row items-center gap-1">
                       <MaterialIcons name="shopping-cart" size={18} color="#ffffff" />
                       <Text className="font-semibold text-white ">Buy</Text>
@@ -124,9 +134,9 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
                 </View>
               ) : null} */}
-                    <Text className="mt-1 text-xs text-gray-500">
-                    AI Generate (3) · AI Rewrite (1) · Premium Template (5)
-                  </Text>
+              <Text className="mt-1 text-xs text-gray-500">
+                AI Generate (3) · AI Rewrite (1) · Premium Template (5)
+              </Text>
             </View>
 
             {/* Appearance Mode Selector (UI only) */}
@@ -164,8 +174,7 @@ export default function ProfileScreen() {
               <View className="divide-y divide-gray-100">
                 <TouchableOpacity
                   onPress={() => Linking.openURL('mailto:support@example.com')}
-                  className="flex-row items-center justify-between py-3"
-                >
+                  className="flex-row items-center justify-between py-3">
                   <View className="flex-row items-center gap-3">
                     <MaterialIcons name="support-agent" size={20} color="#111827" />
                     <Text className="text-gray-900">Contact Support</Text>
@@ -175,8 +184,7 @@ export default function ProfileScreen() {
 
                 <TouchableOpacity
                   onPress={() => Linking.openURL('https://example.com/privacy')}
-                  className="flex-row items-center justify-between py-3"
-                >
+                  className="flex-row items-center justify-between py-3">
                   <View className="flex-row items-center gap-3">
                     <MaterialIcons name="privacy-tip" size={20} color="#111827" />
                     <Text className="text-gray-900">Privacy Policy</Text>
@@ -186,8 +194,7 @@ export default function ProfileScreen() {
 
                 <TouchableOpacity
                   onPress={() => Linking.openURL('https://example.com/terms')}
-                  className="flex-row items-center justify-between py-3"
-                >
+                  className="flex-row items-center justify-between py-3">
                   <View className="flex-row items-center gap-3">
                     <MaterialIcons name="gavel" size={20} color="#111827" />
                     <Text className="text-gray-900">Terms of Use</Text>
