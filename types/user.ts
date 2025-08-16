@@ -5,19 +5,9 @@ export interface User {
   photoURL?: string;
   createdAt: Date;
   lastLogin: Date;
-  isPro: boolean;
-  subscriptionId?: string;
+  // Pay-as-you-go Career Credits balance
+  creditBalance?: number; // number of Career Credits available
   resumes?: string[];
-}
-
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  currency: string;
-  interval?: 'month' | 'year';
-  features: string[];
 }
 
 export interface AuthState {

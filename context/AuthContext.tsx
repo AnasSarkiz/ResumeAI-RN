@@ -38,12 +38,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const isSessionValid = await storageService.isSessionValid();
 
         if (storedSession && isSessionValid) {
-          // Restore user from stored session
+          // Restore user from stored session (credits are handled separately by CreditBalanceContext)
           setUser({
             id: storedSession.userId,
             email: storedSession.email,
             name: storedSession.name,
-            isPro: storedSession.isPro || false,
             createdAt: new Date(storedSession.lastLogin),
             lastLogin: new Date(),
           });
@@ -74,7 +73,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             userId: userData.id || firebaseUser.uid,
             email: userData.email,
             name: userData.name || '',
-            isPro: userData.isPro || false,
             lastLogin: new Date().toISOString(),
           };
           await storageService.saveUserSession(sessionData);

@@ -8,6 +8,8 @@ import { generateFullHTMLResume } from '../../services/ai';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { AIResumeInput } from '../../types/resume';
+import { useCredits } from '../../context/CreditBalanceContext';
+import { CREDIT_COSTS } from '../../services/credits';
 
 export default function AIGeneratorScreen() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function AIGeneratorScreen() {
   const { createResume, updateResume } = useResume();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
+  const { balance, consume, openPurchase } = useCredits();
 
   const [formData, setFormData] = useState<AIResumeInput>({
     fullName: user?.name || '',
@@ -73,8 +76,23 @@ export default function AIGeneratorScreen() {
       Alert.alert('Please log in', 'You must be logged in to create resumes.');
       return;
     }
+    if (balance < CREDIT_COSTS.AI_GENERATE) {
+      Alert.alert(
+        'Not enough Career Credits',
+        `AI generation costs ${CREDIT_COSTS.AI_GENERATE} credits. You have ${balance}.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Buy Credits',
+            onPress: () => openPurchase().catch(() => {}),
+          },
+        ]
+      );
+      return;
+    }
     setLoading(true);
     try {
+      await consume(CREDIT_COSTS.AI_GENERATE, 'ai_generate');
       // Compose multi-item fields into strings for the AI generator service
       const composedForAI = {
         fullName: formData.fullName,

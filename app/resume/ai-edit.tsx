@@ -17,14 +17,16 @@ import { editHTMLResume } from '../../services/ai';
 import { renderHTMLTemplate, TemplateId } from '../../services/templates';
 import { SavedResume } from 'types/resume';
 import { ensureA4HTML } from '../../services/pdf';
+import { useCredits } from '../../context/CreditBalanceContext';
+import { CREDIT_COSTS } from '../../services/credits';
 
 export default function AIHtmlEditScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const navigation = useNavigation();
   const { user } = useAuth();
-  const isPro = user?.isPro;
   const { currentResume, loadResume, updateResume, loading } = useResume();
+  const { balance, consume, openPurchase } = useCredits();
   const [instructions, setInstructions] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -40,14 +42,10 @@ export default function AIHtmlEditScreen() {
   } catch {}
 
   useEffect(() => {
-    if (!isPro) {
-      router.replace('/(main)/subscribe');
-      return;
-    }
     if (id && typeof id === 'string') {
       loadResume(id);
     }
-  }, [id, isPro]);
+  }, [id]);
 
   // Prevent leaving screen with unsaved AI edits (gesture back, header back, hardware back)
   useEffect(() => {
@@ -144,8 +142,20 @@ export default function AIHtmlEditScreen() {
       Alert.alert('Add instructions', 'Please describe what you want to change.');
       return;
     }
+    if (balance < CREDIT_COSTS.AI_REWRITE) {
+      Alert.alert(
+        'Not enough Career Credits',
+        `AI rewrite costs ${CREDIT_COSTS.AI_REWRITE} credit. You have ${balance}.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Buy Credits', onPress: () => openPurchase().catch(() => {}) },
+        ]
+      );
+      return;
+    }
     setSubmitting(true);
     try {
+      await consume(CREDIT_COSTS.AI_REWRITE, 'ai_rewrite');
       const sourceHtml = editedHtml || baseHtml;
       const newHtml = await editHTMLResume(sourceHtml, instructions);
       const versionId = `${Date.now()}`;

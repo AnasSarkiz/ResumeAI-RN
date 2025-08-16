@@ -11,7 +11,6 @@ export interface StoredSession {
   userId: string;
   email: string;
   name: string;
-  isPro?: boolean;
   lastLogin: string;
   authToken?: string;
 }

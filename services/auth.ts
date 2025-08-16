@@ -32,7 +32,8 @@ export const registerWithEmail = async (email: string, password: string, name: s
     name,
     createdAt: new Date(),
     lastLogin: new Date(),
-    isPro: false,
+    // Initialize Career Credits balance
+    creditBalance: 0,
   });
 
   return user;
@@ -61,9 +62,7 @@ export const getUser = async (userId: string): Promise<User> => {
     photoURL: data?.photoURL ?? auth.currentUser?.photoURL ?? undefined,
     createdAt: createdAt ?? new Date(),
     lastLogin: lastLogin ?? new Date(),
-    isPro: Boolean(data?.isPro),
-    // Fix key: subscriptionId was previously misspelled as subscriptId in mapping
-    subscriptionId: data?.subscriptionId ?? undefined,
+    creditBalance: typeof data?.creditBalance === 'number' ? data.creditBalance : 0,
   };
 };
 

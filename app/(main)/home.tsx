@@ -27,7 +27,6 @@ export default function HomeScreen() {
   const { user, logout } = useAuth();
   const { resumes, loading, loadResumes, createResume, deleteResume, subscribeResumes } =
     useResume();
-  const isPro = user?.isPro;
   const router = useRouter();
   const [exportingId, setExportingId] = useState<string | null>(null);
 
@@ -147,9 +146,7 @@ export default function HomeScreen() {
       </Text>
       <View className="w-full space-y-3">
         <TouchableOpacity
-          onPress={() =>
-            isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe')
-          }
+          onPress={() => router.push('/resume/ai-generator')}
           className="flex-row items-center justify-center rounded-full py-4 shadow-lg">
           <LinearGradient
             colors={['#a855f7', '#6366f1']}
@@ -173,7 +170,7 @@ export default function HomeScreen() {
           </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => (isPro ? router.push('/resume/editor') : router.push('/(main)/subscribe'))}
+          onPress={() => router.push('/resume/editor')}
           className="flex-row items-center justify-center rounded-full border border-blue-500 bg-white py-4">
           <Ionicons name="add-circle-outline" size={20} color="#3B82F6" />
           <Text className="ml-2 text-center font-medium text-blue-500">Create Manually</Text>
@@ -252,11 +249,7 @@ export default function HomeScreen() {
             <Text className={`ml-1 font-medium ${isAI ? 'text-gray-600' : 'text-white'}`}>Edit</Text>
           </TouchableOpacity> */}
           <TouchableOpacity
-            onPress={() =>
-              isPro
-                ? router.push(`/resume/ai-edit?id=${item.id}`)
-                : router.push('/(main)/subscribe')
-            }
+            onPress={() => router.push(`/resume/ai-edit?id=${item.id}`)}
             className={`flex-1 flex-row items-center justify-center rounded-md bg-purple-600 px-3 py-2`}>
             <Text className="-ml-1 font-medium text-white">✨ AI-Edit</Text>
           </TouchableOpacity>
@@ -331,9 +324,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               className="h-[100%] w-[48%] overflow-hidden rounded-xl py-2 "
-              onPress={() =>
-                isPro ? router.push('/resume/ai-generator') : router.push('/(main)/subscribe')
-              }>
+              onPress={() => router.push('/resume/ai-generator')}>
               <LinearGradient
                 colors={['#a855f7', '#6366f1']}
                 start={{ x: 0, y: 0 }}

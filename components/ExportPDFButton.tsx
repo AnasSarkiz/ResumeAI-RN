@@ -1,23 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Share } from 'react-native';
 import { useResume } from '../context/ResumeContext';
-import { useSubscription } from '../context/SubscriptionContext';
 import { exportResumeToPDF } from '../services/pdf';
-import { SubscriptionLock } from './SubscriptionLock';
 import { TemplateId } from '../services/templates';
 
 export const ExportPDFButton: React.FC<{ template?: TemplateId }> = ({ template }) => {
   const [loading, setLoading] = useState(false);
   const { currentResume } = useResume();
-  // const { isPro } = useSubscription();
-  const isPro = true;
 
   const handleExport = async () => {
-    if (!isPro) {
-      Alert.alert('Pro Feature', 'Upgrade to Pro to export resumes as PDF');
-      return;
-    }
-
     if (!currentResume) {
       Alert.alert('Error', 'No resume selected');
       return;
@@ -47,12 +38,9 @@ export const ExportPDFButton: React.FC<{ template?: TemplateId }> = ({ template 
         {loading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <>
-            <Text className="mr-2 font-medium text-white">Export PDF</Text>
-          </>
+          <Text className="mr-2 font-medium text-white">Export PDF</Text>
         )}
       </TouchableOpacity>
-      {!isPro && <SubscriptionLock />}
     </View>
   );
 };
