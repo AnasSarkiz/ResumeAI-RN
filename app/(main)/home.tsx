@@ -223,7 +223,7 @@ export default function HomeScreen() {
           <View style={{ flex: 1, position: 'relative' }}>
             <WebViewComp
               originWhitelist={['*']}
-              source={{ html: enforceFixedViewport(html) }}
+              source={{ html: enforceFixedViewport(html || '') }}
               style={{ flex: 1 }}
               scrollEnabled={false}
               onLoadStart={() => setPreviewLoading(true)}

@@ -41,7 +41,7 @@ export const ensureA4HTML = (html: string): string => {
 
 export const exportHTMLToPDF = async (html: string): Promise<string> => {
   try {
-    const file = await Print.printToFileAsync({ html: ensureA4HTML(html) });
+    const file = await Print.printToFileAsync({ html: ensureA4HTML(html || '') });
     return file.uri;
   } catch (error) {
     console.error('PDF generation error (HTML):', error);
@@ -51,7 +51,7 @@ export const exportHTMLToPDF = async (html: string): Promise<string> => {
 
 export const exportResumeToPDF = async (resume: SavedResume): Promise<string> => {
   try {
-    const html = resume.html;
+    const html = resume.html || '';
     const file = await Print.printToFileAsync({ html: ensureA4HTML(html) });
     // file.uri is a 'file://' URI suitable for sharing
     return file.uri;

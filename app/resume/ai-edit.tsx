@@ -115,7 +115,7 @@ export default function AIHtmlEditScreen() {
   const baseHtml = useMemo(() => {
     if (!currentResume) return '';
     // Ensure single A4 page constraints in preview
-    return enforceFixedViewport(ensureA4HTML(currentResume.html));
+    return enforceFixedViewport(ensureA4HTML(currentResume.html || ''));
   }, [currentResume]);
 
   const htmlToPreview = editedHtml ? enforceFixedViewport(ensureA4HTML(editedHtml)) : baseHtml;

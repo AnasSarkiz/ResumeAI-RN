@@ -49,7 +49,10 @@ export interface SavedResume {
   id: string;
   userId: string;
   title: string;
-  html: string; // Final rendered HTML
+  // HTML is stored in Firebase Storage; this field is hydrated lazily from cache/Storage
+  html?: string;
+  // Monotonically increasing version. Increment when HTML blob changes in Storage.
+  version: number;
   createdAt: Date;
   updatedAt: Date;
 }

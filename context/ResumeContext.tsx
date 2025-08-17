@@ -6,6 +6,9 @@ import {
   saveResume,
   deleteResume as deleteResumeApi,
   updateResumeFields,
+  uploadResumeHtml,
+  downloadResumeHtml,
+  getCachedHtml,
 } from '../services/resume';
 
 interface ResumeContextType {
@@ -37,6 +40,7 @@ const ResumeContext = createContext<ResumeContextType>({
     userId: '',
     title: '',
     html: '',
+    version: 0,
     createdAt: new Date(),
     updatedAt: new Date(),
   }),
@@ -56,6 +60,7 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Debounce timers per resumeId to batch saves
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
+  const htmlTimers = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
   const currentResumeRef = useRef<SavedResume | null>(null);
   useEffect(() => {
     currentResumeRef.current = currentResume;
@@ -82,9 +87,27 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       inflightResumesByUser.current[userId] = (async () => {
         try {
-          const userResumes = await getResumes(userId);
-          cacheResumesByUser.current[userId] = { ts: Date.now(), data: userResumes };
-          return userResumes;
+          const items = await getResumes(userId);
+          // Hydrate lazily using cache and background fetch
+          const merged = await Promise.all(
+            items.map(async (item) => {
+              const cachedHtml = await getCachedHtml(item.id, item.version, CACHE_TTL_MS);
+              if (cachedHtml) return { ...item, html: cachedHtml } as SavedResume;
+              // background fetch
+              (async () => {
+                try {
+                  if (item.userId) {
+                    const html = await downloadResumeHtml(item.userId, item.id, item.version);
+                    setResumes((prev) => prev.map((r) => (r.id === item.id ? { ...r, html } : r)));
+                    cacheResumeById.current[item.id] = { ts: Date.now(), data: { ...item, html } };
+                  }
+                } catch {}
+              })();
+              return item;
+            })
+          );
+          cacheResumesByUser.current[userId] = { ts: Date.now(), data: merged };
+          return merged;
         } finally {
           setLoading(false);
         }
@@ -111,18 +134,36 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         clearTimeout(saveTimers.current[resumeId]);
         saveTimers.current[resumeId] = undefined;
       }
-      const saved = await saveResume(resume);
-      setCurrentResume(saved);
-      setResumes((prev) => prev.map((r) => (r.id === resumeId ? saved : r)));
+      if (htmlTimers.current[resumeId]) {
+        clearTimeout(htmlTimers.current[resumeId]!);
+        htmlTimers.current[resumeId] = undefined;
+      }
+      // Upload HTML first (if present) and bump version only if upload actually occurred
+      let nextVersion = typeof resume.version === 'number' ? resume.version : 0;
+      if (resume.html && resume.userId) {
+        const { uploaded } = await uploadResumeHtml(
+          resume.userId,
+          resume.id,
+          nextVersion + 1,
+          resume.html
+        );
+        if (uploaded) {
+          nextVersion = nextVersion + 1;
+        }
+      }
+      const savedMeta = await saveResume({ ...resume, version: nextVersion } as SavedResume);
+      const merged: SavedResume = { ...resume, ...savedMeta, version: nextVersion };
+      setCurrentResume(merged);
+      setResumes((prev) => prev.map((r) => (r.id === resumeId ? merged : r)));
       // refresh caches with saved
-      cacheResumeById.current[resumeId] = { ts: Date.now(), data: saved };
-      const owner = saved.userId;
+      cacheResumeById.current[resumeId] = { ts: Date.now(), data: merged };
+      const owner = merged.userId;
       if (owner) {
         const list = cacheResumesByUser.current[owner]?.data || [];
         const exists = list.some((r) => r.id === resumeId);
         cacheResumesByUser.current[owner] = {
           ts: Date.now(),
-          data: exists ? list.map((r) => (r.id === resumeId ? saved : r)) : [...list, saved],
+          data: exists ? list.map((r) => (r.id === resumeId ? merged : r)) : [...list, merged],
         };
       }
     } catch (err) {
@@ -148,9 +189,24 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       inflightResumeById.current[resumeId] = (async () => {
         try {
-          const resume = await getResumeById(resumeId);
-          cacheResumeById.current[resumeId] = { ts: Date.now(), data: resume };
-          return resume;
+          const meta = await getResumeById(resumeId);
+          let result: SavedResume = meta;
+          const cachedHtml = await getCachedHtml(meta.id, meta.version, CACHE_TTL_MS);
+          if (cachedHtml) {
+            result = { ...meta, html: cachedHtml };
+          } else if (meta.userId) {
+            // background fetch and update state
+            (async () => {
+              try {
+                const html = await downloadResumeHtml(meta.userId!, meta.id, meta.version);
+                const withHtml = { ...meta, html } as SavedResume;
+                setCurrentResume(withHtml);
+                cacheResumeById.current[resumeId] = { ts: Date.now(), data: withHtml };
+              } catch {}
+            })();
+          }
+          cacheResumeById.current[resumeId] = { ts: Date.now(), data: result };
+          return result;
         } finally {
           setLoading(false);
         }
@@ -170,7 +226,13 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const createResume = async (resume: SavedResume) => {
     setLoading(true);
     try {
-      const newResume = await saveResume(resume);
+      // If html provided, upload first and start version at 1
+      let initialVersion = 0;
+      if (resume.html && resume.userId) {
+        await uploadResumeHtml(resume.userId, resume.id || '', 1, resume.html);
+        initialVersion = 1;
+      }
+      const newResume = await saveResume({ ...resume, version: initialVersion } as SavedResume);
       setResumes((prev) => [...prev, newResume]);
       // update caches
       cacheResumeById.current[newResume.id] = { ts: Date.now(), data: newResume };
@@ -213,18 +275,15 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       };
     }
 
-    // Debounced save to Firestore
+    // Debounced metadata save to Firestore (excluding HTML)
     if (saveTimers.current[resumeId]) {
       clearTimeout(saveTimers.current[resumeId]);
     }
-    // indicate a save is pending
     setSaving(true);
-    const updatesForWrite = { ...updates } as Partial<SavedResume>;
+    const { html: _omitHtml, ...metaUpdates } = updates as any;
     saveTimers.current[resumeId] = setTimeout(async () => {
       try {
-        // Partial update: only send changed fields to Firestore
-        await updateResumeFields(resumeId, updatesForWrite);
-        // Locally we already applied optimistic updates; refresh cache timestamps
+        await updateResumeFields(resumeId, metaUpdates);
         const latest = currentResumeRef.current as SavedResume;
         if (latest) {
           const refreshed = { ...latest, updatedAt: new Date() } as SavedResume;
@@ -247,7 +306,46 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       } finally {
         setSaving(false);
       }
-    }, 800);
+    }, 600);
+
+    // Debounced HTML upload to Storage with version bump if html provided
+    if (updates.html !== undefined) {
+      if (htmlTimers.current[resumeId]) {
+        clearTimeout(htmlTimers.current[resumeId]!);
+      }
+      htmlTimers.current[resumeId] = setTimeout(async () => {
+        try {
+          const latest = currentResumeRef.current as SavedResume;
+          if (!latest?.userId || latest.html === undefined) return;
+          const proposedVersion = (latest.version || 0) + 1;
+          const { uploaded } = await uploadResumeHtml(
+            latest.userId,
+            resumeId,
+            proposedVersion,
+            latest.html || ''
+          );
+          if (uploaded) {
+            await updateResumeFields(resumeId, { version: proposedVersion });
+            const merged: SavedResume = { ...latest, version: proposedVersion };
+            setCurrentResume(merged);
+            cacheResumeById.current[resumeId] = { ts: Date.now(), data: merged };
+            const owner = merged.userId;
+            if (owner) {
+              const list = cacheResumesByUser.current[owner]?.data || [];
+              const exists = list.some((r) => r.id === resumeId);
+              cacheResumesByUser.current[owner] = {
+                ts: Date.now(),
+                data: exists
+                  ? list.map((r) => (r.id === resumeId ? merged : r))
+                  : [...list, merged],
+              };
+            }
+          }
+        } catch (err) {
+          console.error('Failed to upload HTML', err);
+        }
+      }, 3000);
+    }
   };
 
   const deleteResume = async (resumeId: string) => {
@@ -285,11 +383,37 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     const { subscribeToUserResumes } = require('../services/resume');
     const unsub = subscribeToUserResumes(
       userId,
-      (items: SavedResume[]) => {
-        setResumes(items);
-        cacheResumesByUser.current[userId] = { ts: Date.now(), data: items };
-        // prime individual cache entries
-        items.forEach((r) => (cacheResumeById.current[r.id] = { ts: Date.now(), data: r }));
+      async (items: SavedResume[]) => {
+        // Hydrate HTML lazily: keep existing html if version unchanged
+        const currentList = cacheResumesByUser.current[userId]?.data || resumes;
+        const mergedList = await Promise.all(
+          items.map(async (item) => {
+            const existing = currentList.find((r) => r.id === item.id);
+            if (existing && existing.version === item.version && existing.html) {
+              return { ...item, html: existing.html } as SavedResume;
+            }
+            // Try cached html for this version
+            const cached = await getCachedHtml(item.id, item.version, CACHE_TTL_MS);
+            if (cached) return { ...item, html: cached } as SavedResume;
+            // Fetch in background, update state when done
+            (async () => {
+              try {
+                if (item.userId) {
+                  const html = await downloadResumeHtml(item.userId, item.id, item.version);
+                  setResumes((prev) => prev.map((r) => (r.id === item.id ? { ...r, html } : r)));
+                  cacheResumeById.current[item.id] = {
+                    ts: Date.now(),
+                    data: { ...item, html },
+                  };
+                }
+              } catch (e) {}
+            })();
+            return item;
+          })
+        );
+        setResumes(mergedList);
+        cacheResumesByUser.current[userId] = { ts: Date.now(), data: mergedList };
+        mergedList.forEach((r) => (cacheResumeById.current[r.id] = { ts: Date.now(), data: r }));
       },
       (e: any) => {
         console.error('Resumes subscription error', e);
@@ -304,16 +428,44 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
     const { subscribeToResume } = require('../services/resume');
     const unsub = subscribeToResume(
       resumeId,
-      (item: SavedResume) => {
-        setCurrentResume(item);
-        cacheResumeById.current[resumeId] = { ts: Date.now(), data: item };
-        const owner = item.userId;
+      async (item: SavedResume) => {
+        // Preserve current html if same version
+        const existing = currentResumeRef.current;
+        let withHtml: SavedResume = item;
+        if (
+          existing &&
+          existing.id === item.id &&
+          existing.version === item.version &&
+          existing.html
+        ) {
+          withHtml = { ...item, html: existing.html };
+        } else {
+          const cached = await getCachedHtml(item.id, item.version, CACHE_TTL_MS);
+          if (cached) withHtml = { ...item, html: cached };
+          // background fetch to refresh
+          (async () => {
+            try {
+              if (item.userId) {
+                const html = await downloadResumeHtml(item.userId, item.id, item.version);
+                setCurrentResume((prev) =>
+                  prev && prev.id === item.id ? { ...item, html } : prev
+                );
+                cacheResumeById.current[item.id] = { ts: Date.now(), data: { ...item, html } };
+              }
+            } catch {}
+          })();
+        }
+        setCurrentResume(withHtml);
+        cacheResumeById.current[resumeId] = { ts: Date.now(), data: withHtml };
+        const owner = withHtml.userId;
         if (owner) {
           const list = cacheResumesByUser.current[owner]?.data || [];
-          const exists = list.some((r) => r.id === item.id);
+          const exists = list.some((r) => r.id === withHtml.id);
           cacheResumesByUser.current[owner] = {
             ts: Date.now(),
-            data: exists ? list.map((r) => (r.id === item.id ? item : r)) : [...list, item],
+            data: exists
+              ? list.map((r) => (r.id === withHtml.id ? withHtml : r))
+              : [...list, withHtml],
           };
         }
       },

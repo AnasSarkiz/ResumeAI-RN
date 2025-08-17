@@ -91,6 +91,7 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
         userId: user.id,
         title,
         html,
+        version: 0,
         updatedAt: new Date(),
         createdAt: new Date(),
       });

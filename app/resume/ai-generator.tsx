@@ -132,6 +132,7 @@ export default function AIGeneratorScreen() {
         userId: user.id,
         title: derivedTitle,
         html,
+        version: 0,
         updatedAt: new Date(),
         createdAt: new Date(),
       });

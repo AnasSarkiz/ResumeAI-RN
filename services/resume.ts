@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db, storage } from './firebase';
 import {
   doc,
   setDoc,
@@ -16,6 +16,8 @@ import {
   startAfter,
 } from 'firebase/firestore';
 import { ManualResumeInput, SavedResume, AIResumeInput } from '../types/resume';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 
 // Shared error map type and helpers
 export type ErrorMap = Record<string, string>;
@@ -196,18 +198,120 @@ export const validateAIResumeStep = (resume: AIResumeInput, step: number): Valid
   return { valid: Object.keys(errors).length === 0, errors };
 };
 
+// -------------------------
+// Storage paths and hashing
+// -------------------------
+const storagePath = (userId: string, resumeId: string, version: number) =>
+  `resumes/${userId}/${resumeId}/v${version}.html`;
+
+const stablePathLatest = (userId: string, resumeId: string) =>
+  `resumes/${userId}/${resumeId}/latest.html`;
+
+// Small fast hash for change detection (not cryptographically secure)
+const hashHtml = (html: string): string => {
+  let h = 5381;
+  for (let i = 0; i < html.length; i++) {
+    h = (h * 33) ^ html.charCodeAt(i);
+  }
+  // convert to unsigned 32-bit and hex
+  return (h >>> 0).toString(16);
+};
+
+const cacheKey = (resumeId: string, version: number) => `resume_html_${resumeId}_v${version}`;
+const cacheMetaKey = (resumeId: string) => `resume_html_meta_${resumeId}`; // stores lastHash, lastVersion
+
+export const getCachedHtml = async (
+  resumeId: string,
+  version: number,
+  ttlMs: number
+): Promise<string | undefined> => {
+  try {
+    const raw = await AsyncStorage.getItem(cacheKey(resumeId, version));
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.ts || !parsed?.html) return undefined;
+    if (Date.now() - parsed.ts > ttlMs) return undefined;
+    return parsed.html as string;
+  } catch {
+    return undefined;
+  }
+};
+
+export const setCachedHtml = async (
+  resumeId: string,
+  version: number,
+  html: string
+): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(
+      cacheKey(resumeId, version),
+      JSON.stringify({ ts: Date.now(), html })
+    );
+    const lastHash = hashHtml(html);
+    await AsyncStorage.setItem(cacheMetaKey(resumeId), JSON.stringify({ lastHash, version }));
+  } catch {}
+};
+
+export const getLastHtmlHash = async (resumeId: string): Promise<string | undefined> => {
+  try {
+    const raw = await AsyncStorage.getItem(cacheMetaKey(resumeId));
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    return parsed?.lastHash as string | undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+// Upload HTML to Storage (debounced by caller). Returns computed hash. Also upload to versioned path and update latest.html.
+export const uploadResumeHtml = async (
+  userId: string,
+  resumeId: string,
+  version: number,
+  html: string
+): Promise<{ hash: string; uploaded: boolean }> => {
+  const htmlHash = hashHtml(html);
+  const lastHash = await getLastHtmlHash(resumeId);
+  if (lastHash && lastHash === htmlHash) {
+    // unchanged: do not upload, do not touch cache here
+    return { hash: htmlHash, uploaded: false }; // skip upload; unchanged
+  }
+  const versionRef = ref(storage, storagePath(userId, resumeId, version));
+  const latestRef = ref(storage, stablePathLatest(userId, resumeId));
+  await uploadString(versionRef, html, 'raw', { contentType: 'text/html; charset=utf-8' } as any);
+  await uploadString(latestRef, html, 'raw', { contentType: 'text/html; charset=utf-8' } as any);
+  await setCachedHtml(resumeId, version, html);
+  return { hash: htmlHash, uploaded: true };
+};
+
+export const downloadResumeHtml = async (
+  userId: string,
+  resumeId: string,
+  version: number
+): Promise<string> => {
+  // Prefer versioned path to avoid CDN caching issues
+  const url = await getDownloadURL(ref(storage, storagePath(userId, resumeId, version)));
+  const res = await fetch(url);
+  const html = await res.text();
+  await setCachedHtml(resumeId, version, html);
+  return html;
+};
+
+// -------------------------
+// Firestore metadata writes
+// -------------------------
 export const saveResume = async (resume: SavedResume): Promise<SavedResume> => {
   const id =
     resume.id && resume.id.trim().length > 0 ? resume.id : doc(collection(db, 'resumes')).id;
-  const toSave: SavedResume = {
-    ...resume,
+  const toSave: Partial<SavedResume> = {
     id,
-    // stamp times; Firestore will set actual server time
+    userId: resume.userId,
+    title: resume.title,
+    version: typeof resume.version === 'number' ? resume.version : 0,
     createdAt: (resume as any).createdAt || (serverTimestamp() as any),
     updatedAt: serverTimestamp() as any,
   } as any;
   const cleaned = cleanForFirestore(toSave);
-  // merge so that we don't overwrite fields unintentionally
   await setDoc(doc(db, 'resumes', id), cleaned, { merge: true });
   return { ...(toSave as any) } as SavedResume;
 };
@@ -217,7 +321,9 @@ export const updateResumeFields = async (
   resumeId: string,
   updates: Partial<SavedResume>
 ): Promise<void> => {
-  const toUpdate: any = cleanForFirestore({ ...updates, updatedAt: serverTimestamp() as any });
+  // never write HTML to Firestore
+  const { html, ...meta } = updates as any;
+  const toUpdate: any = cleanForFirestore({ ...meta, updatedAt: serverTimestamp() as any });
   await updateDoc(doc(db, 'resumes', resumeId), toUpdate);
 };
 
@@ -237,14 +343,23 @@ export const getResumeById = async (resumeId: string): Promise<SavedResume> => {
     } catch {}
     return new Date();
   };
-  return {
+  const meta: SavedResume = {
     id: docSnap.id,
     userId: data.userId,
     title: data.title || '',
-    html: data.html,
+    version: typeof data.version === 'number' ? data.version : 0,
     createdAt: toJsDate(data.createdAt),
     updatedAt: toJsDate(data.updatedAt),
-  };
+  } as any;
+  // Try hydrate from cache; do not fetch from Storage here (caller decides)
+  const cachedHtml = await getCachedHtml(meta.id, meta.version, 5 * 60 * 1000);
+  if (cachedHtml) return { ...meta, html: cachedHtml };
+  // Legacy fallback: if Firestore still has html and no version, serve it and cache for v0
+  if (!data.version && typeof data.html === 'string' && data.html.length > 0) {
+    await setCachedHtml(meta.id, 0, data.html);
+    return { ...meta, html: data.html } as SavedResume;
+  }
+  return meta;
 };
 
 export const getResumes = async (userId: string): Promise<SavedResume[]> => {
@@ -256,8 +371,9 @@ export const getResumes = async (userId: string): Promise<SavedResume[]> => {
   );
   const querySnapshot = await getDocs(q);
 
-  return querySnapshot.docs.map((doc) => {
-    const data = doc.data();
+  const items: SavedResume[] = [];
+  for (const d of querySnapshot.docs) {
+    const data = d.data();
     const toJsDate = (v: any): Date => {
       try {
         if (v && typeof v.toDate === 'function') return v.toDate();
@@ -265,15 +381,25 @@ export const getResumes = async (userId: string): Promise<SavedResume[]> => {
       } catch {}
       return new Date();
     };
-    return {
-      id: doc.id,
+    const meta: SavedResume = {
+      id: d.id,
       userId: data.userId,
       title: data.title || '',
-      html: data.html,
+      version: typeof data.version === 'number' ? data.version : 0,
       createdAt: toJsDate(data.createdAt),
       updatedAt: toJsDate(data.updatedAt),
-    };
-  });
+    } as any;
+    const cachedHtml = await getCachedHtml(meta.id, meta.version, 5 * 60 * 1000);
+    if (cachedHtml) {
+      items.push({ ...meta, html: cachedHtml });
+    } else if (!data.version && typeof data.html === 'string' && data.html.length > 0) {
+      await setCachedHtml(meta.id, 0, data.html);
+      items.push({ ...meta, html: data.html } as SavedResume);
+    } else {
+      items.push(meta);
+    }
+  }
+  return items;
 };
 
 // Paged list to reduce reads for large lists
@@ -311,7 +437,7 @@ export const getResumesPage = async (
       id: docSnap.id,
       userId: data.userId,
       title: data.title || '',
-      html: data.html,
+      version: typeof data.version === 'number' ? data.version : 0,
       createdAt: toJsDate(data.createdAt),
       updatedAt: toJsDate(data.updatedAt),
     } as SavedResume;
@@ -350,14 +476,16 @@ export const subscribeToUserResumes = (
           } catch {}
           return new Date();
         };
-        return {
+        const item: SavedResume = {
           id: docSnap.id,
           userId: data.userId,
           title: data.title || '',
-          html: data.html,
+          version: typeof data.version === 'number' ? data.version : 0,
           createdAt: toJsDate(data.createdAt),
           updatedAt: toJsDate(data.updatedAt),
-        };
+        } as SavedResume;
+        // Note: list snapshot is metadata only; no legacy html fallback here to keep payload small
+        return item;
       });
       onChange(items);
     },
@@ -384,14 +512,21 @@ export const subscribeToResume = (
         } catch {}
         return new Date();
       };
-      onChange({
+      const meta: SavedResume = {
         id: docSnap.id,
         userId: data.userId,
         title: data.title || '',
-        html: data.html,
+        version: typeof data.version === 'number' ? data.version : 0,
         createdAt: toJsDate(data.createdAt),
         updatedAt: toJsDate(data.updatedAt),
-      });
+      } as SavedResume;
+      // Legacy fallback for single doc subscription only (useful while migrating)
+      if (!data.version && typeof data.html === 'string' && data.html.length > 0) {
+        setCachedHtml(meta.id, 0, data.html).catch(() => {});
+        onChange({ ...meta, html: data.html });
+      } else {
+        onChange(meta);
+      }
     },
     onError
   );
