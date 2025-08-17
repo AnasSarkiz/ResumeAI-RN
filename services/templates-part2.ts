@@ -5,6 +5,7 @@ import {
   renderEducation,
   renderExperience,
   renderSkills,
+  A4_STYLES,
 } from './templates-helpers';
 
 // 11) Minimalist Columns
@@ -12,29 +13,24 @@ const minimalistColumns = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
 <style>
+  ${A4_STYLES}
   :root { --accent:#4b5563; --muted:#6b7280; --bg:#ffffff; }
-  body { font-family: Inter, sans-serif; margin:0; padding:40px; background:var(--bg); color:#111827; }
-  .container { max-width:950px; margin:auto; display:grid; grid-template-columns: 300px 1fr; gap:32px; }
-  h1 { margin:0; font-size:28px; font-weight:700; }
-  .sidebar { border-right:1px solid #e5e7eb; padding-right:20px; }
-  .main { padding-left:10px; }
-  .contact { margin-top:8px; font-size:13px; color:var(--muted); display:flex; flex-wrap:wrap; gap:8px; }
-  .section { margin-top:24px; }
-  .section h2 { font-size:14px; color:var(--accent); text-transform:uppercase; margin-bottom:8px; }
-  .chip { background:#f3f4f6; padding:6px 10px; border-radius:999px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
-  .role { font-weight:600; }
-  .meta { color:var(--muted); font-size:13px; }
-  .date { font-size:12px; color:#9ca3af; }
-  ul { margin:6px 0 0 18px; }
-  @page { size: A4; margin: 15mm; }
-  @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .container { max-width: initial; width: auto; margin: 0; }
-    .section, .item { break-inside: avoid; page-break-inside: avoid; }
-  }
+  body { font-family: Inter, sans-serif; padding: 15mm; color:#111827; }
+  .container { width: 100%; height: 100%; display:grid; grid-template-columns: 80mm 1fr; gap:10mm; }
+  h1 { margin:0; font-size:24px; font-weight:700; }
+  .sidebar { border-right:1px solid #e5e7eb; padding-right:8mm; }
+  .main { padding-left:5mm; }
+  .contact { margin-top:6px; font-size:12px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px; }
+  .section { margin-top:18px; }
+  .section h2 { font-size:13px; color:var(--accent); text-transform:uppercase; margin-bottom:8px; }
+  .chip { background:#f3f4f6; padding:4px 8px; border-radius:999px; font-size:11px; margin:0 6px 6px 0; display:inline-block; }
+  .role { font-weight:600; font-size:14px; }
+  .meta { color:var(--muted); font-size:12px; }
+  .date { font-size:11px; color:#9ca3af; }
+  ul { margin:6px 0 0 16px; padding:0; }
+  li { font-size:12px; margin-bottom:4px; }
 </style>
 </head>
 <body>
@@ -46,7 +42,7 @@ const minimalistColumns = (r: ManualResumeInput) => `
       ${r.education?.length ? `<div class="section"><h2>Education</h2>${renderEducation(r)}</div>` : ''}
     </div>
     <div class="main">
-      ${r.summary ? `<div class="section"><h2>Summary</h2><p>${escape(r.summary)}</p></div>` : ''}
+      ${r.summary ? `<div class="section"><h2>Summary</h2><p style="font-size:12px;">${escape(r.summary)}</p></div>` : ''}
       <div class="section"><h2>Experience</h2>${renderExperience(r)}</div>
     </div>
   </div>
@@ -58,34 +54,29 @@ const boldAccentLine = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta charset="UTF-8">
 <style>
+  ${A4_STYLES}
   :root { --accent:#ef4444; --muted:#6b7280; }
-  body { font-family: 'Segoe UI', sans-serif; margin:0; background:#fafafa; padding:0; }
-  .container { max-width:850px; margin:auto; background:white; padding:40px; border-left:10px solid var(--accent); }
-  h1 { margin:0; font-size:32px; }
-  .contact { margin-top:6px; font-size:13px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; }
-  .section { margin-top:24px; }
-  .section h2 { color:var(--accent); font-size:16px; text-transform:uppercase; margin-bottom:8px; }
-  .role { font-weight:600; }
-  .meta { font-size:13px; color:var(--muted); }
-  .date { font-size:12px; color:var(--accent); }
-  .chip { background:#fee2e2; color:#b91c1c; padding:5px 10px; border-radius:999px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
-  ul { margin:6px 0 0 18px; }
-  @page { size: A4; margin: 15mm; }
-  @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .container { max-width: initial; width: auto; margin: 0; border-left: 0; }
-    .section { break-inside: avoid; page-break-inside: avoid; }
-  }
+  body { font-family: 'Segoe UI', sans-serif; padding: 15mm; }
+  .container { width: 100%; height: 100%; border-left:8px solid var(--accent); padding-left:10mm; }
+  h1 { margin:0; font-size:24px; }
+  .contact { margin-top:6px; font-size:12px; color:var(--muted); display:flex; gap:8px; }
+  .section { margin-top:18px; }
+  .section h2 { color:var(--accent); font-size:14px; text-transform:uppercase; margin-bottom:8px; }
+  .role { font-weight:600; font-size:14px; }
+  .meta { font-size:12px; color:var(--muted); }
+  .date { font-size:11px; color:var(--accent); }
+  .chip { background:#fee2e2; color:#b91c1c; padding:4px 8px; border-radius:999px; font-size:11px; margin:0 6px 6px 0; display:inline-block; }
+  ul { margin:6px 0 0 16px; padding:0; }
+  li { font-size:12px; margin-bottom:4px; }
 </style>
 </head>
 <body>
   <div class="container">
     <h1>${escape(r.fullName)}</h1>
     ${renderContact(r)}
-    ${r.summary ? `<div class="section"><h2>Summary</h2><p>${escape(r.summary)}</p></div>` : ''}
+    ${r.summary ? `<div class="section"><h2>Summary</h2><p style="font-size:12px;">${escape(r.summary)}</p></div>` : ''}
     <div class="section"><h2>Experience</h2>${renderExperience(r)}</div>
     <div class="section"><h2>Education</h2>${renderEducation(r)}</div>
     <div class="section"><h2>Skills</h2>${renderSkills(r)}</div>
@@ -98,28 +89,23 @@ const splitBanner = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta charset="UTF-8">
 <style>
+  ${A4_STYLES}
   :root { --accent:#0ea5e9; --muted:#6b7280; }
-  body { font-family: Inter, sans-serif; margin:0; padding:0; background:#f9fafb; }
-  .banner { display:flex; justify-content:space-between; background:var(--accent); color:white; padding:30px; }
-  .name { font-size:28px; font-weight:700; }
-  .contact { font-size:13px; display:flex; gap:10px; flex-wrap:wrap; opacity:0.9; }
-  .content { max-width:900px; margin:auto; background:white; padding:30px; }
-  .section { margin-top:24px; }
-  .section h2 { color:var(--accent); font-size:14px; text-transform:uppercase; margin-bottom:8px; }
-  .role { font-weight:600; }
-  .meta { color:var(--muted); font-size:13px; }
-  .date { color:var(--accent); font-size:12px; }
-  .chip { background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:999px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
-  ul { margin:6px 0 0 18px; }
-  @page { size: A4; margin: 15mm; }
-  @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .content { max-width: initial; width: auto; margin: 0; }
-    .section { break-inside: avoid; page-break-inside: avoid; }
-  }
+  body { font-family: Inter, sans-serif; padding:0; }
+  .banner { display:flex; justify-content:space-between; background:var(--accent); color:white; padding:10mm 15mm; }
+  .name { font-size:24px; font-weight:700; }
+  .contact { font-size:12px; display:flex; gap:8px; opacity:0.9; }
+  .content { width: 100%; height: calc(100% - 50px); padding:15mm; }
+  .section { margin-top:18px; }
+  .section h2 { color:var(--accent); font-size:13px; text-transform:uppercase; margin-bottom:8px; }
+  .role { font-weight:600; font-size:14px; }
+  .meta { color:var(--muted); font-size:12px; }
+  .date { color:var(--accent); font-size:11px; }
+  .chip { background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:999px; font-size:11px; margin:0 6px 6px 0; display:inline-block; }
+  ul { margin:6px 0 0 16px; padding:0; }
+  li { font-size:12px; margin-bottom:4px; }
 </style>
 </head>
 <body>
@@ -128,10 +114,10 @@ const splitBanner = (r: ManualResumeInput) => `
       <div class="name">${escape(r.fullName)}</div>
       ${renderContact(r)}
     </div>
-    ${r.title ? `<div class="title" style="align-self:center;font-size:16px;text-transform:uppercase;">${escape(r.title)}</div>` : ''}
+    ${r.title ? `<div class="title" style="align-self:center;font-size:14px;text-transform:uppercase;">${escape(r.title)}</div>` : ''}
   </div>
   <div class="content">
-    ${r.summary ? `<div class="section"><h2>About</h2><p>${escape(r.summary)}</p></div>` : ''}
+    ${r.summary ? `<div class="section"><h2>About</h2><p style="font-size:12px;">${escape(r.summary)}</p></div>` : ''}
     <div class="section"><h2>Experience</h2>${renderExperience(r)}</div>
     <div class="section"><h2>Education</h2>${renderEducation(r)}</div>
     <div class="section"><h2>Skills</h2>${renderSkills(r)}</div>
@@ -144,36 +130,30 @@ const modernCardBlocks = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta charset="UTF-8">
 <style>
+  ${A4_STYLES}
   :root { --accent:#9333ea; --muted:#6b7280; }
-  body { font-family: Inter, sans-serif; margin:0; background:#f3f4f6; padding:40px; }
-  .container { max-width:900px; margin:auto; }
-  h1 { font-size:28px; margin:0; }
-  .contact { margin-top:6px; font-size:13px; color:var(--muted); display:flex; gap:10px; flex-wrap:wrap; }
-  .section { margin-top:24px; }
-  .section h2 { color:var(--accent); font-size:14px; margin-bottom:12px; text-transform:uppercase; }
-  .card { background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05); padding:16px; margin-bottom:12px; }
-  .role { font-weight:600; }
-  .meta { font-size:13px; color:var(--muted); }
-  .date { font-size:12px; color:var(--accent); }
-  .chip { background:#f3e8ff; color:#6d28d9; padding:4px 8px; border-radius:999px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
-  ul { margin:6px 0 0 18px; }
-  @page { size: A4; margin: 15mm; }
-  @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .container { max-width: initial; width: auto; margin: 0; }
-    .card { box-shadow: none; }
-    .section, .card { break-inside: avoid; page-break-inside: avoid; }
-  }
+  body { font-family: Inter, sans-serif; padding: 15mm; }
+  .container { width: 100%; height: 100%; }
+  h1 { font-size:24px; margin:0; }
+  .contact { margin-top:6px; font-size:12px; color:var(--muted); display:flex; gap:8px; }
+  .section { margin-top:18px; }
+  .section h2 { color:var(--accent); font-size:13px; margin-bottom:10px; text-transform:uppercase; }
+  .card { background:white; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); padding:12px; margin-bottom:10px; }
+  .role { font-weight:600; font-size:14px; }
+  .meta { font-size:12px; color:var(--muted); }
+  .date { font-size:11px; color:var(--accent); }
+  .chip { background:#f3e8ff; color:#6d28d9; padding:4px 8px; border-radius:999px; font-size:11px; margin:0 6px 6px 0; display:inline-block; }
+  ul { margin:6px 0 0 16px; padding:0; }
+  li { font-size:12px; margin-bottom:4px; }
 </style>
 </head>
 <body>
   <div class="container">
     <h1>${escape(r.fullName)}</h1>
     ${renderContact(r)}
-    ${r.summary ? `<div class="section"><h2>Summary</h2><div class="card"><p>${escape(r.summary)}</p></div></div>` : ''}
+    ${r.summary ? `<div class="section"><h2>Summary</h2><div class="card"><p style="font-size:12px;">${escape(r.summary)}</p></div></div>` : ''}
     <div class="section"><h2>Experience</h2>${r.experience
       .map(
         (e) => `<div class="card">
@@ -195,26 +175,21 @@ const elegantMonochrome = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta charset="UTF-8">
 <style>
-  body { font-family: 'Georgia', serif; margin:0; padding:40px; background:#fff; color:#111; }
-  .container { max-width:800px; margin:auto; }
-  h1 { margin:0; font-size:28px; }
-  .contact { margin-top:6px; font-size:13px; color:#555; display:flex; gap:10px; flex-wrap:wrap; }
-  .divider { height:1px; background:#ddd; margin:20px 0; }
-  .section h2 { font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:#000; margin-bottom:8px; }
-  .role { font-weight:bold; }
-  .meta { font-size:13px; color:#555; }
-  .date { font-size:12px; color:#000; }
-  .chip { background:#eee; color:#000; padding:4px 8px; border-radius:4px; font-size:12px; margin:0 6px 6px 0; display:inline-block; }
-  ul { margin:6px 0 0 18px; }
-  @page { size: A4; margin: 15mm; }
-  @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .container { max-width: initial; width: auto; margin: 0; }
-    .section, .experience-item, .education-item { break-inside: avoid; page-break-inside: avoid; }
-  }
+  ${A4_STYLES}
+  body { font-family: 'Georgia', serif; padding: 15mm; }
+  .container { width: 100%; height: 100%; }
+  h1 { margin:0; font-size:24px; }
+  .contact { margin-top:6px; font-size:12px; color:#555; display:flex; gap:8px; }
+  .divider { height:1px; background:#ddd; margin:15px 0; }
+  .section h2 { font-size:13px; letter-spacing:1px; text-transform:uppercase; color:#000; margin-bottom:8px; }
+  .role { font-weight:bold; font-size:14px; }
+  .meta { font-size:12px; color:#555; }
+  .date { font-size:11px; color:#000; }
+  .chip { background:#eee; color:#000; padding:4px 8px; border-radius:4px; font-size:11px; margin:0 6px 6px 0; display:inline-block; }
+  ul { margin:6px 0 0 16px; padding:0; }
+  li { font-size:12px; margin-bottom:4px; }
 </style>
 </head>
 <body>
@@ -222,7 +197,7 @@ const elegantMonochrome = (r: ManualResumeInput) => `
     <h1>${escape(r.fullName)}</h1>
     ${renderContact(r)}
     <div class="divider"></div>
-    ${r.summary ? `<div class="section"><h2>Summary</h2><p>${escape(r.summary)}</p></div>` : ''}
+    ${r.summary ? `<div class="section"><h2>Summary</h2><p style="font-size:12px;">${escape(r.summary)}</p></div>` : ''}
     <div class="divider"></div>
     <div class="section"><h2>Experience</h2>${renderExperience(r)}</div>
     <div class="divider"></div>
@@ -238,9 +213,10 @@ const magazineEditorial = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@300;400&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   :root {
     --primary: #2c3e50;
     --secondary: #e74c3c;
@@ -250,56 +226,39 @@ const magazineEditorial = (r: ManualResumeInput) => `
   }
   body {
     font-family: 'Lato', sans-serif;
-    line-height: 1.6;
-    color: var(--dark);
-    background: var(--light);
-    margin: 0;
-    padding: 0;
+    line-height: 1.5;
+    padding: 15mm;
   }
   .container {
-    max-width: 900px;
-    margin: 40px auto;
-    background: white;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
   }
   .header {
     background: var(--primary);
     color: white;
-    padding: 40px;
-    position: relative;
-    overflow: hidden;
-  }
-  .header::after {
-    content: "";
-    position: absolute;
-    bottom: -20px;
-    left: 0;
-    right: 0;
-    height: 40px;
-    background: var(--light);
-    transform: skewY(-1.5deg);
-    transform-origin: left;
+    padding: 15mm;
   }
   .name {
     font-family: 'Playfair Display', serif;
-    font-size: 3.2rem;
+    font-size: 2.2rem;
     margin: 0;
     line-height: 1;
   }
   .title {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 300;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     opacity: 0.9;
-    margin-top: 8px;
+    margin-top: 6px;
   }
   .contact-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    margin-top: 20px;
-    font-size: 0.9rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 15px;
+    font-size: 12px;
   }
   .contact-item {
     display: flex;
@@ -308,88 +267,70 @@ const magazineEditorial = (r: ManualResumeInput) => `
   .contact-item::before {
     content: "•";
     color: var(--secondary);
-    margin-right: 8px;
-    font-size: 1.4rem;
+    margin-right: 6px;
+    font-size: 1.2rem;
   }
   .content {
-    padding: 40px;
+    padding: 15mm;
   }
   .section {
-    margin-bottom: 40px;
+    margin-bottom: 8mm;
   }
   .section-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     position: relative;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+    padding-bottom: 6px;
+    margin-bottom: 15px;
   }
   .section-title::after {
     content: "";
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 50px;
-    height: 3px;
+    width: 40px;
+    height: 2px;
     background: var(--secondary);
   }
   .summary {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    max-width: 85%;
+    font-size: 13px;
+    line-height: 1.6;
   }
   .experience-item {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     position: relative;
-    padding-left: 25px;
+    padding-left: 20px;
     border-left: 2px solid var(--accent);
-  }
-  .experience-item:last-child {
-    border-left: 2px solid transparent;
   }
   .role {
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 14px;
     color: var(--primary);
   }
   .company {
     display: inline-block;
     background: var(--accent);
     color: white;
-    padding: 3px 8px;
+    padding: 2px 6px;
     border-radius: 3px;
     margin: 5px 0;
-    font-size: 0.9rem;
+    font-size: 12px;
   }
   .date {
     color: var(--secondary);
-    font-size: 0.9rem;
-    margin-bottom: 8px;
+    font-size: 12px;
+    margin-bottom: 6px;
   }
   .skills-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
   }
   .skill-item {
     background: var(--light);
-    padding: 10px 15px;
+    padding: 8px 12px;
     border-left: 3px solid var(--secondary);
-    font-size: 0.95rem;
-  }
-  @page { size: A4; margin: 15mm; }
-  @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .container { max-width: initial; width: auto; margin: 0; box-shadow: none; }
-    .section, .experience-item { break-inside: avoid; page-break-inside: avoid; }
-    .header::after { display: none; }
-  }
-  @media (max-width: 768px) {
-    .header { padding: 30px; }
-    .content { padding: 30px; }
-    .name { font-size: 2.5rem; }
-    .summary { max-width: 100%; }
+    font-size: 12px;
   }
 </style>
 </head>
@@ -490,9 +431,10 @@ const infographicMinimal = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   :root {
     --primary: #3498db;
     --secondary: #2ecc71;
@@ -502,67 +444,55 @@ const infographicMinimal = (r: ManualResumeInput) => `
   }
   body {
     font-family: 'Open Sans', sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f4 100%);
-    margin: 0;
-    padding: 30px;
-    min-height: 100vh;
-    color: var(--dark);
+    padding: 15mm;
   }
   .resume-card {
-    max-width: 900px;
-    margin: 0 auto;
+    width: 100%;
+    height: 100%;
     background: white;
-    border-radius: 20px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.1);
   }
   .header {
     background: var(--primary);
     color: white;
-    padding: 40px;
+    padding: 15mm;
     text-align: center;
-    position: relative;
   }
   .name {
     font-family: 'Montserrat', sans-serif;
-    font-size: 2.8rem;
+    font-size: 2rem;
     margin: 0;
-    letter-spacing: -0.5px;
   }
   .title {
-    font-size: 1.2rem;
+    font-size: 1rem;
     opacity: 0.9;
-    margin-top: 8px;
+    margin-top: 6px;
     font-weight: 300;
   }
   .contact-info {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 20px;
-    margin-top: 25px;
-  }
-  .contact-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.95rem;
+    gap: 12px;
+    margin-top: 15px;
+    font-size: 12px;
   }
   .content {
-    padding: 40px;
+    padding: 15mm;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 40px;
+    gap: 15mm;
   }
   .section {
-    margin-bottom: 30px;
+    margin-bottom: 8mm;
   }
   .section-title {
     font-family: 'Montserrat', sans-serif;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     color: var(--primary);
-    margin-bottom: 20px;
-    padding-bottom: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 6px;
     border-bottom: 2px dashed var(--secondary);
     position: relative;
   }
@@ -571,97 +501,78 @@ const infographicMinimal = (r: ManualResumeInput) => `
     position: absolute;
     bottom: -6px;
     left: 0;
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
     background: var(--tertiary);
     border-radius: 50%;
   }
   .experience-item {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     position: relative;
-    padding-left: 25px;
+    padding-left: 20px;
   }
   .experience-item::before {
     content: "";
     position: absolute;
     left: 0;
     top: 8px;
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border: 2px solid var(--primary);
     border-radius: 50%;
   }
   .role {
     font-weight: bold;
     margin-bottom: 4px;
-    color: var(--dark);
+    font-size: 14px;
   }
   .company {
     color: var(--primary);
-    font-size: 0.95rem;
-    margin-bottom: 5px;
+    font-size: 12px;
+    margin-bottom: 4px;
   }
   .date {
     background: var(--light);
     display: inline-block;
-    padding: 3px 10px;
+    padding: 2px 8px;
     border-radius: 20px;
-    font-size: 0.85rem;
+    font-size: 11px;
     color: var(--dark);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .skill-meter {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
   }
   .skill-name {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 5px;
-    font-size: 0.95rem;
+    margin-bottom: 4px;
+    font-size: 12px;
   }
   .meter-bar {
-    height: 8px;
+    height: 6px;
     background: #eee;
-    border-radius: 4px;
+    border-radius: 3px;
     overflow: hidden;
   }
   .meter-fill {
     height: 100%;
     background: var(--secondary);
-    border-radius: 4px;
+    border-radius: 3px;
   }
   .education-item {
-    margin-bottom: 20px;
-    padding-left: 20px;
+    margin-bottom: 15px;
+    padding-left: 15px;
     border-left: 2px solid var(--secondary);
   }
   .degree {
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
+    font-size: 14px;
   }
   .institution {
     color: var(--primary);
-    font-size: 0.95rem;
-  }
-  @page { size: A4; margin: 15mm; }
-  @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .resume-card { max-width: initial; width: auto; margin: 0; box-shadow: none; }
-    .section, .experience-item, .education-item { break-inside: avoid; page-break-inside: avoid; }
-  }
-  @media (max-width: 768px) {
-    .content {
-      grid-template-columns: 1fr;
-      padding: 30px;
-      gap: 30px;
-    }
-    .header {
-      padding: 30px 20px;
-    }
-    .name {
-      font-size: 2.3rem;
-    }
+    font-size: 12px;
   }
 </style>
 </head>
@@ -686,7 +597,7 @@ const infographicMinimal = (r: ManualResumeInput) => `
             ? `
         <div class="section">
           <h2 class="section-title">Summary</h2>
-          <p>${escape(r.summary)}</p>
+          <p style="font-size:12px;">${escape(r.summary)}</p>
         </div>`
             : ''
         }
@@ -727,7 +638,7 @@ const infographicMinimal = (r: ManualResumeInput) => `
               <div class="degree">${escape(edu.degree)}</div>
               <div class="institution">${escape(edu.institution)}</div>
               <div class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</div>
-              ${edu.description ? `<p>${escape(edu.description)}</p>` : ''}
+              ${edu.description ? `<p style="font-size:12px;">${escape(edu.description)}</p>` : ''}
             </div>
           `
             )
@@ -782,9 +693,10 @@ const asymmetricLayout = (r: ManualResumeInput) => `
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@800&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   :root {
     --primary: #e67e22;
     --secondary: #9b59b6;
@@ -794,170 +706,131 @@ const asymmetricLayout = (r: ManualResumeInput) => `
   }
   body {
     font-family: 'Source Sans Pro', sans-serif;
-    background: linear-gradient(45deg, #f5f7fa 0%, #e4e7f4 100%);
-    margin: 0;
     padding: 0;
-    color: var(--dark);
-    min-height: 100vh;
   }
   .resume-container {
-    max-width: 1100px;
-    margin: 40px auto;
+    width: 100%;
+    height: 100%;
     display: grid;
     grid-template-columns: 40% 60%;
-    min-height: 90vh;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
   }
   .sidebar {
     background: var(--dark);
     color: white;
-    padding: 50px 30px;
-    position: relative;
+    padding: 15mm;
     clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
   }
   .main-content {
     background: white;
-    padding: 50px 40px;
+    padding: 15mm;
   }
   .name {
     font-family: 'Raleway', sans-serif;
-    font-size: 2.8rem;
+    font-size: 2rem;
     margin: 0;
     line-height: 1;
-    letter-spacing: -1px;
   }
   .title {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 300;
-    margin-top: 10px;
+    margin-top: 8px;
     opacity: 0.9;
   }
   .contact-info {
-    margin-top: 40px;
+    margin-top: 8mm;
   }
   .contact-item {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.95rem;
+    gap: 8px;
+    font-size: 12px;
   }
   .divider {
-    height: 3px;
+    height: 2px;
     background: var(--primary);
-    width: 60px;
-    margin: 30px 0;
+    width: 40px;
+    margin: 8mm 0;
   }
   .skills-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
+    gap: 8px;
+    margin-top: 12px;
   }
   .skill-tag {
     background: var(--primary);
-    padding: 6px 12px;
+    padding: 4px 8px;
     border-radius: 20px;
-    font-size: 0.9rem;
+    font-size: 11px;
   }
   .section {
-    margin-bottom: 40px;
+    margin-bottom: 8mm;
   }
   .section-title {
     font-family: 'Raleway', sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     color: var(--secondary);
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 20px;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
     position: relative;
-    padding-left: 20px;
+    padding-left: 15px;
   }
   .section-title::before {
     content: "";
     position: absolute;
     left: 0;
-    top: 10px;
-    height: 25px;
-    width: 6px;
+    top: 6px;
+    height: 20px;
+    width: 4px;
     background: var(--accent);
   }
   .experience-item {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     position: relative;
-    padding-left: 30px;
+    padding-left: 20px;
   }
   .experience-item::before {
     content: "";
     position: absolute;
     left: 0;
     top: 8px;
-    width: 15px;
-    height: 15px;
+    width: 12px;
+    height: 12px;
     border: 3px solid var(--primary);
     border-radius: 50%;
   }
   .role {
     font-weight: bold;
-    font-size: 1.1rem;
-    margin-bottom: 5px;
+    font-size: 14px;
+    margin-bottom: 4px;
   }
   .company {
     color: var(--primary);
-    font-size: 0.95rem;
-    margin-bottom: 5px;
+    font-size: 12px;
+    margin-bottom: 4px;
   }
   .date {
     color: var(--dark);
     opacity: 0.7;
-    font-size: 0.9rem;
-    margin-bottom: 10px;
+    font-size: 11px;
+    margin-bottom: 8px;
     display: block;
   }
   .education-item {
-    margin-bottom: 20px;
-    padding-left: 20px;
+    margin-bottom: 15px;
+    padding-left: 15px;
     border-left: 2px solid var(--accent);
   }
   .degree {
     font-weight: bold;
     margin-bottom: 4px;
+    font-size: 14px;
   }
   .institution {
     color: var(--secondary);
-    font-size: 0.95rem;
-  }
-  @page { size: A4; margin: 15mm; }
-  @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .resume-container { max-width: initial; width: auto; margin: 0; box-shadow: none; }
-    .section, .experience-item, .education-item { break-inside: avoid; page-break-inside: avoid; }
-  }
-  @media (max-width: 900px) {
-    .resume-container {
-      grid-template-columns: 1fr;
-    }
-    .sidebar {
-      clip-path: none;
-      padding: 40px;
-    }
-    .contact-info {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-  }
-  @media (max-width: 600px) {
-    .contact-info {
-      grid-template-columns: 1fr;
-    }
-    .sidebar, .main-content {
-      padding: 30px;
-    }
+    font-size: 12px;
   }
 </style>
 </head>
@@ -1003,7 +876,7 @@ const asymmetricLayout = (r: ManualResumeInput) => `
           ? `
       <div class="section">
         <h2 class="section-title">Profile</h2>
-        <p>${escape(r.summary)}</p>
+        <p style="font-size:12px;">${escape(r.summary)}</p>
       </div>`
           : ''
       }
@@ -1042,7 +915,7 @@ const asymmetricLayout = (r: ManualResumeInput) => `
             <div class="degree">${escape(edu.degree)}</div>
             <div class="institution">${escape(edu.institution)}</div>
             <span class="date">${escape(edu.startDate)} - ${escape(edu.endDate || 'Present')}</span>
-            ${edu.description ? `<p>${escape(edu.description)}</p>` : ''}
+            ${edu.description ? `<p style="font-size:12px;">${escape(edu.description)}</p>` : ''}
           </div>
         `
           )

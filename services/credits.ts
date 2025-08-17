@@ -19,9 +19,9 @@ export const CREDIT_BUNDLES: Record<
 };
 
 export const CREDIT_COSTS = {
-  AI_GENERATE: 3,
-  TEMPLATE_PREMIUM_UNLOCK: 5,
-  AI_REWRITE: 1,
+  AI_GENERATE: 5,
+  TEMPLATE_PREMIUM_UNLOCK: 4,
+  AI_REWRITE: 4,
 };
 
 export const getCreditBalance = async (userId: string): Promise<number> => {

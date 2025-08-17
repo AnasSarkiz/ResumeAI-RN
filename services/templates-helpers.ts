@@ -50,3 +50,14 @@ export const renderSkills = (r: ManualResumeInput) => `
     ${r.skills.map((s) => `<span class="chip">${escape(s.name)}${s.proficiency ? ` (${escape(s.proficiency)})` : ''}</span>`).join('')}
   </div>
 `;
+
+// Common A4 print styles
+export const A4_STYLES = `
+  @page { size: A4; margin: 15mm; }
+  body { width: 210mm; height: 297mm; margin: 0; padding: 0; }
+  * { box-sizing: border-box; }
+  @media print {
+    html, body { width: 210mm; height: 297mm; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+`;

@@ -6,10 +6,13 @@ export default function WelcomeScreen() {
   const { user } = useAuth();
 
   return (
-    <View className="flex-1 justify-center bg-gray-50 p-6 dark:bg-gray-900">
-      <View className="-mt-36 mb-12 items-center">
-        <Image source={require('../../assets/logo.png')} className="h-96 w-96 " />
-        {/* <Text className="mb-2 text-3xl font-bold text-gray-800">ResumeAI</Text> */}
+    <View className="flex-1 justify-center bg-gray-200 p-6 dark:bg-gray-900">
+      <View className=" mb-12 items-center">
+        <Image
+          source={require('../../assets/logo.png')}
+          className="my-8 h-[164px] w-40 shadow-sm "
+        />
+        <Text className="my-5 text-4xl font-bold text-primary-900">ResumeAI</Text>
         <Text className="text-center text-lg text-gray-600 dark:text-gray-300">
           Create professional resumes with AI-powered enhancements
         </Text>
