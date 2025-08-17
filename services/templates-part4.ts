@@ -5,6 +5,7 @@ import {
   renderEducation,
   renderExperience,
   renderSkills,
+  A4_STYLES,
 } from './templates-helpers';
 
 // 31. Abstract Geometric
@@ -15,10 +16,8 @@ const abstractGeometric = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
   body {
-    width: 210mm;
-    height: 297mm;
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', sans-serif;
@@ -221,10 +220,8 @@ const techCircuitBoard = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
   body {
-    width: 210mm;
-    height: 297mm;
     margin: 0;
     padding: 0;
     font-family: 'Fira Code', monospace;
@@ -479,7 +476,7 @@ const minimalMonochrome = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 15mm; }
+  ${A4_STYLES}
   body {
     width: 180mm;
     height: 267mm;
@@ -677,10 +674,8 @@ const artGallery = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
   body {
-    width: 210mm;
-    height: 297mm;
     margin: 0;
     padding: 0;
     font-family: 'Playfair Display', serif;
@@ -872,10 +867,8 @@ const polaroidMemories = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
   body {
-    width: 210mm;
-    height: 297mm;
     margin: 0;
     padding: 0;
     font-family: 'Courier New', monospace;
@@ -1055,10 +1048,8 @@ const sunsetGradient = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
   body {
-    width: 210mm;
-    height: 297mm;
     margin: 0;
     padding: 0;
     font-family: 'Montserrat', sans-serif;
@@ -1294,10 +1285,8 @@ const emeraldElegance = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
   body {
-    width: 210mm;
-    height: 297mm;
     margin: 0;
     padding: 0;
     font-family: 'Cormorant Garamond', serif;
@@ -1528,10 +1517,8 @@ const royalPurple = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
   body {
-    width: 210mm;
-    height: 297mm;
     margin: 0;
     padding: 0;
     font-family: 'Garamond', serif;
@@ -1759,10 +1746,8 @@ const oceanDepth = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
   body {
-    width: 210mm;
-    height: 297mm;
     margin: 0;
     padding: 0;
     font-family: 'Open Sans', sans-serif;
@@ -1994,10 +1979,8 @@ const goldenLuxury = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
   body {
-    width: 210mm;
-    height: 297mm;
     margin: 0;
     padding: 0;
     font-family: 'Times New Roman', serif;

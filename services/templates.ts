@@ -47,6 +47,18 @@ import {
   artGallery,
   polaroidMemories,
 } from './templates-part4';
+import {
+  holographicNeon,
+  magazineCover,
+  blueprintEngineer,
+  botanicalFrame,
+  retroTerminal,
+  origamiFold,
+  timelineRail,
+  dataDashboard,
+  handwrittenNotebook,
+  glassMorphism,
+} from './templates-part5';
 
 export type TemplateId =
   | 'classic' //1
@@ -88,7 +100,17 @@ export type TemplateId =
   | 'goldenLuxury' //37
   | 'sunsetGradient' //38
   | 'artGallery' //39
-  | 'polaroidMemories'; //40
+  | 'polaroidMemories' //40
+  | 'holographicNeon' //41
+  | 'magazineCover' //42
+  | 'blueprintEngineer' //43
+  | 'botanicalFrame' //44
+  | 'retroTerminal' //45
+  | 'origamiFold' //46
+  | 'timelineRail' //47
+  | 'dataDashboard' //48
+  | 'handwrittenNotebook' //49
+  | 'glassMorphism'; //50
 
 export const TEMPLATE_NAMES: Record<TemplateId, string> = {
   classic: 'Classic Professional', //1
@@ -131,6 +153,16 @@ export const TEMPLATE_NAMES: Record<TemplateId, string> = {
   sunsetGradient: 'Sunset Gradient', //38
   artGallery: 'Art Gallery', //39
   polaroidMemories: 'Polaroid Memories', //40
+  holographicNeon: 'Holographic Neon', //41
+  magazineCover: 'Magazine Cover', //42
+  blueprintEngineer: 'Blueprint Engineer', //43
+  botanicalFrame: 'Botanical Frame', //44
+  retroTerminal: 'Retro Terminal', //45
+  origamiFold: 'Origami Fold', //46
+  timelineRail: 'Timeline Rail', //47
+  dataDashboard: 'Data Dashboard', //48
+  handwrittenNotebook: 'Handwritten Notebook', //49
+  glassMorphism: 'Glass Morphism', //50
 };
 
 export const renderHTMLTemplate = (resume: ManualResumeInput, template: TemplateId): string => {
@@ -215,6 +247,26 @@ export const renderHTMLTemplate = (resume: ManualResumeInput, template: Template
       return artGallery(resume); //39
     case 'polaroidMemories':
       return polaroidMemories(resume); //40
+    case 'holographicNeon':
+      return holographicNeon(resume); //41
+    case 'magazineCover':
+      return magazineCover(resume); //42
+    case 'blueprintEngineer':
+      return blueprintEngineer(resume); //43
+    case 'botanicalFrame':
+      return botanicalFrame(resume); //44
+    case 'retroTerminal':
+      return retroTerminal(resume); //45
+    case 'origamiFold':
+      return origamiFold(resume); //46
+    case 'timelineRail':
+      return timelineRail(resume); //47
+    case 'dataDashboard':
+      return dataDashboard(resume); //48
+    case 'handwrittenNotebook':
+      return handwrittenNotebook(resume); //49
+    case 'glassMorphism':
+      return glassMorphism(resume); //50
     default:
       return classic(resume);
   }

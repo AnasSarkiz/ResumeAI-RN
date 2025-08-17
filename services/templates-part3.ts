@@ -5,6 +5,7 @@ import {
   renderEducation,
   renderExperience,
   renderSkills,
+  A4_STYLES,
 } from './templates-helpers';
 // 21. Hexagonal Grid
 const hexagonalGrid = (r: ManualResumeInput) => `
@@ -14,6 +15,7 @@ const hexagonalGrid = (r: ManualResumeInput) => `
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   * { box-sizing: border-box; }
   body {
     font-family: 'Exo 2', sans-serif;
@@ -190,18 +192,7 @@ const hexagonalGrid = (r: ManualResumeInput) => `
       border-radius: 15px;
     }
   }
-  @page {
-    size: A4;
-    margin: 15mm;
-  }
   @media print {
-    html, body {
-      width: 210mm;
-      height: 297mm;
-      margin: 0;
-      padding: 0;
-      background: white;
-    }
     body {
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
@@ -329,6 +320,7 @@ const diagonalSplit = (r: ManualResumeInput) => `
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   * { box-sizing: border-box; }
   body {
     font-family: 'Source Sans Pro', sans-serif;
@@ -538,18 +530,9 @@ const diagonalSplit = (r: ManualResumeInput) => `
       height: 250px;
     }
   }
-  @page {
-    size: A4;
-    margin: 15mm;
-  }
+  /* A4 sizing centralized via A4_STYLES */
   @media print {
-    html, body {
-      width: 210mm;
-      height: 297mm;
-      margin: 0;
-      padding: 0;
-      background: white;
-    }
+    /* A4 html/body sizing provided by A4_STYLES */
     body {
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
@@ -905,6 +888,7 @@ const verticalRibbon = (r: ManualResumeInput) => `
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   * { box-sizing: border-box; }
   body {
     font-family: 'Lato', sans-serif;
@@ -914,7 +898,7 @@ const verticalRibbon = (r: ManualResumeInput) => `
     min-height: 100vh;
   }
   /* Ensure A4 size with safe margins when printing */
-  @page { size: A4; margin: 15mm; }
+  /* A4 sizing centralized via A4_STYLES */
   .container {
     max-width: 900px;
     margin: 0 auto;
@@ -1160,7 +1144,7 @@ const verticalRibbon = (r: ManualResumeInput) => `
     }
   }
   @media print {
-    html, body { width: 210mm; height: 297mm; }
+    /* A4 html/body sizing provided by A4_STYLES */
     body { margin: 0 !important; background: white !important; }
     .container { max-width: unset !important; width: auto !important; margin: 0 !important; box-shadow: none !important; }
     .ribbon { width: 100px; }
@@ -1279,6 +1263,7 @@ const layeredPaper = (r: ManualResumeInput) => `
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   * { box-sizing: border-box; }
   body {
     font-family: 'Open Sans', sans-serif;
@@ -1288,7 +1273,7 @@ const layeredPaper = (r: ManualResumeInput) => `
     min-height: 100vh;
   }
   /* Ensure A4 size with safe margins when printing */
-  @page { size: A4; margin: 15mm; }
+  /* A4 sizing centralized via A4_STYLES */
   .container {
     max-width: 850px;
     margin: 0 auto;
@@ -1499,7 +1484,7 @@ const layeredPaper = (r: ManualResumeInput) => `
     }
   }
   @media print {
-    html, body { width: 210mm; height: 297mm; }
+    /* A4 html/body sizing provided by A4_STYLES */
     body { background: white !important; color: black; padding: 0 !important; margin: 0 !important; }
     .container { max-width: unset !important; width: auto !important; margin: 0 !important; }
     .paper-layer { transform: none !important; box-shadow: none !important; margin: 0 0 12mm 0 !important; }
@@ -1626,6 +1611,7 @@ const artDecoRevival = (r: ManualResumeInput) => `
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Raleway:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   * { box-sizing: border-box; }
   body {
     font-family: 'Raleway', sans-serif;
@@ -1636,7 +1622,7 @@ const artDecoRevival = (r: ManualResumeInput) => `
     min-height: 100vh;
   }
   /* Ensure A4 size with safe margins when printing */
-  @page { size: A4; margin: 15mm; }
+  /* A4 sizing centralized via A4_STYLES */
   .container {
     max-width: 900px;
     margin: 0 auto;
@@ -1908,7 +1894,7 @@ const artDecoRevival = (r: ManualResumeInput) => `
     }
   }
   @media print {
-    html, body { width: 210mm; height: 297mm; }
+    /* A4 html/body sizing provided by A4_STYLES */
     body { background: white !important; color: black; margin: 0 !important; }
     .container { background: white !important; border-color: #666; max-width: unset !important; width: auto !important; margin: 0 !important; }
     .header { background: #f0f0f0 !important; color: black; }
@@ -2027,10 +2013,8 @@ const neonCyberGrid = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page {
-    size: A4;
-    margin: 15mm 20mm;
-  }
+  ${A4_STYLES}
+  /* A4 sizing centralized via A4_STYLES */
   
   :root {
     --neon-blue: #0ff0fc;
@@ -2041,8 +2025,7 @@ const neonCyberGrid = (r: ManualResumeInput) => `
   }
   
   body {
-    width: 210mm;
-    height: 297mm;
+    /* Removed explicit A4 width/height; handled by A4_STYLES in print */
     margin: 0;
     padding: 0;
     font-family: 'Oxanium', sans-serif;
@@ -2365,7 +2348,8 @@ const organicWatercolor = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 10mm 15mm; }
+  ${A4_STYLES}
+  /* A4 sizing centralized via A4_STYLES */
   
   :root {
     --watercolor-blue: #a8d8ea;
@@ -2375,8 +2359,7 @@ const organicWatercolor = (r: ManualResumeInput) => `
   }
   
   body {
-    width: 210mm;
-    height: 297mm;
+    /* Removed explicit A4 width/height; handled by A4_STYLES in print */
     margin: 0;
     padding: 0;
     font-family: 'Georgia', serif;
@@ -2597,7 +2580,8 @@ const isometric3DCity = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
+  /* A4 sizing centralized via A4_STYLES */
   
   :root {
     --building-1: #5e81ac;
@@ -2608,8 +2592,7 @@ const isometric3DCity = (r: ManualResumeInput) => `
   }
   
   body {
-    width: 210mm;
-    height: 297mm;
+    /* Removed explicit A4 width/height; handled by A4_STYLES in print */
     margin: 0;
     padding: 0;
     font-family: 'Arial', sans-serif;
@@ -2837,7 +2820,8 @@ const spaceExplorer = (r: ManualResumeInput) => `
 <meta charset="UTF-8">
 <title>${escape(r.fullName)} - Resume</title>
 <style>
-  @page { size: A4; margin: 0; }
+  ${A4_STYLES}
+  /* A4 sizing centralized via A4_STYLES */
   
   :root {
     --space-dark: #0b0e23;
@@ -2848,8 +2832,7 @@ const spaceExplorer = (r: ManualResumeInput) => `
   }
   
   body {
-    width: 210mm;
-    height: 297mm;
+    /* Removed explicit A4 width/height; handled by A4_STYLES in print */
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', sans-serif;

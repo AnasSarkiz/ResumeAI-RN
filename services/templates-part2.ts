@@ -936,6 +936,7 @@ const typographicEmphasis = (r: ManualResumeInput) => `
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+Pro:wght@300;400&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   :root {
     --primary: #2c3e50;
     --secondary: #7f8c8d;
@@ -1069,10 +1070,7 @@ const typographicEmphasis = (r: ManualResumeInput) => `
     padding: 5px 12px;
     font-size: 0.9rem;
   }
-  @page { size: A4; margin: 15mm; }
   @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .resume-wrapper { max-width: initial; width: auto; margin: 0; }
     .section, .experience-grid, .education-item { break-inside: avoid; page-break-inside: avoid; }
   }
@@ -1207,6 +1205,7 @@ const geometricMinimalism = (r: ManualResumeInput) => `
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+  ${A4_STYLES}
   :root {
     --primary: #2980b9;
     --secondary: #e74c3c;
@@ -1353,10 +1352,7 @@ const geometricMinimalism = (r: ManualResumeInput) => `
     color: white;
     transform: translateY(-3px);
   }
-  @page { size: A4; margin: 15mm; }
   @media print {
-    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .resume-card { max-width: initial; width: auto; margin: 0; box-shadow: none; border-radius: 0; }
     .section, .experience-item, .education-item { break-inside: avoid; page-break-inside: avoid; }
     .geometric-bg { opacity: 1; }
