@@ -17,7 +17,7 @@ import { useResume } from '../../context/ResumeContext';
 // subscription and old section tabs removed in step-based UI
 import { EditableTextInput } from '../../components/EditableTextInput';
 import { Experience, ManualResumeInput, Education, Skill, LinkItem } from '../../types/resume';
-import { validateManualResume } from '../../services/resume';
+import { validateManualResume, validateManualResumeStep } from '../../services/resume';
 import { useAuth } from '../../context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -97,39 +97,12 @@ export default function ResumeEditorScreen() {
     }
   };
 
-  // Per-step lightweight validation (ensure basics early)
+  // Per-step validation using centralized service validator
   const validateCurrentStep = (): boolean => {
     if (!draft) return false;
-    const e: Record<string, string> = {};
-    switch (step) {
-      case 0: // Info
-        if (!draft.title?.trim()) e.title = 'Title is required';
-        if (!draft.fullName?.trim()) e.fullName = 'Full name is required';
-        if (!draft.email?.trim()) e.email = 'Email is required';
-        break;
-      case 3: // Experience
-        draft.experience.forEach((exp, idx) => {
-          if (!exp.jobTitle?.trim()) e[`experience.${idx}.jobTitle`] = 'Job title is required';
-          if (!exp.company?.trim()) e[`experience.${idx}.company`] = 'Company is required';
-          if (!exp.startDate?.trim()) e[`experience.${idx}.startDate`] = 'Start date is required';
-        });
-        break;
-      case 4: // Education
-        draft.education.forEach((edu, idx) => {
-          if (!edu.institution?.trim())
-            e[`education.${idx}.institution`] = 'Institution is required';
-          if (!edu.degree?.trim()) e[`education.${idx}.degree`] = 'Degree is required';
-          if (!edu.startDate?.trim()) e[`education.${idx}.startDate`] = 'Start date is required';
-        });
-        break;
-      case 5: // Skills
-        draft.skills.forEach((skill, idx) => {
-          if (!skill.name?.trim()) e[`skills.${idx}.name`] = 'Skill name is required';
-        });
-        break;
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    const { valid, errors: stepErrors } = validateManualResumeStep(draft, step);
+    setErrors(stepErrors);
+    return valid;
   };
 
   const handleNext = () => {
@@ -140,22 +113,7 @@ export default function ResumeEditorScreen() {
 
   const canProceed = useMemo(() => {
     if (!draft) return false;
-    switch (step) {
-      case 0: // Info
-        return !!draft.title?.trim() && !!draft.fullName?.trim() && !!draft.email?.trim();
-      case 3: // Experience
-        return draft.experience.every(
-          (exp) => exp.jobTitle?.trim() && exp.company?.trim() && exp.startDate?.trim()
-        );
-      case 4: // Education
-        return draft.education.every(
-          (edu) => edu.institution?.trim() && edu.degree?.trim() && edu.startDate?.trim()
-        );
-      case 5: // Skills
-        return draft.skills.every((skill) => skill.name?.trim());
-      default:
-        return true;
-    }
+    return validateManualResumeStep(draft, step).valid;
   }, [step, draft]);
 
   const StepIndicator = () => (
@@ -215,13 +173,12 @@ export default function ResumeEditorScreen() {
     </View>
   );
 
-  // Initialize an editable ManualResumeInput draft from scratch using user defaults.
-  // If there is no currentResume (manual create flow), still initialize a local draft.
-  // Do not derive fields from SavedResume directly (it stores HTML only).
+  // Initialize draft only once to avoid wiping user input on context changes
   useEffect(() => {
+    if (draft) return;
     const baseDraft: ManualResumeInput = {
-      id: currentResume ? String(currentResume.id) : `${user?.id || 'local'}-${Date.now()}`,
-      userId: currentResume ? String(currentResume.userId) : String(user?.id || ''),
+      id: `${user?.id || 'local'}-${Date.now()}`,
+      userId: String(user?.id || ''),
       title: '',
       fullName: user?.name || '',
       email: user?.email || '',
@@ -232,9 +189,35 @@ export default function ResumeEditorScreen() {
       linkedIn: '',
       github: '',
       summary: '',
-      experience: [],
-      education: [],
-      skills: [],
+      experience: [
+        {
+          id: Date.now().toString(),
+          jobTitle: '',
+          company: '',
+          startDate: '',
+          current: true,
+          description: [''],
+        },
+      ],
+      education: [
+        {
+          id: (Date.now() + 1).toString(),
+          institution: '',
+          degree: '',
+          fieldOfStudy: '',
+          startDate: '',
+          current: true,
+          description: '',
+        },
+      ],
+      skills: [
+        {
+          id: (Date.now() + 2).toString(),
+          name: '',
+          proficiency: 'beginner',
+          category: '',
+        },
+      ],
       links: [],
       phones: [{ id: Date.now().toString(), dial: '', number: '' }],
       temp: true,
@@ -242,7 +225,7 @@ export default function ResumeEditorScreen() {
       updatedAt: new Date(),
     };
     setDraft(baseDraft);
-  }, [currentResume, user]);
+  }, [draft]);
 
   // Show loading only if we are actually fetching a specific resume by id.
   if ((id && loading) || (id && !currentResume) || !draft) {
@@ -509,7 +492,7 @@ export default function ResumeEditorScreen() {
                         keyboardType="phone-pad"
                         placeholder="555 123 4567"
                         className="flex-1"
-                        required={idx === 0}
+                        required={false}
                         error={errors[idx === 0 ? 'phones.0.number' : `phones.${idx}.number`]}
                       />
                     </View>

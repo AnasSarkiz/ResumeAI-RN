@@ -17,6 +17,7 @@ import { generateFullHTMLResume } from '../../services/ai';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { AIResumeInput } from '../../types/resume';
+import { validateAIResumeStep } from '../../services/resume';
 import { useCredits } from '../../context/CreditBalanceContext';
 import { CREDIT_COSTS } from '../../services/credits';
 
@@ -64,13 +65,9 @@ export default function AIGeneratorScreen() {
   };
 
   const validateCurrentStep = (): boolean => {
-    const e: Record<string, string> = {};
-    if (step === 0) {
-      if (!formData.fullName?.trim()) e.fullName = 'Full name is required';
-      if (!formData.email?.trim()) e.email = 'Email is required';
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    const { valid, errors } = validateAIResumeStep(formData, step);
+    setErrors(errors);
+    return valid;
   };
 
   const handleNext = () => {
@@ -184,10 +181,7 @@ export default function AIGeneratorScreen() {
     </View>
   );
 
-  const canProceed = useMemo(() => {
-    if (step === 0) return Boolean(formData.fullName?.trim()) && Boolean(formData.email?.trim());
-    return true;
-  }, [step, formData.fullName, formData.email]);
+  const canProceed = useMemo(() => validateAIResumeStep(formData, step).valid, [formData, step]);
 
   const FooterNav = () => (
     <View className="mt-6 flex-row gap-3">

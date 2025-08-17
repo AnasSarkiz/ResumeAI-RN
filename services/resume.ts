@@ -17,6 +17,33 @@ import {
 } from 'firebase/firestore';
 import { ManualResumeInput, SavedResume, AIResumeInput } from '../types/resume';
 
+// Shared error map type and helpers
+export type ErrorMap = Record<string, string>;
+export const getError = (errors: ErrorMap, path: string): string | undefined => errors[path];
+
+// Centralized required fields per flow/step
+export const RequiredConfig = {
+  manual: {
+    step0: new Set(['title', 'fullName', 'email']),
+    experienceItem: new Set(['jobTitle', 'company', 'startDate']),
+    educationItem: new Set(['institution', 'startDate']),
+    skillsItem: new Set(['name']),
+  },
+  ai: {
+    step0: new Set(['fullName', 'email']),
+  },
+} as const;
+
+export const isManualRequired = (field: string, step: number): boolean => {
+  if (step === 0) return RequiredConfig.manual.step0.has(field);
+  return false;
+};
+
+export const isAIRequired = (field: string, step: number): boolean => {
+  if (step === 0) return RequiredConfig.ai.step0.has(field);
+  return false;
+};
+
 // Recursively remove undefined values (Firestore does not allow undefined)
 const cleanForFirestore = (value: any): any => {
   if (value === undefined) return undefined; // signal to caller to omit
@@ -50,11 +77,21 @@ const isNonEmpty = (v?: string) => typeof v === 'string' && v.trim().length > 0;
 const isValidUrl = (v?: string) => {
   if (!v) return false;
   try {
-    const u = new URL(v.startsWith('http') ? v : `https://${v}`);
+    const u = new URL(v);
     return !!u.host;
   } catch {
     return false;
   }
+};
+
+// Reusable link-row validator: returns an ErrorMap for a single row
+export const validateLinkRow = (label?: string, url?: string, keyPrefix = ''): ErrorMap => {
+  const errs: ErrorMap = {};
+  const hasAny = isNonEmpty(label) || isNonEmpty(url);
+  if (!hasAny) return errs;
+  if (!isNonEmpty(label)) errs[`${keyPrefix}label`] = 'Platform/Domain label is required';
+  if (!isNonEmpty(url) || !isValidUrl(url!)) errs[`${keyPrefix}url`] = 'Valid URL is required';
+  return errs;
 };
 
 export const validateManualResume = (resume: ManualResumeInput): ValidationResult => {
@@ -64,13 +101,6 @@ export const validateManualResume = (resume: ManualResumeInput): ValidationResul
   if (!isNonEmpty(resume.title)) errors['title'] = 'Title is required';
   if (!isNonEmpty(resume.fullName)) errors['fullName'] = 'Full name is required';
   if (!isNonEmpty(resume.email)) errors['email'] = 'Email is required';
-  // Phone requirement: either phones[0].number or legacy phone
-  if (Array.isArray((resume as any).phones) && (resume as any).phones.length > 0) {
-    const first = (resume as any).phones[0];
-    if (!isNonEmpty(first?.number)) errors['phones.0.number'] = 'Phone number is required';
-  } else if (!isNonEmpty((resume as any).phone)) {
-    errors['phone'] = 'Phone is required';
-  }
 
   // Experience: if provided, each item must have required fields
   if (Array.isArray(resume.experience)) {
@@ -91,21 +121,15 @@ export const validateManualResume = (resume: ManualResumeInput): ValidationResul
     });
   }
 
-  // Flexible links validation
+  // Flexible links validation using util
   if (Array.isArray(resume.links)) {
     resume.links.forEach((l, idx) => {
-      if (!isNonEmpty(l.label)) errors[`links.${idx}.label`] = 'Platform/Domain label is required';
-      if (!isNonEmpty(l.url) || !isValidUrl(l.url))
-        errors[`links.${idx}.url`] = 'Valid URL is required';
+      const rowErrors = validateLinkRow(l.label, l.url, `links.${idx}.`);
+      Object.assign(errors, rowErrors);
     });
   }
 
-  // Phones validation (if provided)
-  if (Array.isArray((resume as any).phones)) {
-    (resume as any).phones.forEach((p: any, idx: number) => {
-      if (!isNonEmpty(p?.number)) errors[`phones.${idx}.number`] = 'Phone number is required';
-    });
-  }
+  // Phones optional in full validation; if provided and filled, no strict requirement here
 
   return { valid: Object.keys(errors).length === 0, errors };
 };
@@ -114,10 +138,61 @@ export const validateAIResume = (resume: AIResumeInput): ValidationResult => {
   const errors: Record<string, string> = {};
   if (!isNonEmpty(resume.fullName)) errors['fullName'] = 'Full name is required';
   if (!isNonEmpty(resume.email)) errors['email'] = 'Email is required';
-  if (!isNonEmpty(resume.countryCode)) errors['countryCode'] = 'Country code is required';
-  if (!isNonEmpty(resume.phone)) errors['phone'] = 'Phone is required';
-  if (!isNonEmpty(resume.aiPrompt)) errors['aiPrompt'] = 'AI Prompt is required';
-  if (!isNonEmpty(resume.aiModel)) errors['aiModel'] = 'AI Model is required';
+  return { valid: Object.keys(errors).length === 0, errors };
+};
+
+// Per-step validators to gate step navigation in UI
+// Manual steps order in UI: ['Info', 'Links', 'Summary', 'Experience', 'Education', 'Skills']
+export const validateManualResumeStep = (
+  resume: ManualResumeInput,
+  step: number
+): ValidationResult => {
+  const errors: Record<string, string> = {};
+  switch (step) {
+    case 0: // Info (minimal requirements)
+      if (!isNonEmpty(resume.title)) errors['title'] = 'Title is required';
+      if (!isNonEmpty(resume.fullName)) errors['fullName'] = 'Full name is required';
+      if (!isNonEmpty(resume.email)) errors['email'] = 'Email is required';
+      break;
+    case 3: // Experience
+      if (Array.isArray(resume.experience)) {
+        resume.experience.forEach((e, idx) => {
+          if (!isNonEmpty(e.jobTitle))
+            errors[`experience.${idx}.jobTitle`] = 'Job title is required';
+          if (!isNonEmpty(e.company)) errors[`experience.${idx}.company`] = 'Company is required';
+          if (!isNonEmpty(e.startDate))
+            errors[`experience.${idx}.startDate`] = 'Start date is required';
+        });
+      }
+      break;
+    case 4: // Education
+      if (Array.isArray(resume.education)) {
+        resume.education.forEach((e, idx) => {
+          if (!isNonEmpty(e.institution))
+            errors[`education.${idx}.institution`] = 'Institution is required';
+          if (!isNonEmpty(e.startDate))
+            errors[`education.${idx}.startDate`] = 'Start date is required';
+        });
+      }
+      break;
+    case 5: // Skills
+      if (Array.isArray(resume.skills)) {
+        resume.skills.forEach((s, idx) => {
+          if (!isNonEmpty(s.name)) errors[`skills.${idx}.name`] = 'Skill name is required';
+        });
+      }
+      break;
+  }
+  return { valid: Object.keys(errors).length === 0, errors };
+};
+
+// AI steps order in UI: ['Info', 'Summary', 'Education', 'Experience', 'Skills', 'Design']
+export const validateAIResumeStep = (resume: AIResumeInput, step: number): ValidationResult => {
+  const errors: Record<string, string> = {};
+  if (step === 0) {
+    if (!isNonEmpty(resume.fullName)) errors['fullName'] = 'Full name is required';
+    if (!isNonEmpty(resume.email)) errors['email'] = 'Email is required';
+  }
   return { valid: Object.keys(errors).length === 0, errors };
 };
 
