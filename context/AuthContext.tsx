@@ -12,6 +12,7 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => {},
   logout: async () => {},
   refreshUser: async () => {},
+  clearError: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -94,6 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     setLoading(true);
+    setError(null);
     try {
       await loginWithEmail(email, password);
     } catch (err) {
@@ -106,6 +109,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const register = async (email: string, password: string, name: string) => {
     setLoading(true);
+    setError(null);
     try {
       await registerWithEmail(email, password, name);
     } catch (err) {
@@ -143,8 +147,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const clearError = () => setError(null);
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, error, login, register, logout, refreshUser, clearError }}>
       {children}
     </AuthContext.Provider>
   );

@@ -8,14 +8,27 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { User } from '../types/user';
+import { mapFirebaseAuthErrorKey } from './firebaseErrors';
 
 export const loginWithEmail = async (email: string, password: string) => {
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  return userCredential.user;
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return userCredential.user;
+  } catch (e) {
+    const key = mapFirebaseAuthErrorKey(e, 'auth.alert.login_failed');
+    throw new Error(key);
+  }
 };
 
 export const registerWithEmail = async (email: string, password: string, name: string) => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  let userCredential: { user: FirebaseUser };
+  try {
+    userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    const key = mapFirebaseAuthErrorKey(e, 'auth.alert.register_failed');
+    throw new Error(key);
+  }
+
   const user = userCredential.user;
 
   // Ensure Firebase Auth profile also has the display name for fallback usage
@@ -26,15 +39,21 @@ export const registerWithEmail = async (email: string, password: string, name: s
     console.warn('Failed to update auth profile displayName', e);
   }
 
-  await setDoc(doc(db, 'users', user.uid), {
-    id: user.uid,
-    email: user.email,
-    name,
-    createdAt: new Date(),
-    lastLogin: new Date(),
-    // Initialize Career Credits balance
-    creditBalance: 0,
-  });
+  try {
+    await setDoc(doc(db, 'users', user.uid), {
+      id: user.uid,
+      email: user.email,
+      name,
+      createdAt: new Date(),
+      lastLogin: new Date(),
+      // Initialize Career Credits balance
+      creditBalance: 0,
+    });
+  } catch (e) {
+    // If Firestore write fails, surface a clear message
+    console.error('Failed to create user document', e);
+    throw new Error('errors.common.setup_failed');
+  }
 
   return user;
 };
