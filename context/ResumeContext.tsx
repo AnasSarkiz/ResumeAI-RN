@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { SavedResume } from '../types/resume';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isOnline as connectivityOnline } from '../services/connectivity';
 import {
   getResumes,
   getResumeById,
@@ -74,13 +76,32 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const inflightResumeById = useRef<Record<string, Promise<SavedResume>>>({});
 
   const loadResumes = async (userId: string) => {
-    // Try cached
+    // Try persistent cache first (survives app restarts and offline cold starts)
+    try {
+      const raw = await AsyncStorage.getItem(`resumes_list_${userId}`);
+      if (raw) {
+        const parsed = JSON.parse(raw) as any[];
+        const revived: SavedResume[] = parsed.map((r: any) => ({
+          ...r,
+          createdAt: r.createdAt ? new Date(r.createdAt) : new Date(),
+          updatedAt: r.updatedAt ? new Date(r.updatedAt) : new Date(),
+        }));
+        setResumes(revived);
+        cacheResumesByUser.current[userId] = { ts: Date.now(), data: revived };
+      }
+    } catch {}
+
+    // Try in-memory cache next
     const cached = cacheResumesByUser.current[userId];
     const now = Date.now();
     if (cached && now - cached.ts < CACHE_TTL_MS) {
       setResumes(cached.data);
-      return;
+      // Still continue to refresh in background if online
+      if (!connectivityOnline()) return;
     }
+
+    // If offline, do not attempt network request
+    if (!connectivityOnline()) return;
 
     // Coalesce inflight request
     if (!inflightResumesByUser.current[userId]) {
@@ -107,6 +128,15 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
             })
           );
           cacheResumesByUser.current[userId] = { ts: Date.now(), data: merged };
+          // Persist list for offline cold starts
+          try {
+            const toStore = merged.map((r) => ({
+              ...r,
+              createdAt: (r.createdAt as any)?.toISOString?.() || r.createdAt,
+              updatedAt: (r.updatedAt as any)?.toISOString?.() || r.updatedAt,
+            }));
+            await AsyncStorage.setItem(`resumes_list_${userId}`, JSON.stringify(toStore));
+          } catch {}
           return merged;
         } finally {
           setLoading(false);
@@ -117,8 +147,8 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
       const data = await inflightResumesByUser.current[userId];
       setResumes(data);
     } catch (err) {
-      setError('Failed to load resumes');
-      console.error(err);
+      // If offline or request failed, keep showing cached list silently
+      console.warn('loadResumes failed (using cache if any)', err);
     } finally {
       delete inflightResumesByUser.current[userId];
     }
@@ -165,6 +195,15 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
           ts: Date.now(),
           data: exists ? list.map((r) => (r.id === resumeId ? merged : r)) : [...list, merged],
         };
+        // Persist updated list
+        try {
+          const toStore = cacheResumesByUser.current[owner].data.map((r) => ({
+            ...r,
+            createdAt: (r.createdAt as any)?.toISOString?.() || r.createdAt,
+            updatedAt: (r.updatedAt as any)?.toISOString?.() || r.updatedAt,
+          }));
+          await AsyncStorage.setItem(`resumes_list_${owner}`, JSON.stringify(toStore));
+        } catch {}
       }
     } catch (err) {
       setError('Failed to save resume');
@@ -242,6 +281,14 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
           ts: Date.now(),
           data: [...curr, newResume],
         };
+        try {
+          const toStore = cacheResumesByUser.current[newResume.userId].data.map((r) => ({
+            ...r,
+            createdAt: (r.createdAt as any)?.toISOString?.() || r.createdAt,
+            updatedAt: (r.updatedAt as any)?.toISOString?.() || r.updatedAt,
+          }));
+          await AsyncStorage.setItem(`resumes_list_${newResume.userId}`, JSON.stringify(toStore));
+        } catch {}
       }
       return newResume;
     } catch (err) {
@@ -273,6 +320,14 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         ts: Date.now(),
         data: list.map((r) => (r.id === resumeId ? optimistic : r)),
       };
+      try {
+        const toStore = cacheResumesByUser.current[ownerId].data.map((r) => ({
+          ...r,
+          createdAt: (r.createdAt as any)?.toISOString?.() || r.createdAt,
+          updatedAt: (r.updatedAt as any)?.toISOString?.() || r.updatedAt,
+        }));
+        await AsyncStorage.setItem(`resumes_list_${ownerId}`, JSON.stringify(toStore));
+      } catch {}
     }
 
     // Debounced metadata save to Firestore (excluding HTML)
@@ -366,6 +421,17 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
             ts: Date.now(),
             data: entry.data.filter((r) => r.id !== resumeId),
           };
+          // persist
+          (async () => {
+            try {
+              const toStore = cacheResumesByUser.current[uid].data.map((r) => ({
+                ...r,
+                createdAt: (r.createdAt as any)?.toISOString?.() || r.createdAt,
+                updatedAt: (r.updatedAt as any)?.toISOString?.() || r.updatedAt,
+              }));
+              await AsyncStorage.setItem(`resumes_list_${uid}`, JSON.stringify(toStore));
+            } catch {}
+          })();
         }
       });
     } catch (err) {
@@ -381,6 +447,10 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
   const subscribeResumes = (userId: string) => {
     // Lazy import from services to avoid circular types here
     const { subscribeToUserResumes } = require('../services/resume');
+    if (!connectivityOnline()) {
+      // offline: skip subscription to avoid WebChannel warnings
+      return () => {};
+    }
     const unsub = subscribeToUserResumes(
       userId,
       async (items: SavedResume[]) => {
@@ -414,6 +484,15 @@ export const ResumeProvider = ({ children }: { children: React.ReactNode }) => {
         setResumes(mergedList);
         cacheResumesByUser.current[userId] = { ts: Date.now(), data: mergedList };
         mergedList.forEach((r) => (cacheResumeById.current[r.id] = { ts: Date.now(), data: r }));
+        // persist list
+        try {
+          const toStore = mergedList.map((r) => ({
+            ...r,
+            createdAt: (r.createdAt as any)?.toISOString?.() || r.createdAt,
+            updatedAt: (r.updatedAt as any)?.toISOString?.() || r.updatedAt,
+          }));
+          await AsyncStorage.setItem(`resumes_list_${userId}`, JSON.stringify(toStore));
+        } catch {}
       },
       (e: any) => {
         console.error('Resumes subscription error', e);

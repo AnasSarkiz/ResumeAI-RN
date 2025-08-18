@@ -1,6 +1,7 @@
 // services/geminiService.ts
 import axios from 'axios';
 import { AIResumeInput } from '../types/resume';
+import { isOnline as connectivityOnline } from './connectivity';
 
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -31,11 +32,21 @@ const callGemini = async (prompt: string): Promise<string> => {
   }
 };
 
+export class OfflineError extends Error {
+  constructor(message = 'Offline: Internet connection is required for AI features') {
+    super(message);
+    this.name = 'OfflineError';
+  }
+}
+
 /**
  * Generate a complete, self-contained HTML resume based on user inputs and design instructions.
  * Returns a valid HTML string (with <!DOCTYPE html>) suitable for WebView and PDF printing.
  */
 export const generateFullHTMLResume = async (input: AIResumeInput): Promise<string> => {
+  if (!connectivityOnline()) {
+    throw new OfflineError();
+  }
   const base = `You are a senior resume designer and front-end stylist.
 Create a COMPLETE, PRODUCTION-READY resume as a single HTML document suitable for WebView and PDF export.
 
@@ -146,6 +157,9 @@ export const editHTMLResume = async (
   currentHtml: string,
   instructions: string
 ): Promise<string> => {
+  if (!connectivityOnline()) {
+    throw new OfflineError();
+  }
   const prompt = `You are a senior resume designer and front-end engineer.
 You will receive an existing COMPLETE resume as a single self-contained HTML document and a set of edit instructions.
 

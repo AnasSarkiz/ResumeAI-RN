@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getStorage } from 'firebase/storage';
 import * as Auth from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
@@ -19,5 +19,8 @@ export const auth = Auth.initializeAuth(app, {
   // getReactNativePersistence exists at runtime for React Native; cast to any to satisfy TS
   persistence: (Auth as any).getReactNativePersistence(AsyncStorage),
 });
-export const db = getFirestore(app);
+// Important for Expo/React Native: enable long polling to avoid WebSocket/streaming limitations
+export const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+});
 export const storage = getStorage(app);

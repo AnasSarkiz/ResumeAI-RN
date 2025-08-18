@@ -22,9 +22,11 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { SavedResume } from 'types/resume';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNetwork } from '../../context/NetworkContext';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
+  const { isOnline } = useNetwork();
   const {
     resumes,
     loading,
@@ -36,6 +38,7 @@ export default function HomeScreen() {
   } = useResume();
   const router = useRouter();
   const [exportingId, setExportingId] = useState<string | null>(null);
+  const EXPORT_ONLY = !isOnline;
 
   // Load WebView lazily to avoid issues if not installed
   let WebViewComp: any = null;
@@ -173,45 +176,49 @@ export default function HomeScreen() {
   const EmptyState = () => (
     <View className="flex-1 items-center justify-center px-4">
       <Text className="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-200">
-        No resumes yet
+        {EXPORT_ONLY ? 'No resumes available to export' : 'No resumes yet'}
       </Text>
       <Text className="mb-6 text-center text-gray-500 dark:text-gray-400">
-        Create your first resume manually or let AI craft it for you in seconds.
+        {EXPORT_ONLY
+          ? 'You are offline. Only export is available.'
+          : 'Create your first resume manually or let AI craft it for you in seconds.'}
       </Text>
-      <View className="w-full space-y-3">
-        <TouchableOpacity
-          onPress={() => router.push('/resume/ai-generator')}
-          className="flex-row items-center justify-center rounded-full py-4 shadow-lg">
-          <LinearGradient
-            colors={['#25439A', '#3D92C4']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              height: 52,
-              width: '100%',
-              borderRadius: 12,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-            }}>
-            <Ionicons
-              className="absolute -left-1 -top-1 overflow-hidden"
-              name="sparkles"
-              size={36}
-              color="gold"
-            />
-            <Text className="ml-2 text-center font-semibold text-white">✨ Create with AI</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.push('/resume/editor')}
-          className="flex-row items-center justify-center rounded-full border border-primary bg-white py-4 dark:bg-gray-800">
-          <Ionicons name="add-circle-outline" size={20} color="#25439A" />
-          <Text className="ml-2 text-center font-medium text-primary dark:text-primary-300">
-            Create Manually
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {!EXPORT_ONLY && (
+        <View className="w-full space-y-3">
+          <TouchableOpacity
+            onPress={() => router.push('/resume/ai-generator')}
+            className="flex-row items-center justify-center rounded-full py-4 shadow-lg">
+            <LinearGradient
+              colors={['#25439A', '#3D92C4']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                height: 52,
+                width: '100%',
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+              }}>
+              <Ionicons
+                className="absolute -left-1 -top-1 overflow-hidden"
+                name="sparkles"
+                size={36}
+                color="gold"
+              />
+              <Text className="ml-2 text-center font-semibold text-white">✨ Create with AI</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/resume/editor')}
+            className="flex-row items-center justify-center rounded-full border border-primary bg-white py-4 dark:bg-gray-800">
+            <Ionicons name="add-circle-outline" size={20} color="#25439A" />
+            <Text className="ml-2 text-center font-medium text-primary dark:text-primary-300">
+              Create Manually
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 
@@ -238,54 +245,88 @@ export default function HomeScreen() {
               Updated {item.updatedAt?.toLocaleDateString?.() || ''}
             </Text>
           </View>
-          {/* Header actions: rename and delete */}
-          <>
-            <TouchableOpacity
-              onPress={() => handleRename(item.id, item.title)}
-              className="absolute right-10 top-0 rounded-full bg-blue-50 p-2">
-              <Ionicons name="create-outline" size={18} color="#25439A" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleDelete(item.id)}
-              className="absolute right-0 top-0 rounded-full bg-red-50 p-2">
-              <Ionicons name="trash-outline" size={18} color="#EF4444" />
-            </TouchableOpacity>
-          </>
+          {/* Header actions: rename and delete (hidden when offline) */}
+          {!EXPORT_ONLY && (
+            <>
+              <TouchableOpacity
+                onPress={() => handleRename(item.id, item.title)}
+                className="absolute right-10 top-0 rounded-full bg-blue-50 p-2">
+                <Ionicons name="create-outline" size={18} color="#25439A" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleDelete(item.id)}
+                className="absolute right-0 top-0 rounded-full bg-red-50 p-2">
+                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={() =>
-            router.push({ pathname: '/resume/preview', params: { id: String(item.id) } })
-          }
-          className="mb-3 overflow-hidden rounded-lg"
-          style={{ height: previewHeight, backgroundColor: '#fff' }}>
-          <View style={{ flex: 1, position: 'relative' }}>
-            <WebViewComp
-              originWhitelist={['*']}
-              source={{ html: enforceFixedViewport(html || '') }}
-              style={{ flex: 1 }}
-              scrollEnabled={false}
-              onLoadStart={() => setPreviewLoading(true)}
-              onLoadEnd={() => setPreviewLoading(false)}
-            />
-            {previewLoading && (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(255,255,255,0.6)',
-                }}>
-                <ActivityIndicator size="small" color="#25439A" />
-              </View>
-            )}
+        {EXPORT_ONLY ? (
+          <View
+            className="mb-3 overflow-hidden rounded-lg"
+            style={{ height: previewHeight, backgroundColor: '#fff' }}>
+            <View style={{ flex: 1, position: 'relative' }}>
+              <WebViewComp
+                originWhitelist={['*']}
+                source={{ html: enforceFixedViewport(html || '') }}
+                style={{ flex: 1 }}
+                scrollEnabled={false}
+                onLoadStart={() => setPreviewLoading(true)}
+                onLoadEnd={() => setPreviewLoading(false)}
+              />
+              {previewLoading && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(255,255,255,0.6)',
+                  }}>
+                  <ActivityIndicator size="small" color="#25439A" />
+                </View>
+              )}
+            </View>
           </View>
-        </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push({ pathname: '/resume/preview', params: { id: String(item.id) } })
+            }
+            className="mb-3 overflow-hidden rounded-lg"
+            style={{ height: previewHeight, backgroundColor: '#fff' }}>
+            <View style={{ flex: 1, position: 'relative' }}>
+              <WebViewComp
+                originWhitelist={['*']}
+                source={{ html: enforceFixedViewport(html || '') }}
+                style={{ flex: 1 }}
+                scrollEnabled={false}
+                onLoadStart={() => setPreviewLoading(true)}
+                onLoadEnd={() => setPreviewLoading(false)}
+              />
+              {previewLoading && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(255,255,255,0.6)',
+                  }}>
+                  <ActivityIndicator size="small" color="#25439A" />
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        )}
 
         <View className="flex-row flex-wrap gap-2">
           {/* <TouchableOpacity
@@ -294,17 +335,21 @@ export default function HomeScreen() {
             <Ionicons name="create-outline" size={16} color={isAI ? '#6b7280' : 'white'} />
             <Text className={`ml-1 font-medium ${isAI ? 'text-gray-600' : 'text-white'}`}>Edit</Text>
           </TouchableOpacity> */}
-          <TouchableOpacity
-            onPress={() => router.push(`/resume/ai-edit?id=${item.id}`)}
-            className={`flex-1 flex-row items-center justify-center rounded-md bg-[#2543aA] px-3 py-2`}>
-            <Text className="-ml-1 font-medium text-white">✨ AI-Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push(`/resume/manual-edit?id=${item.id}`)}
-            className={`flex-1 flex-row items-center justify-center rounded-md bg-amber-600 px-3 py-2`}>
-            <Ionicons name="create-outline" size={16} color="white" />
-            <Text className="ml-1 font-medium text-white">Manual Edit</Text>
-          </TouchableOpacity>
+          {!EXPORT_ONLY && (
+            <>
+              <TouchableOpacity
+                onPress={() => router.push(`/resume/ai-edit?id=${item.id}`)}
+                className={`flex-1 flex-row items-center justify-center rounded-md bg-[#2543aA] px-3 py-2`}>
+                <Text className="-ml-1 font-medium text-white">✨ AI-Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push(`/resume/manual-edit?id=${item.id}`)}
+                className={`flex-1 flex-row items-center justify-center rounded-md bg-amber-600 px-3 py-2`}>
+                <Ionicons name="create-outline" size={16} color="white" />
+                <Text className="ml-1 font-medium text-white">Manual Edit</Text>
+              </TouchableOpacity>
+            </>
+          )}
           {/* <TouchableOpacity
             onPress={() => router.push({ pathname: '/resume/preview', params: { id: String(item.id), template: String(tpl || 'classic') } })}
             className={`flex-1 flex-row items-center justify-center rounded-md px-3 py-2 bg-blue-600`}>
@@ -333,15 +378,17 @@ export default function HomeScreen() {
       {/* Header */}
       <View className="mb-6 flex-row items-center justify-between">
         <Text className="text-3xl font-bold text-gray-800 dark:text-gray-100">My Resumes</Text>
-        <Link href="/(main)/profile" asChild>
-          <TouchableOpacity className="flex-row items-center space-x-2">
-            <View className="h-12 w-12 items-center justify-center rounded-full bg-primary shadow-md">
-              <Text className="text-lg font-semibold text-white">
-                {user?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || 'U'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </Link>
+        {!EXPORT_ONLY && (
+          <Link href="/(main)/profile" asChild>
+            <TouchableOpacity className="flex-row items-center space-x-2">
+              <View className="h-12 w-12 items-center justify-center rounded-full bg-primary shadow-md">
+                <Text className="text-lg font-semibold text-white">
+                  {user?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || 'U'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </Link>
+        )}
       </View>
 
       {loading ? (
@@ -361,41 +408,43 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
           />
 
-          <View className="my-1 h-[8%] flex-row items-center justify-between">
-            <TouchableOpacity
-              onPress={() => router.push('/resume/editor')}
-              className="h-[75%] w-[48%] flex-row items-center justify-center rounded-lg border-2 border-dashed border-primary py-2 dark:border-primary-400">
-              <Ionicons name="add" size={20} color="#25439A" />
-              <Text className="ml-2 text-base font-semibold text-primary dark:text-primary-300">
-                Create Manually
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="h-[100%] w-[48%] overflow-hidden rounded-xl py-2 "
-              onPress={() => router.push('/resume/ai-generator')}>
-              <LinearGradient
-                colors={['#25439A', '#3D92C4']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{
-                  height: '100%',
-                  borderRadius: 12,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexDirection: 'row',
-                }}>
-                <Ionicons
-                  className="absolute left-0 top-0 overflow-hidden"
-                  name="sparkles"
-                  size={16}
-                  color="gold"
-                />
-                <Text className="-ml-4 text-center text-xl font-semibold text-white">
-                  ✨ Create with AI
+          {isOnline && (
+            <View className="my-1 h-[8%] flex-row items-center justify-between">
+              <TouchableOpacity
+                onPress={() => router.push('/resume/editor')}
+                className="h-[75%] w-[48%] flex-row items-center justify-center rounded-lg border-2 border-dashed border-primary py-2 dark:border-primary-400">
+                <Ionicons name="add" size={20} color="#25439A" />
+                <Text className="ml-2 text-base font-semibold text-primary dark:text-primary-300">
+                  Create Manually
                 </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="h-[100%] w-[48%] overflow-hidden rounded-xl py-2 "
+                onPress={() => router.push('/resume/ai-generator')}>
+                <LinearGradient
+                  colors={['#25439A', '#3D92C4']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    height: '100%',
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                  }}>
+                  <Ionicons
+                    className="absolute left-0 top-0 overflow-hidden"
+                    name="sparkles"
+                    size={16}
+                    color="gold"
+                  />
+                  <Text className="-ml-4 text-center text-xl font-semibold text-white">
+                    ✨ Create with AI
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )}
         </>
       )}
     </View>
