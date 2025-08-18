@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
 import { listHTMLTemplates, TemplateId, renderHTMLTemplate } from '../../services/templates';
+import { putPreview } from '../../services/previewCache';
 import { ManualResumeInput } from 'types/resume';
 import { WebView } from 'react-native-webview';
 // Load WebView at runtime to avoid crashes if unavailable
@@ -73,6 +74,32 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
     setSelected(tpl);
   };
 
+  const handlePreviewTap = (tpl: TemplateId) => {
+    if (!effectiveDraft) {
+      Alert.alert('No data', 'Please fill your resume details first.');
+      return;
+    }
+    try {
+      const raw = renderHTMLTemplate(effectiveDraft, tpl);
+      const html = enforceFixedViewport(raw);
+      const wm = 'ResumeAI • Preview';
+      const key = putPreview(html, wm);
+      router.push({
+        pathname: '/resume/preview',
+        params: {
+          template: tpl,
+          noExport: '1',
+          from: 'templates',
+          inlineKey: key,
+          wm,
+        },
+      });
+    } catch (e) {
+      console.warn('Failed to render preview', e);
+      Alert.alert('Preview error', 'Could not render this template preview.');
+    }
+  };
+
   const handleSave = async () => {
     if (!effectiveDraft || !selected || !user?.id) {
       if (!selected) Alert.alert('Select a template', 'Please choose a template to continue.');
@@ -135,7 +162,7 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
 
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  onPress={() => handleSelect(tplId)}
+                  onPress={() => handlePreviewTap(tplId)}
                   className="absolute bottom-14 left-0 right-0 mx-1 mb-2 overflow-hidden rounded-lg"
                   style={{ height: 240, backgroundColor: '#fff' }}>
                   {WebViewComp && html ? (
@@ -144,6 +171,19 @@ export default function TemplateSelectorScreen({ resume }: { resume?: ManualResu
                       originWhitelist={['*']}
                       source={{ html }}
                       style={{ flex: 1 }}
+                      scrollEnabled={false}
+                      showsVerticalScrollIndicator={false}
+                      showsHorizontalScrollIndicator={false}
+                      bounces={false}
+                      injectedJavaScriptBeforeContentLoaded={`(function(){
+                        try {
+                          var s=document.createElement('style');
+                          s.textContent='html,body{overflow:hidden !important;height:100%}';
+                          document.head.appendChild(s);
+                          document.documentElement.style.overflow='hidden';
+                          document.body && (document.body.style.overflow='hidden');
+                        } catch (e) {}
+                      })(); true;`}
                     />
                   ) : (
                     <View className="flex-1 items-center justify-center">

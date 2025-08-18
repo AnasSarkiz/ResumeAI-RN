@@ -5,6 +5,7 @@ import { useResume } from '../../context/ResumeContext';
 import { ExportPDFButton } from '../../components/ExportPDFButton';
 import { TemplateId } from '../../services/templates';
 import WebView from 'react-native-webview';
+import { takePreview } from '../../services/previewCache';
 import { ensureA4HTML } from '../../services/pdf';
 
 // Try to load WebView at runtime to avoid crashing if it's not installed yet.
@@ -42,21 +43,33 @@ function enforceFixedViewport(html: string): string {
 }
 
 export default function PreviewScreen() {
-  const { id, template } = useLocalSearchParams();
+  const params = useLocalSearchParams();
   const { currentResume, loading, loadResume } = useResume();
-  const tpl = template as TemplateId | undefined;
+  const tpl = (params.template as TemplateId) || undefined;
+  const noExport = params.noExport === '1' || params.noExport === 'true';
+  const inlineKey = typeof params.inlineKey === 'string' ? params.inlineKey : undefined;
+  const inlineHtmlParam = typeof params.html === 'string' ? params.html : undefined; // legacy path
+  const cacheEntry = inlineKey ? takePreview(inlineKey) : undefined;
+  const watermarkText =
+    cacheEntry?.wm || (typeof params.wm === 'string' && params.wm) || 'Preview • ResumeAI';
 
-  // Ensure the resume is loaded when arriving from Home
+  // Ensure the resume is loaded when arriving with an id, unless inline HTML is provided
   useEffect(() => {
-    const rid = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
+    if (inlineHtmlParam) return;
+    const rid =
+      typeof params.id === 'string'
+        ? params.id
+        : Array.isArray(params.id)
+          ? params.id[0]
+          : undefined;
     if (rid) {
       if (!currentResume || currentResume.id !== rid) {
         loadResume(rid);
       }
     }
-  }, [id]);
+  }, [params.id]);
 
-  if (loading || !currentResume) {
+  if (!cacheEntry && !inlineHtmlParam && (loading || !currentResume)) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" />
@@ -65,12 +78,19 @@ export default function PreviewScreen() {
   }
 
   // Render stored SavedResume HTML in a WebView if available
-  if (WebViewComp && currentResume?.html) {
-    const html = enforceFixedViewport(ensureA4HTML(currentResume.html));
+  if (WebViewComp && (cacheEntry?.html || inlineHtmlParam || currentResume?.html)) {
+    const baseHtml =
+      cacheEntry?.html ||
+      (inlineHtmlParam ? inlineHtmlParam : ensureA4HTML(currentResume!.html ?? ''));
+    const html = enforceFixedViewport(baseHtml);
     return (
       <View className="flex-1 bg-white">
         <WebViewComp
-          key={(currentResume.updatedAt?.toISOString?.() || '') + ':' + currentResume.id}
+          key={
+            (currentResume?.updatedAt?.toISOString?.() || '') +
+            ':' +
+            (currentResume?.id || inlineKey || 'inline')
+          }
           originWhitelist={['*']}
           source={{ html }}
           style={{ flex: 1 }}
@@ -115,10 +135,45 @@ export default function PreviewScreen() {
               });
             } catch (e) {}
           })(); true;`}
+          onShouldStartLoadWithRequest={(req: any) => {
+            // Block external navigation inside preview
+            return (
+              req.mainDocumentURL === 'about:blank' ||
+              req.url.startsWith('about:blank') ||
+              req.url.startsWith('data:')
+            );
+          }}
         />
-        <View className="border-t border-gray-200 p-4">
-          <ExportPDFButton template={tpl} />
-        </View>
+        {noExport && (
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Text
+              style={{
+                transform: [{ rotate: '-25deg' }],
+                opacity: 0.18,
+                color: '#fff',
+                fontSize: 42,
+                fontWeight: '900',
+                textAlign: 'center',
+              }}>
+              {watermarkText}
+            </Text>
+          </View>
+        )}
+        {!noExport && (
+          <View className="border-t border-gray-200 p-4">
+            <ExportPDFButton template={tpl} />
+          </View>
+        )}
       </View>
     );
   }
@@ -130,9 +185,11 @@ export default function PreviewScreen() {
       <Text className="text-center text-gray-600">
         Install react-native-webview to preview resumes, or try exporting to PDF.
       </Text>
-      <View className="mt-4 w-full px-6">
-        <ExportPDFButton template={tpl} />
-      </View>
+      {!noExport && (
+        <View className="mt-4 w-full px-6">
+          <ExportPDFButton template={tpl} />
+        </View>
+      )}{' '}
     </View>
   );
 }
