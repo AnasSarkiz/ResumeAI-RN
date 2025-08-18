@@ -25,8 +25,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
-  const { resumes, loading, loadResumes, createResume, deleteResume, subscribeResumes } =
-    useResume();
+  const {
+    resumes,
+    loading,
+    loadResumes,
+    createResume,
+    deleteResume,
+    subscribeResumes,
+    updateResume,
+  } = useResume();
   const router = useRouter();
   const [exportingId, setExportingId] = useState<string | null>(null);
 
@@ -91,6 +98,31 @@ export default function HomeScreen() {
           },
         },
       ]
+    );
+  };
+  const handleRename = (resumeId: string, currentTitle: string) => {
+    // iOS-only app: use Alert.prompt directly
+    // @ts-ignore - RN types may not include prompt on Alert for some versions
+    Alert.prompt(
+      'Rename Resume',
+      'Enter a new name for your resume:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Save',
+          onPress: async (text?: string) => {
+            const title = (text || '').trim();
+            if (!title || title === currentTitle) return;
+            try {
+              await updateResume(resumeId, { title });
+            } catch (e) {
+              Alert.alert('Rename failed', 'Could not rename the resume. Please retry.');
+            }
+          },
+        },
+      ],
+      'plain-text',
+      currentTitle
     );
   };
   function enforceFixedViewport(html: string): string {
@@ -206,11 +238,19 @@ export default function HomeScreen() {
               Updated {item.updatedAt?.toLocaleDateString?.() || ''}
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={() => handleDelete(item.id)}
-            className="absolute right-0 top-0 rounded-full bg-red-50 p-2">
-            <Ionicons name="trash-outline" size={18} color="#EF4444" />
-          </TouchableOpacity>
+          {/* Header actions: rename and delete */}
+          <>
+            <TouchableOpacity
+              onPress={() => handleRename(item.id, item.title)}
+              className="absolute right-10 top-0 rounded-full bg-blue-50 p-2">
+              <Ionicons name="create-outline" size={18} color="#25439A" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleDelete(item.id)}
+              className="absolute right-0 top-0 rounded-full bg-red-50 p-2">
+              <Ionicons name="trash-outline" size={18} color="#EF4444" />
+            </TouchableOpacity>
+          </>
         </View>
 
         <TouchableOpacity
