@@ -27,7 +27,7 @@ function AppHeader({ title }: { title: string }) {
       </View>
       {!isOnline ? (
         <View className="flex h-12 flex-row items-center justify-between bg-yellow-100 px-4">
-          <Text className="text-sm ml-[30%] font-semibold text-yellow-900">
+          <Text className="ml-[30%] text-sm font-semibold text-yellow-900">
             No internet connection!
           </Text>
           <TouchableOpacity
@@ -35,8 +35,7 @@ function AppHeader({ title }: { title: string }) {
             accessibilityLabel="Retry connection"
             onPress={onRetry}
             disabled={refreshing}
-            className="flex flex-row items-center"
-          >
+            className="flex flex-row items-center">
             {refreshing ? (
               <ActivityIndicator size="small" color="#854d0e" />
             ) : (
