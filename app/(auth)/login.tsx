@@ -41,8 +41,7 @@ export default function LoginScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
       <AuthLayout title={t('auth.login.title')} subtitle={t('auth.login.subtitle')}>
         <ErrorBanner message={error} />
 

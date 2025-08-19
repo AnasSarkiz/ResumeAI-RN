@@ -47,8 +47,7 @@ export default function RegisterScreen() {
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-    >
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}>
       <AuthLayout title={t('auth.register.title')} subtitle={t('auth.register.subtitle')}>
         <ErrorBanner message={error} />
 

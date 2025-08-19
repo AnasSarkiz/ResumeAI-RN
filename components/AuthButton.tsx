@@ -9,7 +9,13 @@ interface AuthButtonProps {
   disabled?: boolean;
 }
 
-const AuthButton: React.FC<AuthButtonProps> = ({ title, onPress, loading, variant = 'primary', disabled }) => {
+const AuthButton: React.FC<AuthButtonProps> = ({
+  title,
+  onPress,
+  loading,
+  variant = 'primary',
+  disabled,
+}) => {
   const base = 'rounded-full py-3';
   const isPrimary = variant === 'primary';
   const cls = isPrimary
@@ -21,12 +27,16 @@ const AuthButton: React.FC<AuthButtonProps> = ({ title, onPress, loading, varian
       accessibilityRole="button"
       onPress={onPress}
       disabled={loading || disabled}
-      className={`${cls} my-2 disabled:opacity-60`}
-    >
+      className={`${cls} my-2 disabled:opacity-60`}>
       {loading ? (
         <ActivityIndicator color={isPrimary ? '#fff' : undefined} />
       ) : (
-        <Text className={isPrimary ? 'text-center text-lg font-medium text-white' : 'text-center text-lg font-medium text-primary-600 dark:text-primary-400'}>
+        <Text
+          className={
+            isPrimary
+              ? 'text-center text-lg font-medium text-white'
+              : 'text-center text-lg font-medium text-primary-600 dark:text-primary-400'
+          }>
           {title}
         </Text>
       )}
