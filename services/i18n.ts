@@ -32,15 +32,21 @@ const dict: Record<Locale, Record<string, string>> = {
 
     // UI strings
     'auth.login.title': 'Log In',
+    'auth.login.subtitle': 'Welcome back. Access your AI resume workspace.',
     'auth.login.submit': 'Log In',
     'auth.login.submitting': 'Logging In...',
     'auth.register.title': 'Create Account',
+    'auth.register.subtitle': 'Start crafting a standout resume powered by AI.',
     'auth.register.submit': 'Sign Up',
     'auth.register.submitting': 'Creating Account...',
     'auth.alert.login_failed': 'Login Failed',
     'auth.alert.register_failed': 'Registration Failed',
     'auth.cta.signup': "Don't have an account? Sign up",
     'auth.cta.login': 'Already have an account? Log in',
+    'auth.welcome.title': 'ResumeAI',
+    'auth.welcome.subtitle': 'Design, refine and export job-ready resumes in minutes.',
+    'auth.cta.get_started': 'Get Started',
+    'auth.cta.continue': 'Continue to App',
   },
 };
 

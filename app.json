@@ -12,7 +12,7 @@
     "scheme": "resumeai",
     "plugins": ["expo-router"],
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.gif",
