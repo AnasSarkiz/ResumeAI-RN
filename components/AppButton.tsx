@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 
-interface AuthButtonProps {
+interface AppButtonProps {
   title: string;
   onPress: () => void;
   loading?: boolean;
@@ -9,7 +9,7 @@ interface AuthButtonProps {
   disabled?: boolean;
 }
 
-const AuthButton: React.FC<AuthButtonProps> = ({
+const AppButton: React.FC<AppButtonProps> = ({
   title,
   onPress,
   loading,
@@ -27,7 +27,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
       accessibilityRole="button"
       onPress={onPress}
       disabled={loading || disabled}
-      className={`${cls} my-2 disabled:opacity-60`}>
+      className={`${cls} opacity-100 disabled:opacity-60`}>
       {loading ? (
         <ActivityIndicator color={isPrimary ? '#fff' : undefined} />
       ) : (
@@ -44,4 +44,4 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   );
 };
 
-export default AuthButton;
+export default AppButton;

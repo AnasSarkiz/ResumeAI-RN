@@ -6,7 +6,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import { t } from '../../services/i18n';
 import AuthLayout from '../../components/AuthLayout';
 import AuthTextInput from '../../components/AuthTextInput';
-import AuthButton from '../../components/AuthButton';
+import AppButton from '../../components/AppButton';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -92,12 +92,12 @@ export default function RegisterScreen() {
         />
 
         <View className="mt-2 space-y-3">
-          <AuthButton
+          <AppButton
             title={loading ? t('auth.register.submitting') : t('auth.register.submit')}
             onPress={handleRegister}
             loading={loading}
           />
-          <AuthButton
+          <AppButton
             title={t('auth.cta.login')}
             variant="secondary"
             onPress={() => {

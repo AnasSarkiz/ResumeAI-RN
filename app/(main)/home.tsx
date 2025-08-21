@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
@@ -17,12 +16,12 @@ import { useAuth } from '../../context/AuthContext';
 import { useResume } from '../../context/ResumeContext';
 import * as Sharing from 'expo-sharing';
 import { exportResumeToPDF } from '../../services/pdf';
-import { renderHTMLTemplate, TemplateId } from '../../services/templates';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { SavedResume } from 'types/resume';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNetwork } from '../../context/NetworkContext';
+import PageHeader from '../../components/PageHeader';
+import AppButton from '../../components/AppButton';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
@@ -185,38 +184,15 @@ export default function HomeScreen() {
       </Text>
       {!EXPORT_ONLY && (
         <View className="w-full space-y-3">
-          <TouchableOpacity
+          <AppButton
+            title="✨ Create with AI"
             onPress={() => router.push('/resume/ai-generator')}
-            className="flex-row items-center justify-center rounded-full py-4 shadow-lg">
-            <LinearGradient
-              colors={['#25439A', '#3D92C4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                height: 52,
-                width: '100%',
-                borderRadius: 12,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-              }}>
-              <Ionicons
-                className="absolute -left-1 -top-1 overflow-hidden"
-                name="sparkles"
-                size={36}
-                color="gold"
-              />
-              <Text className="ml-2 text-center font-semibold text-white">✨ Create with AI</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <TouchableOpacity
+          />
+          <AppButton
+            title="Create Manually"
+            variant="secondary"
             onPress={() => router.push('/resume/editor')}
-            className="flex-row items-center justify-center rounded-full border border-primary bg-white py-4 dark:bg-gray-800">
-            <Ionicons name="add-circle-outline" size={20} color="#25439A" />
-            <Text className="ml-2 text-center font-medium text-primary dark:text-primary-300">
-              Create Manually
-            </Text>
-          </TouchableOpacity>
+          />
         </View>
       )}
     </View>
@@ -376,20 +352,22 @@ export default function HomeScreen() {
   return (
     <View className="flex-1 bg-gray-50 p-4 dark:bg-gray-900">
       {/* Header */}
-      <View className="mb-6 flex-row items-center justify-between">
-        <Text className="text-3xl font-bold text-gray-800 dark:text-gray-100">My Resumes</Text>
-        {!EXPORT_ONLY && (
-          <Link href="/(main)/profile" asChild>
-            <TouchableOpacity className="flex-row items-center space-x-2">
-              <View className="h-12 w-12 items-center justify-center rounded-full bg-primary shadow-md">
-                <Text className="text-lg font-semibold text-white">
-                  {user?.name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || 'U'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </Link>
-        )}
-      </View>
+      <PageHeader
+        title="My Resumes"
+        subtitle={
+          !EXPORT_ONLY ? 'Create, refine and export your resumes' : 'Offline mode: export only'
+        }
+        avatar={
+          !EXPORT_ONLY
+            ? {
+                text: (user?.name?.charAt(0) ||
+                  user?.email?.charAt(0)?.toUpperCase() ||
+                  'U') as string,
+                onPress: () => router.push('/(main)/profile'),
+              }
+            : undefined
+        }
+      />
 
       {loading ? (
         <View className="flex-1 items-center justify-center">

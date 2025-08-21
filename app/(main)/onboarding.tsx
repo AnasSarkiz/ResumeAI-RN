@@ -1,107 +1,110 @@
-// import React, { useState } from 'react';
-// import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
-// import { Link } from 'expo-router';
+import React, { useMemo, useRef, useState } from 'react';
+import { View, Text, Image, FlatList, ViewToken } from 'react-native';
+import { router } from 'expo-router';
+import AppButton from '../../components/AppButton';
 
-// const onboardingData = [
-//   {
-//     id: '1',
-//     title: 'Create Professional Resumes',
-//     description: 'Build polished resumes with our easy-to-use editor',
-//     image: require('../../assets/ResumeAILogo.png'),
-//   },
-//   {
-//     id: '2',
-//     title: 'AI-Powered Enhancements',
-//     description: 'Get smart suggestions to improve your resume',
-//     image: require('../../assets/ResumeAILogo.png'),
-//   },
-//   {
-//     id: '3',
-//     title: 'Export to PDF',
-//     description: 'Download and share your resume with employers',
-//     image: require('../../assets/ResumeAILogo.png'),
-//   },
-// ];
-
-// export default function OnboardingScreen() {
-//   const [currentIndex, setCurrentIndex] = useState(0);
-
-//   const handleNext = () => {
-//     if (currentIndex < onboardingData.length - 1) {
-//       setCurrentIndex(currentIndex + 1);
-//     }
-//   };
-
-//   const handlePrevious = () => {
-//     if (currentIndex > 0) {
-//       setCurrentIndex(currentIndex - 1);
-//     }
-//   };
-
-//   return (
-//     <View className="flex-1 bg-gray-50 dark:bg-gray-900">
-//       <FlatList
-//         data={onboardingData}
-//         horizontal
-//         pagingEnabled
-//         showsHorizontalScrollIndicator={false}
-//         onMomentumScrollEnd={(e) => {
-//           const index = Math.round(
-//             e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width
-//           );
-//           setCurrentIndex(index);
-//         }}
-//         renderItem={({ item }) => (
-//           <View className="w-screen flex-1 items-center justify-center p-6">
-//             <Image source={item.image} className="mb-8 h-64 w-64" />
-//             <Text className="mb-4 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">{item.title}</Text>
-//             <Text className="mb-8 text-center text-lg text-gray-600 dark:text-gray-300">{item.description}</Text>
-//           </View>
-//         )}
-//       />
-
-//       <View className="mb-8 flex-row justify-center">
-//         {onboardingData.map((_, index) => (
-//           <View
-//             key={index}
-//             className={`mx-1 h-2 w-2 rounded-full ${currentIndex === index ? 'bg-primary-600 dark:bg-primary-400' : 'bg-gray-300 dark:bg-gray-600'}`}
-//           />
-//         ))}
-//       </View>
-
-//       <View className="px-6 pb-8">
-//         {currentIndex === onboardingData.length - 1 ? (
-//           <Link href="./home" asChild>
-//             <TouchableOpacity className="rounded-full bg-primary-600 dark:bg-primary-500 py-3">
-//               <Text className="text-center text-lg font-medium text-white">Get Started</Text>
-//             </TouchableOpacity>
-//           </Link>
-//         ) : (
-//           <View className="flex-row justify-between">
-//             <TouchableOpacity
-//               onPress={handlePrevious}
-//               disabled={currentIndex === 0}
-//               className={`px-6 py-3 ${currentIndex === 0 ? 'opacity-0' : ''}`}>
-//               <Text className="font-medium text-primary-600 dark:text-primary-400">Back</Text>
-//             </TouchableOpacity>
-//
-//             <TouchableOpacity onPress={handleNext} className="rounded-full bg-primary-600 dark:bg-primary-500 px-6 py-3">
-//               <Text className="font-medium text-white">Next</Text>
-//             </TouchableOpacity>
-//           </View>
-//         )}
-//       </View>
-//     </View>
-//   );
-// }
-
-import React from 'react';
-import { View, Text } from 'react-native';
+type Slide = { id: string; title: string; description: string; image: any };
 
 export default function OnboardingScreen() {
+  const slides: Slide[] = useMemo(
+    () => [
+      {
+        id: '1',
+        title: 'Create Professional Resumes',
+        description: 'Build polished resumes with our easy-to-use editor.',
+        image: require('../../assets/icon.png'),
+      },
+      {
+        id: '2',
+        title: 'AI-Powered Enhancements',
+        description: 'Let AI generate and refine bullet points and summaries.',
+        image: require('../../assets/icon.png'),
+      },
+      {
+        id: '3',
+        title: 'Export to PDF',
+        description: 'Pick a template and export a job-ready PDF in seconds.',
+        image: require('../../assets/icon.png'),
+      },
+    ],
+    []
+  );
+
+  const listRef = useRef<FlatList<Slide>>(null);
+  const [index, setIndex] = useState(0);
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems?.length) {
+      const i = viewableItems[0].index ?? 0;
+      setIndex(i);
+    }
+  }).current;
+
+  const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 60 });
+
+  const goNext = () => {
+    if (index < slides.length - 1) {
+      listRef.current?.scrollToIndex({ index: index + 1, animated: true });
+    } else {
+      router.replace('./home');
+    }
+  };
+
+  const goBack = () => {
+    if (index > 0) listRef.current?.scrollToIndex({ index: index - 1, animated: true });
+  };
+
   return (
-    <View className="flex-1 items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <Text className="text-lg font-semibold text-gray-900 dark:text-gray-100">Onboarding</Text>
+    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
+      <FlatList
+        ref={listRef}
+        data={slides}
+        horizontal
+        pagingEnabled
+        keyExtractor={(item) => item.id}
+        showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewConfigRef.current}
+        renderItem={({ item }) => (
+          <View className="w-screen flex-1 items-center justify-center p-6">
+            <Image source={item.image} className="mb-8 h-48 w-48" />
+            <Text className="mb-2 text-center text-2xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
+              {item.title}
+            </Text>
+            <Text className="mb-8 text-center text-base text-gray-600 dark:text-gray-300">
+              {item.description}
+            </Text>
+          </View>
+        )}
+      />
+
+      {/* Pagination */}
+      <View className="mb-6 flex-row justify-center">
+        {slides.map((_, i) => (
+          <View
+            key={i}
+            className={`mx-1 h-2 w-2 rounded-full ${
+              i === index ? 'bg-primary-600 dark:bg-primary-400' : 'bg-gray-300 dark:bg-gray-700'
+            }`}
+          />
+        ))}
+      </View>
+
+      {/* Actions */}
+      <View className="mb-10 px-6">
+        {index === slides.length - 1 ? (
+          <AppButton title="Get Started" onPress={() => router.replace('./home')} />
+        ) : (
+          <View className="flex-row justify-between gap-3">
+            <View className="w-1/3">
+              <AppButton title="Back" variant="secondary" onPress={goBack} disabled={index === 0} />
+            </View>
+            <View className="w-2/3">
+              <AppButton title="Next" onPress={goNext} />
+            </View>
+          </View>
+        )}
+      </View>
     </View>
   );
 }

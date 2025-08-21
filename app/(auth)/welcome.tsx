@@ -3,7 +3,7 @@ import { View, Text, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { t } from '../../services/i18n';
-import AuthButton from '../../components/AuthButton';
+import AppButton from '../../components/AppButton';
 
 export default function WelcomeScreen() {
   const { user } = useAuth();
@@ -22,17 +22,14 @@ export default function WelcomeScreen() {
 
       <View className="mt-10 space-y-3">
         {user ? (
-          <AuthButton
+          <AppButton
             title={t('auth.cta.continue')}
             onPress={() => router.replace('/(main)/home')}
           />
         ) : (
           <>
-            <AuthButton
-              title={t('auth.cta.get_started')}
-              onPress={() => router.push('/register')}
-            />
-            <AuthButton
+            <AppButton title={t('auth.cta.get_started')} onPress={() => router.push('/register')} />
+            <AppButton
               title={t('auth.cta.login')}
               variant="secondary"
               onPress={() => router.push('/login')}
