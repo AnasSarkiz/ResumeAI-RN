@@ -47,68 +47,64 @@ export const generateFullHTMLResume = async (input: AIResumeInput): Promise<stri
   if (!connectivityOnline()) {
     throw new OfflineError();
   }
-  const base = `You are a senior resume designer and front-end stylist.
-Create a COMPLETE, PRODUCTION-READY resume as a single HTML document suitable for WebView and PDF export.
+  const base = `You are a senior resume designer and front‑end engineer.
+Create ONE complete, production‑ready resume as a single self‑contained HTML document suitable for WebView and PDF export.
 
-Strict requirements:
-- Return ONLY raw HTML. Do NOT include markdown code fences.
-- The HTML must be self-contained (inline <style>, no external links or fonts).
-- Use responsive, print-friendly CSS with A4-focused layout.
-- Include explicit print CSS to enforce A4:
+Hard rules (must follow exactly):
+- Return ONLY raw HTML. No markdown, no code fences, no explanations.
+- Self‑contained only: inline <style>; no external CSS, JS, fonts, or images.
+- A4 pages with automatic pagination:
   - @page { size: A4; margin: 15mm; }
-  - html, body width: 210mm; main content height: 297mm.
-  - Wrap content in <div class="page"> sized for A4 and ensure the entire resume fits on ONE SINGLE A4 PAGE (no additional pages).
-  - If content risks overflow, REDUCE spacing (margins/paddings), font sizes, and LIMIT bullets per role (3–5) to keep within one page.
-  - Preserve colors in print: -webkit-print-color-adjust: exact; print-color-adjust: exact.
-- Use semantic structure, accessible markup, and consistent heading hierarchy.
-- Absolutely NO placeholders like [X] or {metric}. If unsure, omit rather than fabricate.
+  - Use a <div class="page"> wrapper for EACH page. Size each .page for A4 (width 210mm; min-height 297mm).
+  - If content overflows, CREATE a new <div class="page"> and continue content on the next page.
+  - Ensure each page preserves the SAME background, spacing system, and overall design language.
+  - Use print-safe CSS: -webkit-print-color-adjust: exact; print-color-adjust: exact.
+- Valid, semantic HTML with accessible structure and consistent heading hierarchy.
+- Absolutely NO placeholders like [X], {metric}, or lorem ipsum. If unsure, omit.
 
-Voice and content:
-- Write powerful, achievement-driven text with clear outcomes, scope, and impact.
-- Prefer STAR-style bullets (Situation-Task-Action-Result) distilled to a single, punchy sentence.
-- Quantify results realistically (%, $, time saved, scale) when context allows; avoid exaggeration.
-- Keep bullets concise (12–20 words), vary strong action verbs, avoid first-person.
+Content guidelines:
+- Write achievement‑focused bullets using concise STAR‑style phrasing in 12–20 words.
+- Use varied strong action verbs, avoid first‑person, and quantify realistically when context allows.
+- Keep text ATS‑friendly: simple lists, clear section titles, avoid tables except for subtle layout.
 
-Design & creativity:
-- Produce a tasteful, modern visual design while remaining ATS-friendly.
-- Use a refined typographic system (e.g., headings vs body, consistent sizes/weights, letter-spacing for headings).
-- Employ a limited color palette with subtle accents for headings, rules, or icons (ensure legible in B/W print).
-- Consider optional layout features when appropriate: subtle sidebar, balanced two-column sections, section dividers, timeline accents.
-- Use CSS variables for colors/spacing to keep styling coherent.
+Design guidelines:
+- Modern, tasteful, professional; clearly readable in color and B/W.
+- Establish a coherent type scale (headings vs body) and spacing system.
+- Use a limited accent palette and optional layout features (e.g., gentle sidebar or two‑column sections) only if they improve clarity.
+- Prefer CSS variables for colors/spacing for consistency.
 
-User Info:
+User data (parse and render):
 - Full Name: ${input.fullName}
 - Email: ${input.email}
 - Country Code: ${input.countryCode || ''}
 - Phone: ${input.phone || ''}
 - Date of Birth: ${input.dateOfBirth || ''}
 - Country: ${input.country || ''}
-- Links (newline-separated, format: Label - URL):
+- Links (newline‑separated, format: Label - URL):
 ${input.links || ''}
 - Target Job Title: ${input.jobTitle || ''}
 - Target Role: ${input.targetRole || ''}
 - Industry: ${input.industry || ''}
 - Summary: ${input.summary || ''}
-- Experience entries (newline-separated):
+- Experience entries (newline‑separated):
 ${input.experience || ''}
-- Education entries (newline-separated):
+- Education entries (newline‑separated):
 ${input.education || ''}
-- Skills (comma-separated):
+- Skills (comma‑separated):
 ${input.skills || ''}
 
-Data parsing notes:
-- Treat each EDUCATION line as one item: Degree — Institution (Years).
-- Treat each EXPERIENCE line as one role: Role — Company (Dates) with 3–5 impact bullets inferred from text.
-- Parse SKILLS by comma, dedupe and render cleanly (tags or compact list).
+Parsing notes:
+- Each EDUCATION line is one item: Degree — Institution (Years).
+- Each EXPERIENCE line is one role: Role — Company (Dates) with 3–5 impact bullets inferred from text.
+- Parse SKILLS by comma, dedupe, and render compactly (tags or inline list).
 
-Design instructions from user: ${input.designInstructions || 'Clean, modern, ATS-friendly with tasteful accents.'}
+Design intent from user: ${input.designInstructions || 'Clean, modern, ATS‑friendly with tasteful accents.'}
 
-Output:
- \n Provide full HTML code with inline CSS.\nIncorporate subtle but high-quality design details (gradients, borders, dividers, creative section titles, background accents, icons if simple.\nThink outside the box—experiment with vertical text, rotated elements, oversized headings, two-tone backgrounds, iconography, or minimalist geometric shapes.
-- A visually distinctive but professional resume in a single HTML file with inline CSS.
-- Sections: Summary, Experience, Education, Skills when content exists.
-- Top contact block: prominent name, then email/phone (with country code), and LINKS as labeled anchors.
-- Ensure the final HTML adheres to A4 rules, uses the <div class="page"> wrapper, and FITS WITHIN ONE SINGLE A4 PAGE with 15mm margins.
+Output exactly one COMPLETE HTML document with inline CSS that:
+- Uses one or more <div class="page"> wrappers (one per A4 page) with 15mm margins enforced by @page.
+- Includes a prominent header with name, contact, and labeled links.
+- Includes sections (if data exists): Summary, Experience, Education, Skills.
+- When content exceeds one page, continues on additional pages while maintaining the same background/design.
 `;
 
   try {
@@ -160,20 +156,41 @@ export const editHTMLResume = async (
   if (!connectivityOnline()) {
     throw new OfflineError();
   }
-  const prompt = `You are a senior resume designer and front-end engineer.
-You will receive an existing COMPLETE resume as a single self-contained HTML document and a set of edit instructions.
+  const prompt = `You are a senior resume designer and front‑end engineer.
+You will receive an existing COMPLETE, self‑contained HTML resume and a set of edit instructions.
 
-Your task:
-- Apply the requested edits precisely and tastefully.
-- Keep the document as valid, self-contained HTML suitable for WebView and PDF export.
-- Preserve A4/print settings already present (e.g., @page size A4, print color adjust, page container sizes) and global structure.
-- Maintain semantic markup, accessibility, and consistent design language.
-- Do not invent data; only reword/restructure or add elements explicitly implied by instructions.
+Task:
+- Apply the edits precisely and minimally. Preserve the existing visual identity unless changes are explicitly requested.
+- Keep the output valid, self‑contained HTML for WebView/PDF. Do not add external resources.
+- Preserve and enforce A4 / print rules (e.g., @page { size: A4; margin: 15mm; }, print‑color‑adjust exact) and use automatic pagination across MULTIPLE A4 pages when content overflows.
+- Use a <div class="page"> wrapper for EACH page; size each .page for A4 (width 210mm; min‑height 297mm). Continue content on new .page blocks as needed.
+- Maintain semantic markup, accessibility, and consistent heading hierarchy.
+- Do NOT invent or hallucinate content. Only reword, restructure, or add content clearly implied by the instructions.
 
-Strict output requirements:
-- Return ONLY the final raw HTML (no markdown, no backticks, no commentary).
+Add/Rewrite policy:
+- When the instruction says "add":
+  - Insert the new content in the most appropriate section (e.g., Summary, Experience role, Education, Skills). Create the section only if it clearly should exist.
+  - If the user provides exact text, insert it verbatim unless they also say to "polish" or "reword".
+  - Keep additions concise and impact‑oriented. Bullets should be 12–20 words.
+- When the instruction says "rewrite" or "reword":
+  - Replace the specified text with a clearer, more concise version that preserves meaning and professional tone.
+  - Improve action verbs and quantify realistically if context permits; avoid adding new facts.
+- If the edit risks breaking the single‑page A4 fit, FIRST tighten spacing/typography; if still overflowing, summarize or reduce less‑critical bullets instead of spilling to a second page.
+- Resolve vague locations by choosing the best‑matching section/role heading. Respect indices (e.g., "Experience #2 bullet 3").
+
+Design edit policy:
+- When asked to change visual design (colors, spacing, typography, layout):
+  - Stay self‑contained and ATS‑friendly; use system fonts or stack (e.g., -apple-system, Segoe UI, Roboto, Arial, sans-serif). No external fonts.
+  - You may adjust color palette, spacing scale, borders/dividers, and type scale to improve clarity.
+  - Keep or minimally adapt existing class names/structure to avoid breaking selectors unless a restructure is explicitly requested.
+  - Layout changes (e.g., two‑column, sidebar) are allowed only if they remain readable in print and paginate cleanly across multiple A4 pages.
+  - Avoid heavy backgrounds/images; prefer subtle CSS (gradients, rules, simple shapes). Use Unicode icons or pure CSS only.
+  - Always maintain one or more <div class="page"> wrappers (one per A4 page) and print CSS (@page A4 with margins, print‑color‑adjust exact). Ensure all pages share the SAME background/design.
+
+Strict output:
+- Return ONLY the final raw HTML. No markdown, no backticks, no comments.
 - Include <!DOCTYPE html> at the top.
-- Keep it self-contained with inline <style> only (no external fonts/links).
+- Inline <style> only.
 
 Edit instructions:
 """
