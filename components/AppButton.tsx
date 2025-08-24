@@ -27,7 +27,7 @@ const AppButton: React.FC<AppButtonProps> = ({
       accessibilityRole="button"
       onPress={onPress}
       disabled={loading || disabled}
-      className={`${cls} opacity-100 disabled:opacity-60`}>
+      className={`${cls} opacity-100 my-2 disabled:opacity-60`}>
       {loading ? (
         <ActivityIndicator color={isPrimary ? '#fff' : undefined} />
       ) : (

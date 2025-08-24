@@ -54,10 +54,13 @@ export const renderSkills = (r: ManualResumeInput) => `
 // Common A4 print styles
 export const A4_STYLES = `
   @page { size: A4; margin: 15mm; }
-  body { width: 210mm; height: 297mm; margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; }
   * { box-sizing: border-box; }
+  /* One wrapper per A4 page */
+  .page { width: 210mm; min-height: 297mm; padding: 15mm; position: relative; }
+  .page + .page { page-break-before: always; }
   @media print {
-    html, body { width: 210mm; height: 297mm; }
+    .page { break-inside: avoid; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 `;
